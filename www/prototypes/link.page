@@ -6,7 +6,7 @@
     -set text {@link@} \
     -set form {} \
     -set form_constraints {
-       link:include
+       _title:localized_text link:include 
      }
 
 

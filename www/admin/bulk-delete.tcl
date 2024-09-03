@@ -1,18 +1,18 @@
 ::xowiki::Package initialize -ad_doc {
-  this file is called by the bulk action of admin/list 
+  this file is called by the bulk action of admin/list
 
   @author Gustaf Neumann (gustaf.neumann@wu-wien.ac.at)
   @creation-date Nov 11, 2007
   @cvs-id $Id$
 
-  @param object_type 
+  @param object_type
 } -parameter {
   {-objects ""}
 }
 
-foreach o $objects {
-  ns_log notice "DELETE $o"
-  $package_id www-delete -name $o 
+foreach item_id [$package_id get_ids_for_bulk_actions $objects] {
+  ns_log notice "DELETE $item_id"
+  ::$package_id www-delete -item_id $item_id
 }
 
 ad_returnredirect "./list"

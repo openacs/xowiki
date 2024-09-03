@@ -9,7 +9,7 @@ if {![apm_package_installed_p dotlrn]} {
   #
   # We have no dotlrn installed
   #
-  return 
+  return
 }
 
 
@@ -33,7 +33,7 @@ namespace eval ::xowiki::includelet {
           {-community_id:integer}
         }}
       }
-  
+
   dotlrn-portlet instproc initialize {} {
     :get_parameters
     #
@@ -73,13 +73,13 @@ namespace eval ::xowiki::includelet {
         }
       }
     }
-    
+
     if {![info exists :community_id]} {
       #
       # we have no community_id, try to get it from site map, case (3)
       #
       set :community_id [dotlrn_community::get_community_id]
-      #my msg "got from context ${:community_id}"
+      #:msg "got from context ${:community_id}"
     }
 
     if {![info exists :community_id] || ${:community_id} eq ""} {
@@ -87,14 +87,14 @@ namespace eval ::xowiki::includelet {
       # we have no community_id, get all :community ids, case (4)
       #
       set user_id [::xo::cc user_id]
-      set community_ids [db_list get_memberships {
-        select community_id 
+      set community_ids [::xo::dc list -prepare integer get_memberships {
+        select community_id
         from dotlrn_member_rels_approved
         where user_id = :user_id
       }]
       set :community_id $community_ids
     }
-    
+
     if {${:community_id} eq ""} {
       error "Cannot determine community_id(s);\nmaybe, you are not logged in?\n"
     }
@@ -111,7 +111,7 @@ namespace eval ::xowiki::includelet {
                                  -applet_key [dotlrn_[:package_key]::applet_key]]
       }
     }
-    #my msg community_id=${:community_id}-package_ids=$package_ids
+    #:msg community_id=${:community_id}-package_ids=$package_ids
     :cf [list shaded_p [:shaded] community_id ${:community_id} package_id $package_ids]
   }
 
@@ -125,7 +125,10 @@ namespace eval ::xowiki::includelet {
       -parameter {
         {adp_file "/packages/dotlrn/www/dotlrn-main-portlet"}
         {title "#dotlrn.dotlrn_main_portlet_pretty_name#"}
+      } -ad_doc {
+        Include dotLRN main portlet
       }
+
   dotlrn-main instproc initialize {} {
     :cf [list shaded_p [:shaded]]
   }
@@ -136,7 +139,10 @@ namespace eval ::xowiki::includelet {
         {allow_multiple_community_ids false}
         {adp_file "/packages/dotlrn-portlet/www/dotlrn-portlet"}
         {title "#dotlrn.subcommunities_pretty_plural#"}
+      }  -ad_doc {
+        Include dotLRN portlet
       }
+
 
   # FORUMS
   ::xowiki::IncludeletClass create dotlrn-forums -superclass dotlrn-portlet \
@@ -144,14 +150,19 @@ namespace eval ::xowiki::includelet {
         {package_key "forums"}
         {adp_file "/packages/forums-portlet/www/forums-portlet"}
         {title "#forums-portlet.pretty_name#"}
+      } -ad_doc {
+        Include dotLRN forums portlet
       }
-  
+
+
   # FAQ
   ::xowiki::IncludeletClass create dotlrn-faq -superclass dotlrn-portlet \
       -parameter {
         {package_key "faq"}
         {adp_file "/packages/faq-portlet/www/faq-portlet"}
         {title "#faq-portlet.pretty_name#"}
+      } -ad_doc {
+        Include dotLRN FAQ portlet
       }
 
   # NEWS
@@ -160,6 +171,8 @@ namespace eval ::xowiki::includelet {
         {package_key "news"}
         {adp_file "/packages/news-portlet/www/news-portlet"}
         {title "#news-portlet.pretty_name#"}
+      }  -ad_doc {
+        Include dotLRN NEWS portlet
       }
 
   # CALENDAR
@@ -168,6 +181,8 @@ namespace eval ::xowiki::includelet {
         {package_key "calendar"}
         {adp_file "/packages/calendar-portlet/www/calendar-portlet"}
         {title "#calendar-portlet.pretty_name#"}
+      }  -ad_doc {
+        Include dotLRN calendar portlet
       }
   dotlrn-calendar instproc initialize {} {
     ::xo::Page requireCSS "/resources/calendar/calendar.css"
@@ -184,6 +199,8 @@ namespace eval ::xowiki::includelet {
         {package_key "calendar"}
         {adp_file "/packages/calendar-portlet/www/calendar-list-portlet"}
         {title "#calendar-portlet.Schedule#"}
+      }  -ad_doc {
+        Include dotLRN calendar list portlet
       }
 
   # Extra includelet (somewhat similar to static info portlet)
@@ -191,6 +208,8 @@ namespace eval ::xowiki::includelet {
       -parameter {
         {allow_multiple_community_ids false}
         {title}
+      }  -ad_doc {
+        Include dotLRN info portlet
       }
   dotlrn-info instproc initialize {} {
     next
@@ -198,14 +217,14 @@ namespace eval ::xowiki::includelet {
   }
   dotlrn-info instproc render {} {
     set key [dotlrn_community::get_community_key -community_id ${:community_id}]
-    set page [${:package_id} resolve_page $key method]
+    set page [::${:package_id} resolve_page $key method]
     if {$page ne ""} {
       return [$page render]
     } else {
       #
       # If the content page does not exist, offer the user to create it.
       #
-      set edit_snippet [${:package_id} create_new_snippet $key]
+      set edit_snippet [::${:package_id} create_new_snippet $key]
       return $edit_snippet
     }
   }

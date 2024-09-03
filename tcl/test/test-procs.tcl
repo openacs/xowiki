@@ -8,7 +8,11 @@ namespace eval ::xowiki::test {
         the construction of HTML ids.
 
     } {
-        return [$node selectNodes {string(//form//input[@name="__object_name"]/@value)}]
+        set result [$node selectNodes {string(//form//input[@name="__object_name"]/@value)}]
+        if {$result ne ""} {
+            set result [::security::parameter::validated $result]
+        }
+        return $result
     }
 
     ad_proc -private ::xowiki::test::get_form_CSSclass {node} {
@@ -42,16 +46,11 @@ namespace eval ::xowiki::test {
         return [$node selectNodes $q]
     }
 
-    ad_proc -private ::xowiki::test::get_url_from_location {d} {
-        set location [ns_set iget [dict get $d headers] Location ""]
-        set url [ns_parseurl $location]
-        #aa_log "parse url [ns_parseurl $location]"
-        if {[dict get $url tail] ne ""} {
-            set url [dict get $url path]/[dict get $url tail]
-        } else {
-            set url [dict get $url path]
-        }
-        return $url
+    ad_proc -private -deprecated ::xowiki::test::get_url_from_location {d} {
+        Deprecated version of ::acs::test::get_url_from_location
+        @see acs::test::get_url_from_location
+    } {
+        ::acs::test::get_url_from_location $d
     }
 
     ad_proc -private ::xowiki::test::pretty_form_content {d} {
@@ -71,10 +70,135 @@ namespace eval ::xowiki::test {
         return [$node selectNodes string(//form\[contains(@class,'$className')\]/@action)]
     }
 
+    #
+    # "require_folder", "require_page" and "require_link" are here just for testing
+    #
+    ad_proc -private ::xowiki::test::require_folder {name parent_id package_id} {
+        set item_id [::xo::db::CrClass lookup -name $name -parent_id $parent_id]
+
+        if {$item_id == 0} {
+            set form_id [::$package_id instantiate_forms -forms en:folder.form]
+            set f [::$form_id create_form_page_instance \
+                       -name $name \
+                       -nls_language en_US \
+                       -default_variables [list \
+                                               title "Folder $name" \
+                                               parent_id $parent_id \
+                                               package_id $package_id \
+                                               description {{{child-resources}}}]]
+            $f publish_status ready
+            $f save_new
+            set item_id [$f item_id]
+        }
+        aa_log "  $name => $item_id"
+        return $item_id
+    }
+
+    ad_proc -private ::xowiki::test::require_link {name parent_id package_id target_ref} {
+        set item_id [::xo::db::CrClass lookup -name $name -parent_id $parent_id]
+
+        if {$item_id == 0} {
+            set form_id [::$package_id instantiate_forms -forms en:link.form]
+            set f [::$form_id create_form_page_instance \
+                       -name $name \
+                       -nls_language en_US \
+                       -instance_attributes [list link $target_ref] \
+                       -default_variables [list \
+                                               title "Link $name -> $target_ref" \
+                                               parent_id $parent_id \
+                                               package_id $package_id]]
+            $f publish_status ready
+            $f save_new
+            set item_id [$f item_id]
+        }
+        aa_log "  $name => $item_id"
+        return $item_id
+    }
+
+    ad_proc -private ::xowiki::test::require_page {
+        -text
+        {-page_order ""}
+        name
+        parent_id
+        package_id
+        {file_content ""}
+    } {
+        set item_id [::xo::db::CrClass lookup -name $name -parent_id $parent_id]
+        if {$item_id == 0} {
+            if {$file_content eq ""} {
+                ::$package_id get_lang_and_name -name $name lang stripped_name
+                set nls_language [::xowiki::Package get_nls_language_from_lang $lang]
+                if {![info exists text]} {
+                    set text [list "Content of $name" text/html]
+                }
+                set f [::xowiki::Page new \
+                           -name $name \
+                           -description "" \
+                           -parent_id $parent_id \
+                           -package_id $package_id \
+                           -nls_language $nls_language \
+                           -page_order $page_order \
+                           -text $text]
+            } else {
+                set mime_type [::xowiki::guesstype $name]
+                set f [::xowiki::File new \
+                           -name $name \
+                           -description "" \
+                           -parent_id $parent_id \
+                           -package_id $package_id \
+                           -page_order $page_order \
+                           -mime_type $mime_type]
+
+                ::xo::write_tmp_file import_file [::base64::decode $file_content]
+                $f set import_file $import_file
+            }
+            $f publish_status ready
+            $f save_new
+            set item_id [$f item_id]
+            $f destroy_on_cleanup
+        }
+        ns_log notice "Page  $name => $item_id"
+        aa_log "  $name => $item_id"
+
+        return $item_id
+    }
+
+    ad_proc -private ::xowiki::test::require_form_page {
+        {-title}
+        {-form en:page.form}
+        {-page_order}
+        name parent_id package_id} {
+        set item_id [::xo::db::CrClass lookup -name $name -parent_id $parent_id]
+
+        if {$item_id == 0} {
+            set form_id [::$package_id instantiate_forms -forms $form]
+            set f [::$form_id create_form_page_instance \
+                       -name $name \
+                       -nls_language en_US \
+                       -default_variables [list \
+                                               title [expr {[info exists title] ? $title : "Page $name"}] \
+                                               {*}[expr {[info exists page_order] ? "page_order $page_order" : ""}] \
+                                               parent_id $parent_id \
+                                               package_id $package_id]]
+            $f publish_status ready
+            $f save_new
+            set item_id [$f item_id]
+        }
+        aa_log "  $name => $item_id"
+        return $item_id
+    }
+
+    ad_proc -private ::xowiki::test::label {intro case ref} {
+        return "$intro '$ref' -- $case"
+    }
+
+
+
     ad_proc ::xowiki::test::require_test_folder {
-        -user_id:required
         -instance:required
         -folder_name:required
+        {-user_id 0}
+        {-last_request ""}
         {-form_name folder.form}
         {-fresh:boolean false}
         {-update ""}
@@ -97,21 +221,22 @@ namespace eval ::xowiki::test {
         #
         # First check, if test folder exists already.
         #
-        set d [acs::test::http -user_id $user_id $instance/$folder_name]
+        set d [acs::test::http -last_request $last_request -user_id $user_id $instance/$folder_name]
         if {[dict get $d status] == 200} {
             #
             # yes it exists - so delete it
             #
             if {$fresh_p} {
                 #
-                # since -fresh was specified, we delete the folder and
+                # Since -fresh was specified, we delete the folder and
                 # create it later again.
                 #
-                aa_log "test folder $folder_name exists already, ... delete it (user_id $user_id)"
-                set d [acs::test::http -user_id $user_id $instance/$folder_name?m=delete&return_url=$instance/]
+                aa_log "require_test_folder_ test folder $folder_name exists already, ... delete it (user_id $user_id)"
+                set d [acs::test::http -last_request $last_request -user_id $user_id \
+                           $instance/$folder_name?m=delete&return_url=$instance/]
                 if {[acs::test::reply_has_status_code $d 302]} {
-                    set location [::xowiki::test::get_url_from_location $d]
-                    set d [acs::test::http -user_id $user_id $location/]
+                    set location [::acs::test::get_url_from_location $d]
+                    set d [acs::test::http -last_request $last_request -user_id $user_id $location/]
                     acs::test::reply_has_status_code $d 200
                 }
             } else {
@@ -120,16 +245,17 @@ namespace eval ::xowiki::test {
         }
 
         if {$must_create} {
-            aa_log "create a fresh test folder $folder_name"
+            aa_log "require_test_folder: create a fresh test folder $folder_name"
             #
             # When we try folder creation without being logged in, we
             # expect a permission denied error.
             #
             set d [acs::test::http -user_id 0 $instance/$form_name?m=create-new&return_url=$instance/]
-            aa_equals "Status code valid" [dict get $d status] 403
+            acs::test::reply_has_status_code $d 403
 
             ::xowiki::test::create_form_page \
                 -user_id $user_id \
+                -last_request $last_request \
                 -instance $instance \
                 -path "" \
                 -autonamed \
@@ -144,43 +270,54 @@ namespace eval ::xowiki::test {
         }
 
         set new_folder_id [::$package_id lookup -name $folder_name]
-        aa_log "set folder_id [::$package_id lookup -name $folder_name] ==> $new_folder_id"
+        aa_log "require_test_folder: set folder_id [::$package_id lookup -name $folder_name] ==> $new_folder_id DONE"
 
         return [list folder_id $new_folder_id package_id $package_id]
     }
 
 
     ad_proc ::xowiki::test::create_form_page {
+        {-user_id:required 0}
+        {-last_request ""}
         -instance:required
-        -user_id:required
         -parent_id:required
         -form_name:required
         -path:required
         {-autonamed:boolean false}
         {-update ""}
-        {-extra_url_parameter {}}
+        {-remove ""}
+        {-extra_url_parameter ""}
+        {-expect_validation_error ""}
     } {
 
         Create a form page via the web interface.
-        In essence this calls $instance/$path/$form_name?m=create-new
+        In essence, this calls $instance/$path/$form_name?m=create-new
 
     } {
         #
         # Create a page under the parent_id
         #
-        aa_log "... create a page in test test folder $parent_id"
+        aa_log "create a page in test test folder $parent_id"
+        set url $instance/$path/$form_name?m=create-new&parent_id=$parent_id
+        if {$extra_url_parameter ne ""} {
+            append url &[export_vars $extra_url_parameter]
+        }
+        #aa_log "... create page via url: $url"
+
         set d [acs::test::http \
-                   -user_id $user_id \
-                   $instance/$path/$form_name?m=create-new&parent_id=$parent_id&[export_vars $extra_url_parameter]]
+                   -last_request $last_request -user_id $user_id \
+                   $url]
         acs::test::reply_has_status_code $d 302
 
-        set location [::xowiki::test::get_url_from_location $d]
-        aa_true "location '$location' is valid" {$location ne ""}
+        set location [::acs::test::get_url_from_location $d]
+        aa_true "create_form_page: location '$location' is valid" {$location ne ""}
 
         #
         # Call "edit" method on the new page
         #
-        set d [acs::test::http -user_id $user_id $location]
+        set d [acs::test::http \
+                   -last_request $last_request -user_id $user_id \
+                   $location]
         acs::test::reply_has_status_code $d 200
 
         set formCSSClass [::xowiki::utility formCSSclass $form_name]
@@ -190,80 +327,121 @@ namespace eval ::xowiki::test {
             ::acs::test::xpath::non_empty $root [subst {
                 //form\[contains(@class,'$formCSSClass')\]//button
             }]
-            set f_id          [::xowiki::test::get_object_name $root]
-            set f_page_name   [::xowiki::test::get_form_value $root $f_id _name]
-            set f_creator     [::xowiki::test::get_form_value $root $f_id _creator]
+            set form [::acs::test::xpath::get_form $root [subst {
+                //form\[contains(@class,'$formCSSClass')\]
+            }]]
+            #aa_log "FORM_CONTENT !$form!"
+
+            set fields [acs::test::form_get_fields $form]
+            set f_page_name   [dict get $fields _name]
+            set f_creator     [dict get $fields _creator]
             if {$autonamed_p} {
-                aa_true "page_name '$f_page_name' is NOT empty" {$f_page_name ne ""}
+                aa_true "create_form_page: page_name '$f_page_name' is NOT empty" {$f_page_name ne ""}
             } else {
-                aa_true "page_name '$f_page_name' is empty" {$f_page_name eq ""}
+                aa_log "autonamed form pages has page_name '$f_page_name' is empty"
+                dict set form_content _name $f_page_name
             }
-            aa_true "creator '$f_creator' is non-empty" {$f_creator ne ""}
+            aa_true "create_form_page: creator '$f_creator' is nonempty" {$f_creator ne ""}
 
-            set f_form_action  [::xowiki::test::get_form_action $root $formCSSClass]
-            aa_true "form_action '$f_form_action' is non-empty" {$f_form_action ne ""}
+            set f_form_action [dict get $form @action]
+            aa_true "create_form_page: form_action '$f_form_action' is nonempty" {$f_form_action ne ""}
 
-            set form_content [::xowiki::test::get_form_values $root $formCSSClass]
-            set names [dict keys $form_content]
-            aa_log "form names: [lsort $names]"
-            aa_true "page has at least 9 fields" { [llength $names] >= 9 }
+            set names [dict keys $fields]
+            aa_log "create_form_page: form names: [lsort $names]"
+            aa_true "create_form_page: page has at least 9 fields" { [llength $names] >= 9 }
         }
 
         set d [::acs::test::form_reply \
-                   -user_id $user_id \
-                   -url $f_form_action \
+                   -last_request $last_request -user_id $user_id \
+                   -form $form \
                    -update $update \
-                   $form_content]
-        acs::test::reply_has_status_code $d 302
+                   -remove $remove]
+        if {$expect_validation_error ne ""} {
+            aa_log "HAVE VALIDATION ERROR"
+            acs::test::reply_has_status_code $d 200
+            set response [dict get $d body]
+            acs::test::dom_html root $response {
+                set errorNodes [$root selectNodes {//div[contains(@class,'form-error')]}]
+                aa_true "errorNodes exist '$errorNodes'" {$errorNodes ne ""}
+                set errorMsgs {}
+                foreach n $errorNodes {
+                    aa_log "validation error '[$n text]'"
+                    lappend errorMsgs [$n text]
+                }
+                aa_true "contains expected msg '$expect_validation_error'" {$expect_validation_error in $errorMsgs}
+            }
+        } else {
+            acs::test::reply_has_status_code $d 302
 
-        #set response [dict get $d body]
-        #ns_log notice "FORM POST\n$response"
+            #set response [dict get $d body]
+            #ns_log notice "FORM POST\n$response"
 
-        foreach {key value} $update {
-            dict set form_content $key $value
+            foreach {key value} $update {
+                dict set form_content $key $value
+            }
+            aa_log "create_form_page: form_content:\n[::xowiki::test::pretty_form_content $form_content]"
+
+            set location [::acs::test::get_url_from_location $d]
+            aa_true "create_form_page: location '$location' is valid" {$location ne ""}
+
+            set d [acs::test::http \
+                       -last_request $last_request -user_id $user_id \
+                       $location]
+            acs::test::reply_has_status_code $d 200
+
+            ::xo::Package initialize -url $location
+            set lang [string range [lang::system::locale] 0 1]
+
+            set page_info [::$package_id item_ref \
+                               -default_lang $lang \
+                               -parent_id $parent_id \
+                               [dict get $form_content _name] \
+                              ]
+            set item_id [dict get $page_info item_id]
+            #aa_log "lookup of $folder_name/page -> $item_id"
+            if {$item_id == 0} {error "Page not found"}
+            ::xo::db::CrClass get_instance_from_db -item_id $item_id
+
+            set d [acs::test::http \
+                       -last_request $last_request -user_id $user_id \
+                       $instance/admin/set-publish-state?state=ready&revision_id=[::$item_id revision_id]]
+            acs::test::reply_has_status_code $d 302
+            aa_log "create_form_page: DONE"
+            dict set d page_info $page_info
+            dict set d instance $instance
+            dict set d item_id $item_id
         }
-        aa_log "form_content:\n[::xowiki::test::pretty_form_content $form_content]"
-
-        set location [::xowiki::test::get_url_from_location $d]
-        aa_true "location '$location' is valid" {$location ne ""}
-
-        set d [acs::test::http -user_id $user_id $location]
-        acs::test::reply_has_status_code $d 200
-
-        ::xo::Package initialize -url $location
-        set lang [string range [lang::system::locale] 0 1]
-        set page_info [::$package_id item_ref \
-                           -default_lang $lang \
-                           -parent_id $parent_id \
-                           [dict get $form_content _name] \
-                          ]
-        set item_id [dict get $page_info item_id]
-        #aa_log "lookup of $folder_name/page -> $item_id"
-        if {$item_id == 0} {error "Page not found"}
-        ::xo::db::CrClass get_instance_from_db -item_id $item_id
-
-        set d [acs::test::http -user_id $user_id \
-                   $instance/admin/set-publish-state?state=ready&revision_id=[$item_id revision_id]]
-        acs::test::reply_has_status_code $d 302
+        return $d
     }
 
     ad_proc ::xowiki::test::edit_form_page {
-        -user_id:required
-        -instance:required
+        {-user_id 0}
+        {-last_request ""}
+        {-instance ""}
         -path:required
         {-update ""}
+        {-remove ""}
         {-extra_url_parameter {{m edit}}}
+        {-next_page_must_contain ""}
+        {-refetch:boolean true}
     } {
 
         Edit a form page via the web interface.
         In essence, this calls $instance/$path?m=edit
 
     } {
-        aa_log "... edit page $path"
-        set d [acs::test::http -user_id $user_id [export_vars -base $instance/$path $extra_url_parameter]]
+        if {$instance eq ""} {
+            if {[dict exists $last_request instance]} {
+                set instance [dict get $last_request instance]
+            }
+        }
+        aa_log "edit page $instance/$path"
+        set d [acs::test::http \
+                   -user_id $user_id -last_request $last_request \
+                   [export_vars -base $instance/$path $extra_url_parameter]]
         acs::test::reply_has_status_code $d 200
 
-        #set location [::xowiki::test::get_url_from_location $d]
+        #set location [::acs::test::get_url_from_location $d]
         #aa_true "location '$location' is valid" {$location ne ""}
         set response [dict get $d body]
 
@@ -280,10 +458,11 @@ namespace eval ::xowiki::test {
         set f_creator   [dict get $form fields _creator]
 
         aa_true "page_name '$f_page_name' non empty" {$f_page_name ne ""}
-        aa_true "creator '$f_creator' is non-empty" {$f_creator ne ""}
+        #aa_true "creator '$f_creator' is nonempty" {$f_creator ne ""}
+        aa_log  "creator '$f_creator'"
 
         set f_form_action  [dict get $form @action]
-        aa_true "form_action '$f_form_action' is non-empty" {$f_form_action ne ""}
+        aa_true "form_action '$f_form_action' is nonempty" {$f_form_action ne ""}
 
         set form_content [dict get $form fields]
         set names [dict keys $form_content]
@@ -291,30 +470,42 @@ namespace eval ::xowiki::test {
         aa_true "page has at least 9 fields" { [llength $names] >= 9 }
 
         set d [::acs::test::form_reply \
-                   -user_id $user_id \
-                   -url $f_form_action \
+                   -last_request $last_request -user_id $user_id \
+                   -form $form \
                    -update $update \
-                   $form_content]
+                   -remove $remove]
         acs::test::reply_has_status_code $d 302
+        # set location /[::acs::test::get_url_from_location $d]
 
-        foreach {key value} $update {
-            dict set form_content $key $value
+        if {$refetch_p} {
+            foreach {key value} $update {
+                dict set form_content $key $value
+            }
+            aa_log "form_content:\n[::xowiki::test::pretty_form_content $form_content]"
+
+            set d [acs::test::http \
+                       -last_request $last_request -user_id $user_id \
+                       $instance/$path]
+            acs::test::reply_has_status_code $d 200
+            if {$next_page_must_contain eq ""} {
+                set next_page_must_contain [dict get $form_content _title]
+            }
+            acs::test::reply_contains $d $next_page_must_contain
         }
-        aa_log "form_content:\n[::xowiki::test::pretty_form_content $form_content]"
-
-        set d [acs::test::http -user_id $user_id $instance/$path]
-        acs::test::reply_has_status_code $d 200
-        acs::test::reply_contains $d [dict get $form_content _title]
+        dict set d instance $instance
+        return $d
     }
 
     ad_proc ::xowiki::test::create_form {
-        -user_id:required
+        {-user_id 0}
+        {-last_request ""}
         -instance:required
         -path:required
         -parent_id:required
         -name:required
         {-autonamed:boolean false}
         {-update ""}
+        {-remove ""}
     } {
 
         Create a form via the web interface.
@@ -323,38 +514,76 @@ namespace eval ::xowiki::test {
         #
         # Create a form under the parent_id
         #
-        aa_log "... create a new form in the test folder $parent_id"
+        aa_log "create a new form in the test folder $parent_id"
         #
         # New form creation happens over the top-level URL
         #
+        #set d [acs::test::http \
+        #           -last_request $last_request -user_id $user_id \
+        #           $instance/?object_type=::xowiki::Form&edit-new=1&parent_id=$parent_id&return_url=$instance/$path]
+
         set d [acs::test::http \
-                   -user_id $user_id \
-                   $instance/?object_type=::xowiki::Form&edit-new=1&parent_id=$parent_id&return_url=$instance/$path]
-        acs::test::reply_has_status_code $d 200
+                   -last_request $last_request -user_id $user_id \
+                   $instance/form.form?m=create-new&parent_id=$parent_id&return_url=$instance/$path]
+        #
+        # If we use form.form, we get a redirect; classical
+        # "object_type=::xowiki::Form&edit-new=1" has no redirect.
+        #
+        if {[acs::test::reply_has_status_code $d 302]} {
 
-        set response [dict get $d body]
-        #ns_log notice response=$response
-        set formCSSClass "margin-form"
+            set location [::acs::test::get_url_from_location $d]
+            set d [acs::test::http -last_request $last_request -user_id $user_id $location/]
+            acs::test::reply_has_status_code $d 200
+            set formform 1
 
-        acs::test::dom_html root $response {
+            set response [::xowiki::test::get_content $d]
+            #ns_log notice response=$response
+            set formCSSClass "Form-form"
 
-            set selector [subst {string(//form\[contains(@class,'$formCSSClass')\]//input\[@type='submit'\]/@value)}]
-            set f_submit [$root selectNodes $selector]
-            aa_true "submit_button '$f_submit' is non empty" {$f_submit ne ""}
+            acs::test::dom_html root $response {
 
-            set f_id     [::xowiki::test::get_object_name $root]
-            aa_true "page_id '$f_id' is empty" {$f_id eq ""}
+                set selector [subst {string(//form\[contains(@class,'$formCSSClass')\]//button\[@type='submit'\])}]
+                set f_submit [$root selectNodes $selector]
+                aa_true "submit_button '$f_submit' is non empty" {$f_submit ne ""}
+
+                set f_id     [::xowiki::test::get_object_name $root]
+                aa_false "page_id '$f_id' is empty" {$f_id eq ""}
+            }
+            set form [acs::test::get_form $response "//form\[contains(@class,'$formCSSClass')\]"]
+            ns_log notice "FORM <$form>"
+
+            set f_page_name   [dict get $form fields _name]
+            set f_creator     [dict get $form fields _creator]
+        } else {
+            acs::test::reply_has_status_code $d 200
+            set formform 0
+
+            set response [dict get $d body]
+            #ns_log notice response=$response
+            set formCSSClass "margin-form"
+
+            acs::test::dom_html root $response {
+
+                set selector [subst {string(//form\[contains(@class,'$formCSSClass')\]//input\[@type='submit'\]/@value)}]
+                set f_submit [$root selectNodes $selector]
+                aa_true "submit_button '$f_submit' is non empty" {$f_submit ne ""}
+
+                set f_id     [::xowiki::test::get_object_name $root]
+                aa_true "page_id '$f_id' is empty" {$f_id eq ""}
+            }
+            set form [acs::test::get_form $response "//form\[contains(@class,'$formCSSClass')\]"]
+            ns_log notice "FORM <$form>"
+
+            set f_page_name   [dict get $form fields name]
+            set f_creator     [dict get $form fields creator]
         }
 
-        set form [acs::test::get_form $response "//form\[contains(@class,'$formCSSClass')\]"]
-
-        set f_page_name   [dict get $form fields name]
-        set f_creator     [dict get $form fields creator]
         set f_form_action [dict get $form @action]
 
-        aa_true "name '$f_page_name' is empty"              {$f_page_name eq ""}
-        aa_true "creator '$f_creator' is non-empty"         {$f_creator ne ""}
-        aa_true "form_action '$f_form_action' is non-empty" {$f_form_action ne ""}
+        aa_true "name '$f_page_name' is empty"             {$f_page_name eq ""}
+        #aa_log  "creator '$f_creator'"
+        aa_true "creator '$f_creator' is nonempty"         {$f_creator ne ""}
+        aa_true "form_action '$f_form_action' is nonempty" {$f_form_action ne ""}
 
         set form_content [dict get $form fields]
         set names [dict keys $form_content]
@@ -362,13 +591,14 @@ namespace eval ::xowiki::test {
         aa_true "page has at least 9 fields" { [llength $names] >= 9 }
 
         aa_log "empty form_content:\n$[::xowiki::test::pretty_form_content $form_content]"
-        dict set form_content name $name
+        dict set form_content [expr {$formform ? "_name" : "name"}] $name
+        set form [acs::test::form_set_fields $form $form_content]
 
         set d [::acs::test::form_reply \
-                   -user_id $user_id \
-                   -url $f_form_action \
+                   -last_request $last_request -user_id $user_id \
+                   -form $form \
                    -update $update \
-                   $form_content]
+                   -remove $remove]
         acs::test::reply_has_status_code $d 302
 
         foreach {key value} $update {
@@ -381,7 +611,7 @@ namespace eval ::xowiki::test {
             ns_log notice "Maybe a validation error? response\n$response"
         }
 
-        set location [::xowiki::test::get_url_from_location $d]
+        set location [::acs::test::get_url_from_location $d]
         aa_true "location '$location' is valid" {$location ne ""}
 
         ::xo::Package initialize -url $location
@@ -394,10 +624,29 @@ namespace eval ::xowiki::test {
         aa_log "lookup of form $name -> $item_id"
         ::xo::db::CrClass get_instance_from_db -item_id $item_id
 
-        set d [acs::test::http -user_id $user_id \
-                   $instance/admin/set-publish-state?state=ready&revision_id=[$item_id revision_id]]
+        set d [acs::test::http \
+                   -last_request $last_request -user_id $user_id \
+                   $instance/admin/set-publish-state?state=ready&revision_id=[::$item_id revision_id]]
         acs::test::reply_has_status_code $d 302
     }
+
+    ad_proc ::xowiki::test::get_content {d} {
+
+        Retrieve form a result dict of a request just the xowiki
+        content part, denoted by the div with class 'xowiki-content'
+        (i.e., leave out the header and footer).
+
+        @return HTML with xowiki content or empty, iof not there
+    } {
+        acs::test::dom_html root [dict get $d body] {
+            set xowiki_content [$root selectNodes {//div[@class='xowiki-content']}]
+            if {$xowiki_content ne ""} {
+                set xowiki_content [$xowiki_content asHTML]
+            }
+        }
+        return $xowiki_content
+    }
+
 
 }
 

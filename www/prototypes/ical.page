@@ -59,7 +59,7 @@ VERSION:2.0
   my proc content {} {
     my get_parameters
     #
-    # this is not a HTML page, decativate master and provide content-type
+    # this is not an HTML page, decativate master and provide content-type
     # 
     ::xo::cc set_parameter master 0
     ::xo::cc set_parameter content-type text/plain

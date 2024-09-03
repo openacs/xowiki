@@ -7,6 +7,7 @@
   @cvs-id $Id$
 }
 
+::xo::library require -package xotcl-core 30-widget-procs
 ::xo::library require menu-procs
 
 namespace eval ::xowiki {
@@ -227,7 +228,7 @@ namespace eval ::xowiki {
       ${:__parent} append extrajs ${:extrajs}
     }
   }
-  
+
   #
   # YUIContextMenu
   #
@@ -273,7 +274,7 @@ namespace eval ::xowiki {
         if {$menu_att eq "id"} continue
         set kind [:get_prop $menu kind]
         #ns_log notice "entry: kind $kind <$menu_att> <$menu>"
-        
+
         if {$kind ne "MenuButton"} continue
         ::xowiki::YUIMenuBarItem -text [:get_prop $menu label] {
           ::xowiki::YUIMenu {
@@ -299,7 +300,7 @@ namespace eval ::xowiki {
 
 
 ###############################################################################
-#   YUI loader       
+#   YUI loader
 ###############################################################################
 
 namespace eval ::YUI {
@@ -309,7 +310,7 @@ namespace eval ::YUI {
     dependencies. Also, it combines numerous files into one single file to
     increase page loading performance.
     This works only for the "hosted" YUI library. This Loader module should
-    basically do the same (in future). For two simple calls like e.g. 
+    basically do the same (in future). For two simple calls like e.g.
     "::YUI::loader require menu" and "::YUI::loader require datatable"
     it should take care of selecting all the files needed and assemble them
     into one single resource, that may be delivered.
@@ -328,7 +329,7 @@ namespace eval ::YUI {
     {-version "2.7.0b"}
   } {
     This is the key function of the loader, that will be used by other packages.
-    @param module 
+    @param module
     The YUI Module to be loaded
   } {
     switch -- [string tolower $module] {
@@ -443,9 +444,9 @@ namespace eval ::YUI {
             </ul>
         " \
       -instproc get-slots {} {
-        set slots [list -[:name]]
+        set slots [list -${:name}]
         foreach subfield {href title CSSclass target onclick} {
-          lappend slots [list -[:name].$subfield ""]
+          lappend slots [list -${:name}.$subfield ""]
         }
         return $slots
       }
@@ -533,6 +534,7 @@ namespace eval ::xo::Table {
     html::thead {
       html::tr -class list-header {
         foreach o [[self]::__columns children] {
+          #ns_log notice "YUIDataTableRenderer $o [$o set name] HIDE [$o hide] RENDER [$o procsearch render]"
           if {[$o hide]} continue
           $o render
         }
@@ -544,7 +546,7 @@ namespace eval ::xo::Table {
         html::tr -class [expr {[incr :__rowcount]%2 ? ${:css.tr.odd-class} : ${:css.tr.even-class} }] {
           foreach field [[self]::__columns children] {
             if {[$field hide]} continue
-            html::td  [concat [list class list] [$field html]] { 
+            html::td [concat [list class [concat list [$field CSSclass]]] [$field html]] {
               $field render-data $line
             }
           }
@@ -555,10 +557,10 @@ namespace eval ::xo::Table {
 
   YUIDataTableRenderer instproc render {} {
     ::YUI::loader require -module "datatable"
-    if {![:isobject [self]::__actions]} {:actions {}}
-    if {![:isobject [self]::__bulkactions]} {:__bulkactions {}}
+    if {![nsf::is object [self]::__actions]} {:actions {}}
+    if {![nsf::is object [self]::__bulkactions]} {:__bulkactions {}}
     set bulkactions [[self]::__bulkactions children]
-    if {[llength $bulkactions]>0} {
+    if {[[self]::__bulkactions exists __identifier] || [llength $bulkactions]>0} {
       set name [[self]::__bulkactions set __identifier]
     } else {
       set name [::xowiki::Includelet js_name [self]]
@@ -566,12 +568,12 @@ namespace eval ::xo::Table {
     # TODO: maybe use skin everywhere? When to use style/CSSclass or skin?
     set skin [expr {[info exists :skin] ? ${:skin} : ""}]
     html::div -id ${:id}_wrapper -class $skin {
-      html::form -name $name -id $name -method POST { 
+      html::form -name $name -id $name -method POST {
         html::div -id ${:id}_container {
           html::table -id ${:id} -class ${:css.table-class} {
             # TODO do i need that?
-            my render-actions
-            my render-body
+            :render-actions
+            :render-body
           }
           if {[llength $bulkactions]>0} { :render-bulkactions }
         }
@@ -593,14 +595,20 @@ namespace eval ::xo::Table {
             </ul>
         " \
       -instproc render-data {line} {
-        set __name [:name]
+        set __name ${:name}
         if {[$line exists $__name.href] &&
             [set href [$line set $__name.href]] ne ""} {
           # use the CSS class rather from the Field than not the line
           set CSSclass ${:CSSclass}
+          if {[$line exists $__name.CSSclass]} {
+            set lineCSSclass [$line set $__name.CSSclass]
+            if {$lineCSSclass ne ""} {
+              append CSSclass " " $lineCSSclass
+            }
+          }
           $line instvar   [list $__name.title title] \
               [list $__name.target target] \
-              [list $__name.onclick onclick] 
+              [list $__name.onclick onclick]
           html::a [:get_local_attributes href title {CSSclass class} target onclick] {
             return "[next]"
           }

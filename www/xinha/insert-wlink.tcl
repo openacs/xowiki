@@ -1,9 +1,9 @@
 ad_page_contract {
-	popup for choosing a target for wiki link
+  popup for choosing a target for wiki link
 } {
-	{package_id:naturalnum,notnull}
-	{page_number:integer 1}
-	{page_size:integer 20}
+  {package_id:naturalnum,notnull}
+  {page_number:integer 1}
+  {page_size:integer 20}
 }
 
 ::xowiki::Package initialize -package_id $package_id
@@ -11,10 +11,10 @@ set total_rows [::xowiki::Includelet listing -package_id $package_id -count true
 
 set url [ad_conn url]
 set back_link [expr { ($page_number > 1) ? \
-                          [export_vars -base $url [list package_id [list page_number [expr {$page_number-1}]]]] \
+                          [export_vars -base $url {package_id {page_number [expr {$page_number-1}]}}] \
                           : ""}]
 set next_link [expr { $total_rows > ($page_number * $page_size) ? \
-                          [export_vars -base $url [list package_id [list page_number [expr {$page_number+1}]]]] \
+                          [export_vars -base $url {package_id {page_number [expr {$page_number+1}]}}] \
                           : ""}]
 
 set listing [::xowiki::Includelet listing \
@@ -40,10 +40,10 @@ template::add_event_listener -CSSclass "ok-handler" -script {onOK(this);}
 template::add_event_listener -id "body" -event "load" -script {Init();}
 
 foreach entry [$listing children] {
-  $entry instvar name parent_id title formatted_date page_id 
+  $entry instvar name parent_id title formatted_date page_id
   set entry_package_id [$entry set package_id]
-      
-  set page_link [$package_id pretty_link -parent_id $parent_id $name]
+
+  set page_link [::$package_id pretty_link -parent_id $parent_id $name]
   t1 add \
       -title $title \
       -name $name \
@@ -53,7 +53,7 @@ foreach entry [$listing children] {
     if {$entry_package_id == $package_id} {
       set label ""
     } else {
-      set label [$entry_package_id instance_name]
+      set label [::$entry_package_id instance_name]
     }
     [t1 last_child] set inherited $label
   }

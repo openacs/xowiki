@@ -9,23 +9,33 @@
   <msg key="admin_title">Administrar este paquete</msg>
   <msg key="ago">hace %time%</msg>
   <msg key="All_pages">Todos los elementos</msg>
+  <msg key="answers">Respuestas</msg>
   <msg key="Answers_for_Surveys">Respuestas_por_encuesta</msg>
   <msg key="attached_images">Imágenes adjuntas</msg>
   <msg key="attached_media">Multimedia adjunto</msg>
+  <msg key="autosave_pending">modificado</msg>
+  <msg key="autosave_rejected">modificación rechazada</msg>
+  <msg key="autosave_saved">modificación salvada</msg>
   <msg key="back">Volver</msg>
   <msg key="By_user">Por usuario</msg>
   <msg key="Candidates">Candidatos</msg>
   <msg key="categories">Categorías</msg>
+  <msg key="chat_has_entered_the_room">ha entrado en la sala</msg>
+  <msg key="chat_has_left_the_room">ha abandonado la sala</msg>
+  <msg key="chat_message">Mensaje</msg>
+  <msg key="chat_Send_Refresh">Enviar/Actualizar</msg>
   <msg key="choiceInteraction_maxChoices">Respuesta única</msg>
   <msg key="choiceInteraction_maxChoices_help_text">Respuesta única significa que sólo una respuesta es correcta.</msg>
   <msg key="choiceInteraction_simpleChoice">Introduce algunas respuestas.</msg>
   <msg key="choose_file">Elija el archivo</msg>
+  <msg key="ckeip_help">Modo local</msg>
   <msg key="clear">limpiar</msg>
   <msg key="CompoundField-validate_compound">%errorMsg%</msg>
   <msg key="Configure">Configurar</msg>
   <msg key="content">Contenido</msg>
   <msg key="content_type">Tipo de contenido</msg>
   <msg key="copy_entry">Copiar entrada</msg>
+  <msg key="correct_when-validate_valid_predicate">%errorMsg%</msg>
   <msg key="create_new_entry_of_type">Crear nueva entrada del tipo %type%</msg>
   <msg key="create_this_page_in_language">Crear esta página en un lenguaje diferente</msg>
   <msg key="day">día</msg>
@@ -36,12 +46,15 @@
   <msg key="delete_all_instances">Eliminar todo %pretty_plural% de esta instancia</msg>
   <msg key="delete_all_items">Eliminar todos los elementos de estas instancias</msg>
   <msg key="delete_confirm">¿Confirma la eliminación?</msg>
+  <msg key="Delete_selected">Borrar selección</msg>
   <msg key="delete_title">Borrar esta página</msg>
   <msg key="details">Detalles</msg>
+  <msg key="duplicate">Duplicar</msg>
   <msg key="edit">Editar</msg>
   <msg key="Edit_category">Editar categoría</msg>
   <msg key="edit_link">editar tags</msg>
   <msg key="edit_title">Editar esta página</msg>
+  <msg key="Enter_message">Introducir mensaje</msg>
   <msg key="entries_using_form">Entradas para la forma %form%</msg>
   <msg key="error-delete_entries_first">Esta página todavía se utiliza por %count% entradas. Elimínelas primero antes de eliminar esta página.</msg>
   <msg key="error-form_constraint-invalid_characters">La restricción del formulario contiene caracteres no válidos</msg>
@@ -71,6 +84,7 @@
   <msg key="File-name-help_text">Puede ser obtenido del nombre del archivo subido</msg>
   <msg key="File_pretty_name">Archivo Wiki</msg>
   <msg key="File_pretty_plural">Archivos Wiki</msg>
+  <msg key="file_upload">Subida de ficheros</msg>
   <msg key="form-created">Forumlario creado</msg>
   <msg key="Form-form">Forme</msg>
   <msg key="Form-form_constraints">restricciones del formulario</msg>
@@ -82,6 +96,9 @@
   <msg key="form-menu-button-wf-instances">Instancias de %form_name%</msg>
   <msg key="form-menu-new_link">Rellenar</msg>
   <msg key="form-repeatable-add">[añadir otro]</msg>
+  <msg key="form-repeatable-add-another-file">[añadir otro archivo]</msg>
+  <msg key="form-repeatable-add-condition">[añadir condición]</msg>
+  <msg key="form-repeatable-add-file">[añadir archivo]</msg>
   <msg key="form-repeatable-delete">[x]</msg>
   <msg key="Form-submit_button">OK </msg>
   <msg key="Form-template">Plantilla</msg>
@@ -92,6 +109,12 @@
   <msg key="Form_pretty_name">Formulario Wiki</msg>
   <msg key="Form_pretty_plural">Formularios Wiki</msg>
   <msg key="formfield-author">Autor</msg>
+  <msg key="formfield-comp_correct_when-help_text">Todas las condiciones deben ser ciertas para que la respuesta sea correcta.</msg>
+  <msg key="formfield-correct_when-help_text">Condicion, cuando
+  la respuesta es correcta, especificada como un predicado seguido
+  de argumentos (palabras Tcl). Los predicados predefinidos son
+  &#34;eq&#34;, &#34;gt&#34;, &#34;ge&#34;, &#34;lt&#34;, &#34;le&#34;, &#34;btwn&#34;, &#34;in&#34;, &#34;contains&#34;, &#34;match&#34;,
+  &#34;answer_words&#34;</msg>
   <msg key="formfield-image_url-help_text">URL HTTP de la imagen (puede arrastrar una imagen mostrada por un navegador web aquí)</msg>
   <msg key="formfield-import_archive-help_text">Seleccione el nombre del archivo .zip o .tar.gz </msg>
   <msg key="formfield-import_archive-label">Importar archivo</msg>
@@ -101,11 +124,13 @@
   <msg key="FormPage_parameters_title">Parámetros del Wiki</msg>
   <msg key="FormPage_pretty_name">Wiki FormPage</msg>
   <msg key="FormPage_pretty_plural">Wiki FormPages</msg>
+  <msg key="From">De</msg>
   <msg key="future_interval">en %time%</msg>
   <msg key="has_modified_this_page">ha modificado esta página mientras la estabas editando</msg>
   <msg key="height">Altura</msg>
   <msg key="hour">hora</msg>
   <msg key="hours">horas</msg>
+  <msg key="ignore_case">Minúsculas</msg>
   <msg key="image_width_hint">La altura y anchura son calculadas en pixels (las proporciones podrían perderse)</msg>
   <msg key="import">Importar</msg>
   <msg key="import_create_user_ids">Crear user_ids</msg>
@@ -131,7 +156,6 @@
   <msg key="menu-Clipboard-Add">Añadir</msg>
   <msg key="menu-Clipboard-Clear">Limpiar</msg>
   <msg key="menu-Clipboard-Content">Contenido</msg>
-  <msg key="menu-Clipboard-Copy">Copiar</msg>
   <msg key="menu-Clipboard-Use-Copy">Copiar</msg>
   <msg key="menu-Clipboard-Use-Export">Exportar</msg>
   <msg key="menu-New">Nuevo</msg>
@@ -152,6 +176,8 @@
   <msg key="menu-Page-Edit">Editar página</msg>
   <msg key="menu-Page-Revisions">Revisiones</msg>
   <msg key="menu-Page-Show">Mostrar página</msg>
+  <msg key="menu-Page-View">Ver</msg>
+  <msg key="Message">Mensaje</msg>
   <msg key="minute">minuto</msg>
   <msg key="minutes">minutos</msg>
   <msg key="modified_page">página modificada</msg>
@@ -159,6 +185,8 @@
   <msg key="months">meses</msg>
   <msg key="most_frequent_visitors">Visitantes más frecuentes</msg>
   <msg key="most_popular_pages">Páginas más populares</msg>
+  <msg key="multiple_lines">Líneas múltiples</msg>
+  <msg key="multiple_words">Palabras múltiples</msg>
   <msg key="name">Nombre</msg>
   <msg key="new">Nueva página</msg>
   <msg key="new_page">Nueva Página</msg>
@@ -169,6 +197,7 @@
   <msg key="no_data">sin datos</msg>
   <msg key="notifications">Notificaciones</msg>
   <msg key="notifications_title">Administrar notificaciones ...</msg>
+  <msg key="number">Número</msg>
   <msg key="numeric-validate_numeric">Valor numérico no válido</msg>
   <msg key="Object_pretty_name">Objeto Wiki</msg>
   <msg key="Object_pretty_plural">Objetos Wiki</msg>
@@ -188,7 +217,8 @@
   <msg key="Page-text">Contenido</msg>
   <msg key="Page-title">Título de la Página</msg>
   <msg key="Page-validate_form_constraints"> %errorMsg% </msg>
-  <msg key="Page-validate_name">Otro elemento con el valor &#39;%value%&#39; ya existe en ésta carpeta</msg>
+  <msg key="Page-validate_name">%errorMsg%</msg>
+  <msg key="Page-validate_name-duplicate_item">Otro elemento con el valor &#39;%value%&#39; ya existe en ésta carpeta</msg>
   <msg key="Page-validate_page_order">Orden de página no válido: sólo puede contener letras, guión bajo, dígitos y puntos</msg>
   <msg key="page_kind">Tipo</msg>
   <msg key="Page_pretty_name">Página XoWiki</msg>
@@ -202,6 +232,7 @@
   <msg key="PageTemplate-anon_instances">Entradas innomadas</msg>
   <msg key="PageTemplate_pretty_name">Plantilla de página Wiki</msg>
   <msg key="PageTemplate_pretty_plural">Plantillas de página Wiki</msg>
+  <msg key="Participants">Participantes</msg>
   <msg key="party_id-validate_party_id_check">El valor no es un party_id válido</msg>
   <msg key="permissions_manage_package">Administrar permisos de Wiki: %package_name%</msg>
   <msg key="permissions_manage_page">Administrar permisos de Page: %page_name%</msg>
@@ -219,7 +250,7 @@
   <msg key="PodcastItem_pretty_plural">Elementos Podcast</msg>
   <msg key="popular_tags_label">Tags populares</msg>
   <msg key="popular_tags_link">tags populares</msg>
-  <msg key="portlet_name_does_not_exist_error_long">No existe ninguna página con el nombre &#34;%page_name%&#34; disponible.</msg>
+  <msg key="portlet_page_does_not_exist_error_long">No existe ninguna página con el nombre &#34;%page_name%&#34; disponible.</msg>
   <msg key="portlet_page_does_not_exist_error_short">La página indicada no existe</msg>
   <msg key="portlet_title_exists_error_long">Por favor, cambie el nombre de los portlets existentes ó el título de la página del xowiki que se quiere añadir al portal.</msg>
   <msg key="portlet_title_exists_error_short">Un portlet cuyo título es &#39;%page_title%&#39; ya existe en este portal.</msg>
@@ -229,6 +260,7 @@
   <msg key="publish_status">Publicado</msg>
   <msg key="QtiInteraction_weight">Peso</msg>
   <msg key="QtiInteraction_weight_help_text">Para la puntuación global de la pregunta, cada interacción se pondera por este valor.</msg>
+  <msg key="questions">Preguntas</msg>
   <msg key="recently_changed_pages">Páginas modificadas recientemente</msg>
   <msg key="recently_changed_pages_by_categories">Páginas modificadas recientemente (por categoría)</msg>
   <msg key="references_label">Referencias a esta Página:</msg>
@@ -246,15 +278,23 @@
   <msg key="seconds">segundos</msg>
   <msg key="select_link_target">Para crear un enlace, haga click en el nombre de una página </msg>
   <msg key="Selection">Selección</msg>
+  <msg key="Send">Enviar</msg>
+  <msg key="Send_message_to">Enviar mensaje a</msg>
   <msg key="shuffle">Mezclar las respuestas aleatoriamente</msg>
   <msg key="shuffle_help_text">¿Mostrar las respuestas en orden aleatorio?</msg>
+  <msg key="single_word">Palabra única</msg>
   <msg key="Size">Tamaño</msg>
   <msg key="subscribe">Suscribir</msg>
   <msg key="title">Título</msg>
   <msg key="title_of_event">Título</msg>
+  <msg key="to">a</msg>
   <msg key="unread_items">Elementos no leídos</msg>
   <msg key="updated">actualizado</msg>
   <msg key="upload_file">Subir archivo</msg>
+  <msg key="Urgency">Urgencia</msg>
+  <msg key="urgency_high">alta</msg>
+  <msg key="urgency_low">baja</msg>
+  <msg key="urgency_normal">media</msg>
   <msg key="User">Usuario</msg>
   <msg key="view">Vista</msg>
   <msg key="view_in_context">Ver página en el contexto original %context%</msg>
@@ -263,6 +303,7 @@
   <msg key="week">semana</msg>
   <msg key="weeks">semanas</msg>
   <msg key="width">Anchura</msg>
+  <msg key="words">Palabras</msg>
   <msg key="workflow_definition-validate_workflow">%errorMsg% </msg>
   <msg key="year">año</msg>
   <msg key="years">años</msg>

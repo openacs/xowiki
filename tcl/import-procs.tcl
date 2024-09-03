@@ -38,7 +38,7 @@ namespace eval ::xowiki {
     [:report_lines]"
   }
 
-  Importer instproc import {-object:required -replace -create_user_ids} {
+  Importer instproc import {-object:object,required -replace:boolean -create_user_ids} {
     #
     # Import a single object. In essence, this method demarshalls a
     # single object and inserts it (or updates it) in the database. It
@@ -58,21 +58,22 @@ namespace eval ::xowiki {
       } else {
         #:msg "$item_id update: [$object name]"
         ::xo::db::CrClass get_instance_from_db -item_id $item_id
-        $item_id copy_content_vars -from_object $object
-        $item_id save -use_given_publish_date [$item_id exists publish_date] \
+        set item ::$item_id
+        $item copy_content_vars -from_object $object
+        $item save -use_given_publish_date [$item exists publish_date] \
             -modifying_user [$object set modifying_user]
         #:log "$item_id saved"
-        $object set item_id [$item_id item_id]
+        $object set item_id [$item item_id]
         #:msg "$item_id updated: [$object name]"
         :report_line $item_id updated
         incr :updated
       }
     }
     if {$item_id == 0} {
-      set n [$object save_new -use_given_publish_date [$object exists publish_date] \
-                 -creation_user [$object set modifying_user] ]
-      $object set item_id $n
-      set item_id $object
+      $object save_new \
+          -use_given_publish_date [$object exists publish_date] \
+          -creation_user [$object set modifying_user]
+      set item $object
       #:msg "$object added: [$object name]"
       :report_line $object added
       incr :added
@@ -82,8 +83,8 @@ namespace eval ::xowiki {
     # Insert these into the category object map
     #
     if {[$object exists __category_ids]} {
-      #:msg "$item_id map_categories [object set __category_ids] // [$item_id item_id]"
-      $item_id map_categories [$object set __category_ids]
+      #:msg "$item_id map_categories [object set __category_ids] // [$item item_id]"
+      $item map_categories [$object set __category_ids]
     }
 
     ${:package_id} flush_references -item_id [$object item_id] -name [$object name]
@@ -183,7 +184,7 @@ namespace eval ::xowiki {
             && [$o exists __export_reason]
             && [$o set __export_reason] eq "implicit_page_template"} {
           $o unset __export_reason
-          set page [${:package_id} get_page_from_item_ref \
+          set page [::${:package_id} get_page_from_item_ref \
                         -allow_cross_package_item_refs false \
                         -use_package_path true \
                         -use_site_wide_pages true \
@@ -214,10 +215,10 @@ namespace eval ::xowiki {
           if {[$o istype ::xowiki::PageInstance]} {
             #:msg "importing [$o name] page_instance, map $template_name_key to $name_map($template_name_key)"
             $o page_template $name_map($template_name_key)
-            #:msg "exists template? [:isobject [$o page_template]]"
-            if {![:isobject [$o page_template]]} {
+            #:msg "exists template? [nsf::is object [$o page_template]]"
+            if {![nsf::is object [$o page_template]]} {
               ::xo::db::CrClass get_instance_from_db -item_id [$o page_template]
-              #:msg "[:isobject [$o page_template]] loaded"
+              #:msg "[nsf::is object [$o page_template]] loaded"
             }
           }
 
@@ -260,7 +261,7 @@ namespace eval ::xowiki {
     #
     # final cleanup
     #
-    foreach o $objects {if {[::xotcl::Object isobject $o]} {$o destroy}}
+    foreach o $objects {if {[nsf::is object $o]} {$o destroy}}
 
     ${:package_id} flush_page_fragment_cache
   }
@@ -288,7 +289,7 @@ namespace eval ::xowiki {
     while {1} {
       set new 0
       if {[array size items] > 0} {
-        ns_log notice "--export works on [array names items]"
+        ns_log notice "--export works on [array size items] items: [array names items]"
       }
       foreach item_id [array names items] {
         #
@@ -298,14 +299,15 @@ namespace eval ::xowiki {
         #
         # For PageInstances (or its subtypes), include the parent-objects as well
         #
-        if {[$item_id istype ::xowiki::PageInstance]} {
-          set template_id [$item_id page_template]
+        if {[::$item_id istype ::xowiki::PageInstance]} {
+          set template_id [::$item_id page_template]
           if {![info exists items($template_id)]} {
-            ns_log notice "--export including template-object $template_id [$template_id name]"
+            ns_log notice "--export including template-object $template_id of item $item_id has name? [::$template_id exists name]"
+            ns_log notice "--export including template-object $template_id [::$template_id name]"
             set items($template_id) 1
             ::xo::db::CrClass get_instance_from_db -item_id $template_id
             set new 1
-            $template_id set __export_reason implicit_page_template
+            ::$template_id set __export_reason implicit_page_template
             continue
           }
         }
@@ -315,11 +317,12 @@ namespace eval ::xowiki {
         set sql [::xowiki::Page instance_select_query -folder_id $item_id -with_subtypes true]
         ::xo::dc foreach export_child_obj $sql {
           if {![info exists items($item_id)]} {
+            ns_log notice "--export child $item_id not included, try to fetch"
             ::xo::db::CrClass get_instance_from_db -item_id $item_id
-            ns_log notice "--export including child $item_id [$item_id name]"
+            ns_log notice "--export including child $item_id [::$item_id name]"
             set items($item_id) 1
             set new 1
-            $item_id set __export_reason implicit_child_page
+            ::$item_id set __export_reason implicit_child_page
           }
         }
       }
@@ -334,14 +337,44 @@ namespace eval ::xowiki {
     set content ""
     foreach item_id $item_ids {
       ad_try {
-        set obj [$item_id marshall -mode $mode]
+        set obj [::$item_id marshall -mode $mode]
       } on error {errorMsg} {
-        ns_log error "Error while exporting $item_id [$item_id name]\n$errorMsg\n$::errorInfo"
+        ns_log error "Error while exporting $item_id [::$item_id name]\n$errorMsg\n$::errorInfo"
         error $errorMsg
       }
       append content $obj\n
     }
     return $content
+  }
+
+  exporter proc marshall_all_to_file {
+    {-mode export}
+    {-cleanup:boolean false}
+    -filename:required
+    item_ids
+  } {
+    #
+    # This method is similar to "marshall_all", but exports the objects
+    # directly to a file. This can save memory when exporting a large
+    # collection of objects, since the plain "marshall_all" appends to
+    # a string, which can get very large, especially due to Tcl's
+    # "double the size when space is needed" policy during "append"
+    # operations.
+    #
+    set output_file [open $filename w]
+    foreach item_id $item_ids {
+      ad_try {
+        puts $output_file [::$item_id marshall -mode $mode]
+        if {$cleanup && [info exists ::xo::cleanup(::$item_id)]} {
+          {*}$::xo::cleanup(::$item_id)
+        }
+      } on error {errorMsg} {
+        ns_log error "Error while exporting $item_id [::$item_id name]\n$errorMsg\n$::errorInfo"
+        error $errorMsg
+      } finally {
+        close $output_file
+      }
+    }
   }
 
   exporter proc export {item_ids} {
@@ -357,13 +390,13 @@ namespace eval ::xowiki {
     ad_return_top_of_page ""
 
     foreach item_id $item_ids {
-      ns_log notice "--exporting $item_id [$item_id name]"
-      set pretty_link [expr {[$item_id package_id] ne "" ? [$item_id pretty_link] : "(not visible)"}]
-      ns_write "# exporting $item_id [$item_id name] $pretty_link\n"
+      ns_log notice "--exporting $item_id [::$item_id name]"
+      set pretty_link [expr {[::$item_id package_id] ne "" ? [::$item_id pretty_link] : "(not visible)"}]
+      ns_write "# exporting $item_id [::$item_id name] $pretty_link\n"
       ad_try {
-        set obj [$item_id marshall]
+        set obj [::$item_id marshall]
       } on error {errorMsg} {
-        ns_log error "Error while exporting $item_id [$item_id name]\n$errorMsg\n$::errorInfo"
+        ns_log error "Error while exporting $item_id [::$item_id name]\n$errorMsg\n$::errorInfo"
       } finally {
         ns_write "$obj\n"
       }
@@ -386,8 +419,7 @@ namespace eval ::xowiki {
   ArchiveFile instproc init {} {
     :destroy_on_cleanup
     ::xo::db::CrClass get_instance_from_db -item_id ${:parent_id}
-    set :tmpdir [ad_tmpnam]
-    file mkdir ${:tmpdir}
+    set :tmpdir [ad_mktmpdir import]
   }
   ArchiveFile instproc delete {} {
     file delete -force -- ${:tmpdir}
@@ -395,34 +427,41 @@ namespace eval ::xowiki {
   }
   ArchiveFile instproc unpack {} {
     set success 0
-    #:log "::xowiki::guesstype '${:name}' => [::xowiki::guesstype ${:name}]"
     switch [::xowiki::guesstype ${:name}] {
       application/zip -
       application/x-zip -
       application/x-zip-compressed {
-        set zipcmd [::util::which unzip]
-        #:msg "zip = $zipcmd, tempdir = ${:tmpdir}"
-        exec $zipcmd ${:file} -d ${:tmpdir}
-        :import -dir ${:tmpdir} -parent_id ${:parent_id}
-        set success 1
+        set success [util::file_content_check -type zip -file ${:file}]
+        if {!$success} {
+          util_user_message -message "The uploaded file is apparently not a zip file."
+        } else {
+          ::util::unzip -source ${:file} -destination ${:tmpdir}
+          :import -dir ${:tmpdir} -parent_id ${:parent_id}
+        }
       }
       application/x-compressed {
         if {[string match "*tar.gz" ${:name}]} {
-          set cmd [::util::which tar]
-          exec $cmd -xzf ${:file} -C ${:tmpdir}
-          :import -dir ${:tmpdir} -parent_id ${:parent_id}
-          set success 1
+          set success [util::file_content_check -type gzip -file ${:file}]
+          if {!$success} {
+            util_user_message -message "The uploaded file is apparently not a gzip file."
+          } else {
+            set cmd [::util::which tar]
+            exec $cmd -xzf ${:file} -C ${:tmpdir}
+            :import -dir ${:tmpdir} -parent_id ${:parent_id}
+          }
         } else {
-          :msg "unknown compressed file type ${:name}"
+          util_user_message -message "Unknown compressed file type ${:name}."
         }
       }
-      default {:msg "type [::xowiki::guesstype ${:name}] of ${:name} unknown"}
+      default {
+        util_user_message -message "Type '[::xowiki::guesstype ${:name}]' is not an supported archive format."
+      }
     }
     #:msg success=$success
     return $success
   }
   ArchiveFile instproc import {-dir -parent_id} {
-    set package_id [$parent_id package_id]
+    set package_id [::$parent_id package_id]
 
     foreach tmpfile [glob -nocomplain -directory $dir *] {
       #:msg "work on $tmpfile [::file isdirectory $tmpfile]"
@@ -430,22 +469,22 @@ namespace eval ::xowiki {
       if {[::file isdirectory $tmpfile]} {
         # ignore mac os x resource fork directories
         if {[string match "*__MACOSX" $tmpfile]} continue
-        set folder_object [$package_id get_page_from_name -assume_folder true \
+        set folder_object [::$package_id get_page_from_name -assume_folder true \
                                -name $file_name -parent_id $parent_id]
         if {$folder_object ne ""} {
           # if the folder exists already, we have nothing to do
         } else {
           # we create a new folder ...
-          set folder_form_id [::xowiki::Weblog instantiate_forms -forms en:folder.form \
-                                  -package_id $package_id]
-          set folder_object [FormPage new -destroy_on_cleanup \
+          set folder_form_id [::$package_id instantiate_forms -forms en:folder.form]
+          set folder_object [FormPage new \
                                  -title $file_name \
                                  -name $file_name \
                                  -package_id $package_id \
                                  -parent_id $parent_id \
                                  -nls_language en_US \
                                  -instance_attributes {} \
-                                 -page_template $folder_form_id]
+                                 -page_template $folder_form_id \
+                                 -destroy_on_cleanup ]
           $folder_object save_new
           # ..... and refetch it under its canonical name
           ::xo::db::CrClass get_instance_from_db -item_id [$folder_object item_id]
@@ -454,7 +493,7 @@ namespace eval ::xowiki {
       } else {
         set mime_type [::xowiki::guesstype $file_name]
         if {[string match "image/*" $mime_type] && [:use_photo_form]} {
-          set photo_object [$package_id get_page_from_name -name en:$file_name -parent_id $parent_id]
+          set photo_object [::$package_id get_page_from_name -name en:$file_name -parent_id $parent_id]
           if {$photo_object ne ""} {
             # photo entry exists already, create a new revision
             :log "Photo $file_name exists already"
@@ -468,8 +507,8 @@ namespace eval ::xowiki {
           } else {
             # create a new photo entry
             :log "new Photo $file_name"
-            set photoFormObj [::xowiki::Weblog instantiate_forms \
-                                  -parent_id $parent_id -forms en:photo.form -package_id $package_id]
+            set photoFormObj [::$package_id instantiate_forms \
+                                  -parent_id $parent_id -forms en:photo.form]
             set photo_object [$photoFormObj create_form_page_instance \
                                   -name en:$file_name \
                                   -nls_language en_US \
@@ -488,7 +527,7 @@ namespace eval ::xowiki {
             #:log "after convert to internal $file_name"
           }
         } else {
-          set file_object [$package_id get_page_from_name -name file:$file_name -parent_id $parent_id]
+          set file_object [::$package_id get_page_from_name -name file:$file_name -parent_id $parent_id]
           if {$file_object ne ""} {
             :msg "file $file_name exists already"
             # file entry exists already, create a new revision
@@ -498,13 +537,14 @@ namespace eval ::xowiki {
             $file_object save
           } else {
             :msg "file $file_name created new"
-            set file_object [::xowiki::File new -destroy_on_cleanup \
+            set file_object [::xowiki::File new \
                                  -title $file_name \
                                  -name file:$file_name \
                                  -parent_id $parent_id \
                                  -mime_type $mime_type \
                                  -package_id $package_id \
-                                 -creation_user [::xo::cc user_id] ]
+                                 -creation_user [::xo::cc user_id] \
+                                 -destroy_on_cleanup ]
             $file_object set import_file $tmpfile
             $file_object save_new
           }

@@ -13,7 +13,7 @@
 
 /* menues and such */
 div.wiki-menu {
-    position: relative; right: 0px; 
+    position: relative; right: 0px;
     text-align: right;  font-family: sans-serif; font-size: 85%;color: #7A7A78;
 }
 
@@ -40,107 +40,17 @@ div.xowiki-content {
 }
 
 /* appearance of link types */
-div.xowiki-content span.external {
-    background: transparent url(/resources/xowiki/sprite16.png) -4px -264px no-repeat; 
-    padding-right: 10px;
-    text-decoration: none; /* added here for &nbsp; required in IE */
-}
-div.xowiki-content span.file {
-    background: transparent url(/resources/xowiki/sprite16.png) -4px -286px no-repeat; 
-    padding-right: 10px;
-    text-decoration: none;
-}
 div.xowiki-content a.glossary {
-    background: url(/resources/xowiki/glossary.gif) right center no-repeat; 
+    background: url(/resources/xowiki/glossary.gif) right center no-repeat;
     padding-right: 14px;
 }
 
-/* appearance of item-buttons */
-/*
-div.xowiki-content a.edit-item-button {
-    background: url(/resources/acs-subsite/Edit16.gif) right center no-repeat; 
-    padding-right: 16px;
-}
-div.xowiki-content a.delete-item-button {
-    background: url(/resources/acs-subsite/Delete16.gif) right center no-repeat; 
-    padding-right: 16px;
-}
-div.xowiki-content a.view-item-button {
-    background: url(/resources/acs-subsite/Zoom16.gif) right center no-repeat; 
-    padding-right: 16px;
-}
-div.xowiki-content a.create-item-button {
-    background: url( /resources/acs-subsite/Add16.gif) right center no-repeat; 
-    padding-right: 16px;
-}
-div.xowiki-content a.copy-item-button {
-    background: url(/resources/acs-subsite/Copy16.gif) right center no-repeat; 
-    padding-right: 16px;
-}
-div.xowiki-content a.copy-item-button {
-    background: url(/resources/acs-subsite/Copy16.gif) right center no-repeat; 
-    padding-right: 16px;
-}
-*/
-/* positions 
-   Add16         -2,-1
-   Copy16        -2,-22
-   Delete16      -2,-44
-   Edit16        -2,-66
-   New16         -2,-88
-   Open16        -2,-110
-   Preferences16 -2,-132
-   Properties16  -2,-154
-   Zoom16        -2,-176
-   ZoomIn16      -2,-198
-   ZoomOut16     -2,-220
-   email.png     -2,-242
-   external.png  -2,-264
-   file.png      -2,-286
-   transparent.png  -1,-308
-*/
-div.xowiki-content a.edit-item-button {
-    background: transparent url(/resources/xowiki/sprite16.png) -2px -66px no-repeat; 
-    padding-right: 16px;
-    text-decoration: none;
-}
-div.xowiki-content a.delete-item-button {
-    background: transparent url(/resources/xowiki/sprite16.png) -2px -44px no-repeat; 
-    padding-right: 16px;
-    text-decoration: none;
-}
-div.xowiki-content a.view-item-button {
-    background: transparent url(/resources/xowiki/sprite16.png) -2px -176px no-repeat; 
-    padding-right: 16px;
-    text-decoration: none;
-}
-div.xowiki-content a.create-item-button {
-    background: transparent url(/resources/xowiki/sprite16.png) -2px -1px no-repeat; 
-    padding-right: 16px;
-    text-decoration: none;
-}
-div.xowiki-content a.copy-item-button {
-    background: transparent url(/resources/xowiki/sprite16.png) -2px -22px no-repeat; 
-    padding-right: 16px;
-    text-decoration: none;
-    width: 16px; height: 16px;
-}
-div.xowiki-content a.add-item-button {
-    background: transparent url(/resources/xowiki/sprite16.png) -2px -1px no-repeat; 
-    padding-right: 16px;
-    text-decoration: none;
-}
-div.xowiki-content a.notification-image-button {
-    background: transparent url(/resources/xowiki/sprite16.png) -4px -248px no-repeat; /* 6px more */
-    padding-right: 16px;
-    text-decoration: none;
-}
 
 /* headings */
 div.xowiki-content h1 {
     /* font-size: 24px; */
     clear: both;
-    border-bottom: solid silver 1px; color: #222222; 
+    border-bottom: solid silver 1px; color: #222222;
     margin-top: 1em;  margin-bottom: 0.5em;
     text-align: left; font-weight: normal;
 }
@@ -153,19 +63,25 @@ div.xowiki-content h2 {
 }
 div.xowiki-content h3 {
     /* font-size: 14px; */
-    text-indent: 0em; 
+    clear: both;
+    text-indent: 0em;
     margin-top: 0.75em; margin-bottom: 0.1em;
     letter-spacing: 0px;  color: #222222;
     text-align: left; font-weight: bold;
 }
 div.xowiki-content h4 {
     /* font-size: 12px; */
+    clear: both;
     margin: 0;
+}
+div.xowiki-content h5,
+div.xowiki-content h6 {
+   clear:both;
 }
 div.xowiki-content .box {border: 1px solid #a1a5a9; padding: 0 5px 5px 5px; margin: 0 0 1.25em 0;}
 div.xowiki-content .errorMsg {background: #FFF; color: red; font-weight: bold;}
 div.xowiki-content .hr {
-    height: 1px; border: none; 
+    height: 1px; border: none;
     background-color: silver;
 }
 
@@ -222,7 +138,7 @@ div.rightbox {float:right; right: 1em; clear: right; font-size: 75%; padding: 5p
               border:dotted; border-width:1px;background: #f8f8f8;
              }
 div.presence div.title {font-size: 90%; margin-bottom: 0px;
-                        border-bottom: solid silver 1px; color: #222222; 
+                        border-bottom: solid silver 1px; color: #222222;
                        }
 
 div.xowiki-content a.missing {
@@ -282,7 +198,7 @@ div.xowiki-content .item-footer {
     text-align: left; font-size: 85%;
     margin-left: 10px; margin-right: 10px; margin-top: 5px;
     padding-top: 5px;
-    border-top: 1px solid; border-color: #c8c8c8; 
+    border-top: 1px solid; border-color: #c8c8c8;
     color: #555555;
 }
 div.xowiki-content .content-chunk-footer {clear: both;}
@@ -294,13 +210,13 @@ div.book-navigation img {border: 0px;}
 
 /* Make help_text nicer. Would like to make the font-sizer smaller as well,
    but this does not fit together with the OpenACS form styles, using
-   magin-left as 17em 
+   magin-left as 17em
 */
 div.xowiki-content .margin-form .form-button, .margin-form div.form-help-text {
     color: #7A7A78;
 }
 
-/* Make the weblog-mini-calendar slightly nicer by alignig its columns 
+/* Make the weblog-mini-calendar slightly nicer by alignig its columns
    and extending the width as it was with styles before zen.
 */
 .weblog-mini-calendar {width: 100%;}
@@ -330,115 +246,213 @@ div.categories-recent .date {
 
 /* inherited markup */
 div.xowiki-content a.inherited {
-    background: url(/resources/acs-subsite/arrow-down.gif) right center no-repeat; 
+    background: url(/resources/acs-subsite/arrow-down.gif) right center no-repeat;
     padding-right: 14px;
     font-size: 65%;
 }
 
 
 div.xowiki-content fieldset.compound-field {
-    margin: 0px; padding: 0px;
+    margin: 0px;
+    padding: 0px;
 }
+div.xowiki-content fieldset.compound-field fieldset.compound-field {
+    border-right: 1px;
+    border-left : 1px;
+    border-bottom: 0px;
+    color: #888;
+}
+div.xowiki-content div.cke_editable_inline {
+    color: #444;
+    padding-top: 10px;
+}
+div.xowiki-content fieldset.compound-field fieldset.compound-field .form-group > .form-label {
+    background-color: #eeeeee;
+    color: #000000;
+    border-top: 0px;
+    padding-top: 12px;
+}
+/* for dnd stuff */
+div.candidate-selection div.workarea { padding-right: 10px; float:left; }
+div.candidate-selection div.workarea h3 { margin-top: 0px; margin-bottom: 0.5ex;}
 
-/* for yui dnd stuff */
-div.xowiki-content div.workarea { padding-right: 10px; float:left; }
-div.xowiki-content div.workarea h3 { margin-top: 0px; margin-bottom: 0.5ex;}
-
-div.xowiki-content ul.region { 
+div.candidate-selection ul.region {
     border: 1px solid gray;
     position: relative;
-    width: 300px; 
+    width: 300px;
     list-style: none;
     margin:0;
     padding:0;
     /*
-       The bottom padding provides the cushion that makes the empty 
-       list targetable.  Alternatively, we could leave the padding 
+       The bottom padding provides the cushion that makes the empty
+       list targetable.  Alternatively, we could leave the padding
        off by default, adding it when we detect that the list is empty.
    */
     padding-bottom:3ex;
 }
 
-div.xowiki-content ul.region li {
+div.candidate-selection ul.region li {
     margin: 1px;
-    cursor: move; 
+    cursor: move;
 }
 
-div.xowiki-content li.candidates {
+div.candidate-selection li.candidates {
     background-color: #D1E6EC;
-    border:1px solid #7EA6B2;
+    border: 1px solid #7EA6B2;
+    padding: 5px 15px;
 }
 
-div.xowiki-content li.selection {
+div.candidate-selection li.selection {
     background-color: #D8D4E2;
-    border:1px solid #6B4C86;
+    border: 1px solid #6B4C86;
+    padding: 5px 15px;
+}
+div.candidate-selection textarea {
+    display: none;
 }
 
-div.xowiki-content div.book ul.page_order_region { 
+/*
+ * (Vertical) Reorder box
+ */
+
+div.reorder_box {
+    margin: 0px 30px 0px 40px;
+}
+div.reorder_box textarea {
+    display: none;
+}
+
+
+/*
+ * Book styling
+ */
+div.xowiki-content div.book ul.page_order_region {
     border: 0px solid gray;
-    width: 100%; 
+    width: 100%;
     list-style: none;
     margin: 10px;
     padding:0;
     /*
-       The bottom padding provides the cushion that makes the empty 
-       list targetable.  Alternatively, we could leave the padding 
+       The bottom padding provides the cushion that makes the empty
+       list targetable.  Alternatively, we could leave the padding
        off by default, adding it when we detect that the list is empty.
    */
     padding-bottom:3ex;
 }
-div.xowiki-content div.book ul.page_order_region_no_target { 
+div.xowiki-content div.book ul.page_order_region_no_target {
     border: 0px solid gray;
-    width: 100%; 
+    width: 100%;
     list-style: none;
     margin: 10px;
     padding: 0;
 }
 
-div.xowiki-content div.toc ul {                            
+div.xowiki-content div.toc ul {
     padding: 8px;
 }
-div.xowiki-content div.toc ul.page_order_region_no_target { 
+div.xowiki-content div.toc ul.page_order_region_no_target {
     list-style: none;
     margin: 0px 1em;
     padding: 0;
 }
-div.xowiki-content div.toc ul.page_order_region { 
+div.xowiki-content div.toc ul.page_order_region {
     list-style: none;
     margin: 0px 1em;
     padding:0;
     /*
-       The bottom padding provides the cushion that makes the empty 
-       list targetable.  Alternatively, we could leave the padding 
+       The bottom padding provides the cushion that makes the empty
+       list targetable.  Alternatively, we could leave the padding
        off by default, adding it when we detect that the list is empty.
    */
-    padding-bottom:3ex;
+    padding-bottom:1ex;
+}
+div.xowiki-content ul.page_order_region li.mark-above {
+    border-top:  solid 4px #428bca;
+}
+div.xowiki-content ul.page_order_region li.mark-below {
+    border-bottom:  solid 4px #428bca;
 }
 
-/* 
+div.xowiki-content .xowiki-tree,
+div.xowiki-content .xowiki-tree ul {
+  margin:0 0 0 1em; /* indentation */
+  padding:0;
+  list-style:none;
+  color:#369;
+  position:relative;
+}
+div.xowiki-content div.toc ul.xowiki-tree {
+    padding: 0px;
+}
+
+div.xowiki-content .xowiki-tree ul {
+    margin-left:.5em; /* (indentation/2) */
+}
+
+div.xowiki-content .xowiki-tree:before,
+div.xowiki-content .xowiki-tree ul:before {
+  content:"";
+  display:block;
+  width:0;
+  position:absolute;
+  top:0;
+  bottom:0;
+  left:0;
+  border-left:1px solid;
+}
+
+div.xowiki-content .xowiki-tree li {
+  margin:0;
+  padding:0 1.5em;   /* indentation + .5em */
+  line-height:1.5em; /* default list item's `line-height` */
+  /*font-size: smaller;*/
+  position:relative;
+}
+
+div.xowiki-content .xowiki-tree li:before {
+  content:"";
+  display:block;
+  width:10px; /* same with indentation */
+  height:0;
+  border-top:1px solid;
+  margin-top:-1px; /* border top width */
+  position:absolute;
+  top:0.75em; /* (line-height/2) */
+  left:0;
+}
+
+div.xowiki-content .xowiki-tree li:last-child:before {
+  background:white; /* same with body background */
+  height:auto;
+  top:0.75em; /* (line-height/2) */
+  bottom:0;
+}
+
+
+/*
    Handling hidden field-sets:
-   
-   child selectors are apparently not supported by IE 5 and 6, 
+
+   child selectors are apparently not supported by IE 5 and 6,
    but the content is usable in IE anyhow; maybe we have to use the
    parent-node hack
-   
+
      background-color: expression(/currentpage/.test(this.parentNode.className)? "#eff" : "#ef0");
-   
+
    or the nesting hack
-   
+
      div * { margin-left: 20px; }
      div * * { margin-left: 0}
-   
+
    as well...
 */
 div.xowiki-content  div.hidden-field-set > div.form-label {
-    display: none; 
+    display: none;
 }
 div.xowiki-content  div.hidden-field-set > div.form-widget {
-    margin-left: 0px; 
+    margin-left: 0px;
 }
 div.xowiki-content  div.hidden-field-set > div.form-widget > .compound-field {
-    border: 0px; 
+    border: 0px;
 }
 
 
@@ -449,22 +463,20 @@ div.xowiki-content .margin-form fieldset .form-item-wrapper {
 /* folder menu placement */
 
 div.xowiki-content div.folders {
-    float:left; width: 200px; 
+    float:left; width: 200px;
     font-size: 90%;
 }
 div.xowiki-content .content-with-folders {
-    float: left; width: 70%;
+    padding-left: 1em; float: left; width: 70%;
 }
-div.xowiki-content .content-with-folders div.form-label {
-    width: 9em;
+/*div.xowiki-content .content-with-folders div.form-label {
+  width: 9em;
+}*/
+
+div.xowiki-content input.form-control-hidden {
+    display: none;
 }
-div.xowiki-content .content-with-folders div.form-widget,  
-div.xowiki-content .content-with-folders .form-help-text,
-div.xowiki-content .content-with-folders .form-button,
-div.xowiki-content .content-with-folders .form-widget-error,
-div.xowiki-content .content-with-folders .form-error {
-    margin-left: 10em;
-}
+
 
 div.xowiki-content .content-with-folders fieldset.compound-field .repeatable {
     margin-left: 1em;
@@ -477,6 +489,10 @@ div.xowiki-content #menubar a.disabled {
     cursor: default;
 }
 
+
+div.xowiki-content a.repeat-del-link {
+    float: right;
+}
 
 /* mc stuff */
 div.xowiki-content table.mchoice td.selection {
@@ -523,7 +539,25 @@ div.xowiki-content .forum .cite p.date {
     text-align: right;
     font-size: 85%;
     color: #777777;
-    
+}
+
+/*
+ * Prevent line breaks in list tables headers (before the sorting sign)
+ */
+div.xowiki-content tr.list-header a {
+    white-space: nowrap;
+}
+div.xowiki-content table.table td.right,
+div.xowiki-content table.table th.right {
+    text-align: right; float: none;
+}
+div.xowiki-content table.table td.center,
+div.xowiki-content table.table th.center {
+    text-align: center;
+}
+div.xowiki-content table.table td.left.
+div.xowiki-content table.table th.left {
+    text-align: left; float: none;
 }
 
 nav.navbar a {
@@ -555,6 +589,58 @@ nav.navbar ul.dropdown-menu {
 .upload-drop-zone.drop {
   color: #222;
   border-color: #222;
+}
+
+/* autosave */
+div.xowiki-content div.autosave div.nochange,
+div.xowiki-content div.autosave div.pending,
+div.xowiki-content div.autosave div.saved
+{
+    float: right;
+    margin-top: -3ex;
+    height: 2.5ex;
+    font-size: smaller;
+}
+
+.xowiki-content div.file-control div {
+    display: inline;
+    margin-right: 6px;
+}
+.xowiki-content div.repeatable input[type=file] {
+    width: 95%
+}
+
+
+.xowiki-content table > thead .sort-active {
+    margin: 0px 4px 0px 4px;
+    opacity: 1;
+    font-weight: 900;
+    color: #000;
+}
+.xowiki-content table > thead .sort-inactive {
+    margin: 0px 4px 0px 4px;
+    opacity: 0.5;
+    font-weight: 900;
+}
+.xowiki-content table > thead .sort-up {
+    margin: 0px 0px 0px 4px;
+}
+.xowiki-content table > thead .sort-down {
+    margin: 0px 4px 0px 0px;
+}
+
+.xowiki-content .portlet-wrapper .panel-heading,
+.xowiki-content .portlet-wrapper .card-header
+{
+    color: #FFFFFF;
+    background-color: #428bca;
+}
+
+.xowiki-content .xowiki-nav-inactive {
+    color: grey;
+}
+.xowiki-content .xowiki-nav-active {
+    color: black;
 }
 
 /*

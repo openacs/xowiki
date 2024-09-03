@@ -1,3 +1,8 @@
+ad_page_contract {
+  Sample page generating an xowiki object embedding a chat
+} {
+}
+
 namespace eval ::xowiki::tmp {
   ::xowiki::Object create ajax-chat -noinit \
       -set object_type ::xowiki::Object \
@@ -17,7 +22,7 @@ namespace eval ::xowiki::tmp {
 set title "Import XoWiki Pages"
 set context {}
 set msg [::xowiki::Page import -objects ::xowiki::tmp::ajax-chat -replace true]
-template::set_file "[file dirname $__adp_stub]/../importmsg"
+template::set_file "[ad_file dirname $__adp_stub]/../importmsg"
 ad_return_template
 
 # Local variables:

@@ -15,7 +15,7 @@ ad_form -name upload_form \
     -has_submit 1 \
     -mode edit \
     -form {
-	{upload_file:file(file),optional {label #xowiki.choose_file#}}
+      {upload_file:file(file),optional {label #xowiki.choose_file#}}
     } -on_submit {
       #set width [template::element::get_values upload_form width]
       #set height [template::element::get_values upload_form height]
@@ -24,15 +24,18 @@ ad_form -name upload_form \
       #if {$height ne ""} {append size x$height}
 
       set file_name [template::util::file::get_property filename $upload_file]
+      ns_log notice "upload_image: uploaded filename <$file_name>"
       set upload_tmpfile [template::util::file::get_property tmp_filename $upload_file]
       set mime_type [::xowiki::guesstype $file_name]
-      set tmp_size [file size $upload_tmpfile]
+      set tmp_size [ad_file size $upload_tmpfile]
 
-      if {$size ne ""} {exec convert -resize $size $upload_tmpfile $upload_tmpfile}
+      if {$size ne ""} {
+        exec [::util::which convert] -resize $size $upload_tmpfile $upload_tmpfile
+      }
       if {![regexp (image/*|audio/mpeg|application/x-shockwave-flash|application/vnd.adobe.flash-movie|video/mp4) $mime_type]} {
         #template::form::set_error "upload_image" "upload_file" "[_ tlf-resource-integrator.HTMLArea_SelectImageUploadNoImage]"
         break
-      }    
+      }
 
       set title $file_name
       set existing_filenames [xo::dc list _ "select name from cr_items  where parent_id = :parent_id" ]
@@ -51,7 +54,8 @@ ad_form -name upload_form \
       $file_object save_new
       set revision_id [$file_object set revision_id]
 
-      set bild_url "[$file_object pretty_link]?m=download"
+      set bild_url [$file_object pretty_link -download true]
+      ns_log notice "upload_image: URL <$bild_url>"
       set image_browser_url [ad_conn package_url]/ckeditor-images
       set js_update "parent.frames\['thumbs'\].location='$image_browser_url/thumb-view?parent_id=$parent_id';"
     }

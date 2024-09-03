@@ -1,5 +1,5 @@
 ::xo::library doc {
-  XoWiki - adp generator procs: remove redundancy in adp files by generating it
+  XoWiki - ADP generator procs: remove redundancy in ADP files by generating it
 
   @creation-date 2007-03-13
   @author Gustaf Neumann
@@ -35,7 +35,7 @@ namespace eval ::xowiki {
     if {![:wikicmds]} {return ""}
     return {
       <%
-      if {$::::xowiki::search_mounted_p} {
+      if {$::xowiki::search_mounted_p} {
         template::add_event_listener \
           -id wiki-menu-do-search-control \
           -script {
@@ -72,8 +72,8 @@ namespace eval ::xowiki {
      <if @body.menubarHTML@ not nil><div class='visual-clear'><!-- --></div>@body.menubarHTML;noquote@</if>\n\
      <if @page_context@ not nil><h1>@body.title@ (@page_context@)</h1></if>\n\
      <else><h1>@body.title@</h1></else>\n\
-     <if @folderhtml@ not nil> \n\
-       <div class='folders' style=''>@folderhtml;noquote@</div> \n\
+     <if @body.folderHTML@ not nil> \n\
+       <div class='folders' style=''>@body.folderHTML;noquote@</div> \n\
        <div class='content-with-folders'>@content;noquote@</div> \n\
      </if>
     <else>@content;noquote@</else>"
@@ -89,7 +89,7 @@ namespace eval ::xowiki {
 
     append _ \
         {<!-- The following DIV is needed for overlib to function! -->
-          <div id="overDiv" style="position:absolute; visibility:hidden; z-index:1000;"></div>    
+          <div id="overDiv" style="position:absolute; visibility:hidden; z-index:1000;"></div>
           <div class='xowiki-content'>} \n
 
     append _ [:wikicmds_part] \n
@@ -105,8 +105,8 @@ namespace eval ::xowiki {
     # Generate the ADP file, when does not exist, or when the
     # generator is newer.
     #
-    if {![file exists $adpFilename]
-        || [file mtime [info script]] > [file mtime $adpFilename]} {
+    if {![ad_file exists $adpFilename]
+        || [file mtime [info script]] > [ad_file mtime $adpFilename]} {
       try {
         set f [open $adpFilename w]
       } on error {errorMsg} {
@@ -122,9 +122,14 @@ namespace eval ::xowiki {
   # Definition of Templates
   ####################################################################################
   #
-  # view-plain
+  # view-plain (without master)
   #
   ADP_Generator create view-plain -master 0 -wikicmds 0 -footer 0
+
+  #
+  # view-plain-master (plain with master)
+  #
+  ADP_Generator create view-plain-master -master 1 -wikicmds 0 -footer 0
 
   ####################################################################################
   #
@@ -152,10 +157,10 @@ namespace eval ::xowiki {
         return [subst -novariables -nobackslashes \
                     {<div style="float:left; width: 25%; font-size: 85%;
      background: url(/resources/xowiki/bw-shadow.png) no-repeat bottom right;
-     margin-left: 6px; margin-top: 6px; padding: 0px;            
+     margin-left: 6px; margin-top: 6px; padding: 0px;
 ">
                       <div style="position:relative; right:6px; bottom:6px;  border: 1px solid #a9a9a9; padding: 5px 5px; background: #f8f8f8;">
-                      <include src="/packages/xowiki/www/portlets/include" &__including_page=page
+                      <include src="/packages/xowiki/lib/portlets/include" &__including_page=page
                       portlet="categories [set open_page] -decoration plain">
                       </div></div>
                       <div style="float:right; width: 70%;">
@@ -187,7 +192,7 @@ namespace eval ::xowiki {
      margin-left: 6px; margin-top: 6px; padding: 0px;
 ">
                       <div style="position:relative; right:6px; bottom:6px;  border: 1px solid #a9a9a9; padding: 5px 5px; background: #f8f8f8">
-                      <include src="/packages/xowiki/www/portlets/include" &__including_page=page
+                      <include src="/packages/xowiki/lib/portlets/include" &__including_page=page
                       portlet="categories [set open_page] -decoration plain">
                       </div></div>
                       <div style="float:right; width: 70%;">
@@ -203,14 +208,14 @@ namespace eval ::xowiki {
      margin-left: 6px; margin-top: 6px; padding: 0px;
 ">
                       <div style="position:relative; right:6px; bottom:6px;  border: 1px solid #a9a9a9; padding: 5px 5px; background: #f8f8f8">
-                      <include src="/packages/xowiki/www/portlets/weblog-mini-calendar" &__including_page=page
+                      <include src="/packages/xowiki/lib/portlets/weblog-mini-calendar" &__including_page=page
                       summary="0" noparens="0">
-                      <include src="/packages/xowiki/www/portlets/include" &__including_page=page
+                      <include src="/packages/xowiki/lib/portlets/include" &__including_page=page
                       portlet="tags -decoration plain">
-                      <include src="/packages/xowiki/www/portlets/include" &__including_page=page
+                      <include src="/packages/xowiki/lib/portlets/include" &__including_page=page
                       portlet="tags -popular 1 -limit 30 -decoration plain">
                       <hr>
-                      <include src="/packages/xowiki/www/portlets/include" &__including_page=page
+                      <include src="/packages/xowiki/lib/portlets/include" &__including_page=page
                       portlet="presence -interval {30 minutes} -decoration plain">
                       <hr>
                       <a href="/xowiki/contributors" title="Show People contributing to this XoWiki Instance">Contributors</a>
@@ -253,14 +258,14 @@ namespace eval ::xowiki {
      margin-left: 6px; margin-top: 6px; padding: 0px;
 ">
           <div style="position:relative; right:6px; bottom:6px;  border: 1px solid #a9a9a9; padding: 5px 5px; background: #f8f8f8">
-          <include src="/packages/xowiki/www/portlets/weblog-mini-calendar" &__including_page=page
+          <include src="/packages/xowiki/lib/portlets/weblog-mini-calendar" &__including_page=page
           summary="0" noparens="0">
-          <include src="/packages/xowiki/www/portlets/include" &__including_page=page
+          <include src="/packages/xowiki/lib/portlets/include" &__including_page=page
           portlet="tags -decoration plain">
-          <include src="/packages/xowiki/www/portlets/include" &__including_page=page
+          <include src="/packages/xowiki/lib/portlets/include" &__including_page=page
           portlet="tags -popular 1 -limit 30 -decoration plain">
           <hr>
-          <include src="/packages/xowiki/www/portlets/include" &__including_page=page
+          <include src="/packages/xowiki/lib/portlets/include" &__including_page=page
           portlet="presence -interval {30 minutes} -decoration plain">
           <hr>
           <a href="contributors" title="Show People contributing to this XoWiki Instance">Contributors</a>
@@ -271,7 +276,7 @@ namespace eval ::xowiki {
      margin-left: 6px; margin-top: 6px; padding: 0px;
 ">
           <div style="position:relative; right:6px; bottom:6px;  border: 1px solid #a9a9a9; padding: 5px 5px; background: #f8f8f8">
-          <include src="/packages/xowiki/www/portlets/include" &__including_page=page
+          <include src="/packages/xowiki/lib/portlets/include" &__including_page=page
           portlet="categories [set open_page] -decoration plain">
           </div></div>  <!-- background -->
           </div>
@@ -283,7 +288,7 @@ namespace eval ::xowiki {
 
         }]
       }
-  
+
   # oacs-view3-bootstrap3
   #
   # similar to oacs view3, but based on bootstrap
@@ -311,16 +316,16 @@ namespace eval ::xowiki {
         set open_page {-open_page [list @name@]}
         return [subst -novariables -nobackslashes {\
 
-    <div class="row"> 
+    <div class="row">
 
         <div class="col-md-9 col-sm-8 col-xs-12 col-md-push-3 col-sm-push-4"> <!-- content -->
             @top_includelets;noquote@
             <if @body.menubarHTML@ not nil><div class='visual-clear'><!-- --></div>@body.menubarHTML;noquote@</if>
             <if @page_context@ not nil><h1>@body.title@ (@page_context@)</h1></if>
             <else><h1>@body.title@</h1></else>
-            <if @folderhtml@ not nil> 
-                <div class='folders' style=''>@folderhtml;noquote@</div> 
-                <div class='content-with-folders'>@content;noquote@</div> 
+            <if @body.folderHTML@ not nil>
+                <div class='folders' style=''>@body.folderHTML;noquote@</div>
+                <div class='content-with-folders'>@content;noquote@</div>
             </if>
             <else>@content;noquote@</else>
         </div> <!-- content -->
@@ -328,36 +333,36 @@ namespace eval ::xowiki {
         <div class="col-md-3 col-sm-4 col-xs-12 home-left col-md-pull-9 col-sm-pull-8" style="font-size:small;"> <!-- left panel in full view -->
             <div class="thumbnail">
                 <div class="caption">
-                    <include src="/packages/xowiki/www/portlets/weblog-mini-calendar" &__including_page=page summary="0" noparens="0">
+                    <include src="/packages/xowiki/lib/portlets/weblog-mini-calendar" &__including_page=page summary="0" noparens="0">
                 </div>
             </div>
             <div class="thumbnail">
                 <div class="caption">
-                    <include src="/packages/xowiki/www/portlets/include" &__including_page=page portlet="tags -decoration plain">
+                    <include src="/packages/xowiki/lib/portlets/include" &__including_page=page portlet="tags -decoration plain">
                 </div>
             </div>
             <div class="thumbnail">
                 <div class="caption">
-                    <include src="/packages/xowiki/www/portlets/include" &__including_page=page portlet="tags -popular 1 -limit 30 -decoration plain">
+                    <include src="/packages/xowiki/lib/portlets/include" &__including_page=page portlet="tags -popular 1 -limit 30 -decoration plain">
                 </div>
             </div>
             <div class="thumbnail">
                 <div class="caption">
-                    <include src="/packages/xowiki/www/portlets/include" &__including_page=page portlet="presence -interval {30 minutes} -decoration plain">
+                    <include src="/packages/xowiki/lib/portlets/include" &__including_page=page portlet="presence -interval {30 minutes} -decoration plain">
                     <a href="/xowiki/contributors" title="Show People contributing to this XoWiki Instance">Contributors</a>
                 </div>
             </div> <!-- background -->
 
             <div class="thumbnail">
                 <div class="caption">
-                    <include src="/packages/xowiki/www/portlets/include" &__including_page=page portlet="categories [set open_page] -decoration plain">
+                    <include src="/packages/xowiki/lib/portlets/include" &__including_page=page portlet="categories [set open_page] -decoration plain">
                 </div>
             </div>  <!-- background -->
         </div>
     </div>
    <div class="row">
         <div class="col-xs-12">
-            <hr>        
+            <hr>
             @footer;noquote@
         </div>
     </div>
@@ -365,7 +370,7 @@ namespace eval ::xowiki {
       }
 
 
-  
+
   ####################################################################################
   #
   # view-book
@@ -410,12 +415,10 @@ if {$book_next_link ne ""} {
                       <tr>
                       <td>
                       <if @book_prev_link@ not nil>
-                      <a href="@book_prev_link@" accesskey='p' id="bookNavPrev.a">
-                      <img alt='Previous' src='/resources/xowiki/previous.png' width='15' id="bookNavPrev.img"></a>
+                      <a href="@book_prev_link@" class="xowiki-nav-active" accesskey='p' id="bookNavPrev.a"><adp:icon name="previous"></a>
                       </if>
                       <else>
-                      <a href="" accesskey='p' id="bookNavPrev.a">
-                      <img alt='No Previous' src='/resources/xowiki/previous-end.png' width='15' id="bookNavPrev.img"></a>
+                      <a href="" class="xowiki-nav-inactive" accesskey='p' id="bookNavPrev.a"><adp:icon name="previous"></a>
                       </else>
                       </td>
 
@@ -431,12 +434,10 @@ if {$book_next_link ne ""} {
 
                       <td id="bookNavNext">
                       <if @book_next_link@ not nil>
-                      <a href="@book_next_link@" accesskey='n' id="bookNavNext.a">
-                      <img alt='Next' src='/resources/xowiki/next.png' width='15' id="bookNavNext.img"></a>
+                      <a href="@book_next_link@" class="xowiki-nav-active" accesskey='n' id="bookNavNext.a"><adp:icon name="next"></a>
                       </if>
                       <else>
-                      <a href="" accesskey='n' id="bookNavNext.a">
-                      <img alt='No Next' src='/resources/xowiki/next-end.png' width='15' id="bookNavNext.img"></a>
+                      <a href="" class="xowiki-nav-inactive" accesskey='n' id="bookNavNext.a"><adp:icon name="next"></a>
                       </else>
                       </td>
                       </tr>
@@ -453,7 +454,7 @@ if {$book_next_link ne ""} {
                       &="per_object_categories_with_links"
                       &="digg_link" &="delicious_link" &="my_yahoo_link"
                       &="gc_link" &="gc_comments" &="notification_subscribe_link" &="notification_image"
-                      &="top_includelets" &="folderhtml" &="page" &="doc" &="body">
+                      &="top_includelets" &="page" &="doc" &="body">
                       </div>
                       </div>
                     }}
@@ -462,7 +463,7 @@ if {$book_next_link ne ""} {
   #
   # view-book-no-ajax
   #
-  # adp identical to view-book.
+  # ADP identical to view-book.
   #
   ADP_Generator create view-book-no-ajax -master 1 -footer 1 -wikicmds 0 \
       -extra_header_stuff {

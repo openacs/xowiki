@@ -34,17 +34,29 @@ if {![info exists object_type]} {
   set with_children true
 }
 
+set CSSToolkit [::xowiki::CSS toolkit]
+if {$CSSToolkit eq "bootstrap"} {
+  template::head::add_css -href urn:ad:css:bootstrap3
+}
+template::head::add_css \
+    -href urn:ad:css:xowiki-$CSSToolkit
+
+# if you would like to have a confirmation popup before deleting, uncomment the following lines
+# template::add_confirm_handler -CSSclass "list delete-item-button" \
+#   -message [_ xowiki.delete_confirm]
+
 set return_url [expr {$per_type ? [export_vars -base [::$package_id url] object_type] :
                       [::$package_id url]}]
 
-set category_url [export_vars -base [$package_id package_url] { {manage-categories 1} {object_id $package_id}}]
+set category_url [export_vars -base [::$package_id package_url] { {manage-categories 1} {object_id $package_id}}]
+
 
 set actions [subst {
   Action new -label "[lang::message::lookup {} categories.Categories Categories]" \
       -url $category_url
 }]
 foreach type $object_types {
-  set link [$package_id make_link -with_entities 0 \
+  set link [::$package_id make_link -with_entities 0 \
                 $package_id edit-new {object_type $type} return_url autoname]
   if {$link eq ""} continue
   append actions [subst {
@@ -55,7 +67,7 @@ foreach type $object_types {
   }]
 }
 
-set ::individual_permissions [expr {[$package_id set policy] eq "::xowiki::policy3"}]
+set ::individual_permissions [expr {[::$package_id set policy] eq "::xowiki::policy3"}]
 set ::with_publish_status 1
 
 TableWidget create t1 -volatile \
@@ -65,23 +77,26 @@ TableWidget create t1 -volatile \
         Action new -label [_ xowiki.export] -tooltip [_ xowiki.export] -url export
         Action new -label [_ xowiki.delete] -tooltip [_ xowiki.delete] -url bulk-delete
       }
-      AnchorField edit -CSSclass edit-item-button -label "" -html {style "padding: 0px;"}
+      AnchorField edit -CSSclass edit-item-button -label ""
       if {$::individual_permissions} {
         ImageAnchorField create permissions -src /resources/xowiki/permissions.png -width 16 \
-            -height 16 -border 0 -title "Manage Individual Permssions for this Item" \
-            -alt permsissions -label "" -html {style "padding: 2px;"}
+            -height 16 -border 0 -title "Manage Individual Permissions for this Item" \
+            -alt permsissions -label ""
       }
       if {$::with_publish_status} {
-	ImageAnchorField create publish_status -orderby publish_status.src -src "" \
-	    -width 8 -height 8 -title "Toggle Publish Status" \
-            -alt "publish status" -label [_ xowiki.publish_status] -html {style "padding: 2px;text-align: center;"}
+        AnchorField create publish_status \
+            -CSSclass publish-status-item-button \
+            -orderby publish_status.CSSclass \
+            -label "" \
+            -richtext 1 \
+            -html {style "text-align: center;"}
       }
-      Field create syndicated -label "RSS" -html {style "padding: 2px; text-align: center;"}
-      AnchorField create page_order -label [_ xowiki.Page-page_order] -orderby page_order -html {style "padding: 2px;"}
-      AnchorField create name -label [_ xowiki.Page-name] -orderby name -html {style "padding: 2px;"}
+      Field create syndicated -label "RSS" -html {style "text-align: center;"}
+      AnchorField create page_order -label [_ xowiki.Page-page_order] -orderby page_order
+      AnchorField create name -label [_ xowiki.Page-name] -orderby name
       AnchorField create title -label [_ xowiki.Page-title] -orderby title
-      Field create object_type -label [_ xowiki.page_type] -orderby object_type -html {style "padding: 2px;"}
-      Field create size -label [_ xowiki.Size] -orderby size -html {align right style "padding: 2px;"}
+      Field create object_type -label [_ xowiki.page_type] -orderby object_type
+      Field create size -label [_ xowiki.Size] -orderby size -html {align right}
       Field create last_modified -label [_ xowiki.Page-last_modified] -orderby last_modified
       Field create mod_user -label [_ xowiki.By_user] -orderby mod_user
       AnchorField create delete -CSSclass delete-item-button -label ""
@@ -102,7 +117,7 @@ set attributes [list revision_id content_length creation_user title page_order p
 
 set folder_id [::$package_id folder_id]
 foreach i [xo::dc list get_syndicated {
-  select s.object_id from syndication s, cr_items ci 
+  select s.object_id from syndication s, cr_items ci
   where s.object_id = ci.live_revision and ci.parent_id = :folder_id
 }] { set syndicated($i) 1 }
 
@@ -120,7 +135,7 @@ xo::dc foreach instance_select \
             # Safety belt for cases, where the instance_select_query
             # brings in instances belonging to other packages.
             ns_log notice "admin/list: have to initialize package $package_id"
-            ::xo::Package initialize -package_id $package_id -keep_cc true
+            ::xo::Package require $package_id
           }
           set page_link [::$package_id pretty_link -parent_id $parent_id $name]
           set edit_link [::$package_id pretty_link -parent_id $parent_id \
@@ -128,7 +143,7 @@ xo::dc foreach instance_select \
                              $name]
           set name [::$package_id external_name -parent_id $parent_id $name]
 
-	  ::template::t1 add \
+          ::template::t1 add \
               -name $name \
               -title $title \
               -object_type [string map [list "::xowiki::" ""] $object_type] \
@@ -136,33 +151,28 @@ xo::dc foreach instance_select \
               -last_modified $last_modified \
               -syndicated [info exists syndicated($revision_id)] \
               -size [expr {$content_length ne "" ? $content_length : 0}]  \
+              -publish_status "&#9632;" \
               -edit "" \
               -edit.href $edit_link \
               -edit.title #xowiki.edit# \
               -mod_user [::xo::get_user_name $creation_user] \
               -delete "" \
-              -delete.href [export_vars -base [$package_id package_url] {{delete 1} item_id name return_url}] \
-              -delete.title #xowiki.delete# 
+              -delete.href [export_vars -base [::$package_id package_url] {{delete 1} item_id name return_url}] \
+              -delete.title #xowiki.delete#
+
+          set line [::template::t1 last_child]
 
           if {$::individual_permissions} {
-            [::template::t1 last_child] set permissions.href \
-                [export_vars -base permissions {item_id return_url}] 
+            $line set permissions.href \
+                [export_vars -base permissions {item_id return_url}]
           }
           if {$::with_publish_status} {
-            # TODO: this should get some architectural support
-	    if {$publish_status eq "ready"} {
-	      set image active.png
-	      set state "production"
-	    } else {
-	      set image inactive.png
-	      set state "ready"
-	    }
-            [::template::t1 last_child] set publish_status.src /resources/xowiki/$image
-	    [::template::t1 last_child] set publish_status.href \
-		[export_vars -base [$package_id package_url]admin/set-publish-state \
-		     {state revision_id return_url}]
+            set d [::xowiki::utility publish_status_next_state $publish_status]
+            $line set publish_status.CSSclass [dict get $d CSSclass]
+            $line set publish_status.title #xowiki.publish_status_make_[dict get $d state]#
+            $line set publish_status.href [export_vars -base $page_link {{m toggle-publish-status} return_url}]
           }
-	  [::template::t1 last_child] set page_order $page_order
+          $line set page_order $page_order
         }
 
 

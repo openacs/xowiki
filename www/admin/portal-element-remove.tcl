@@ -8,13 +8,13 @@
 } -parameter {
   {-element_id}
   {-portal_id}
-  {-referer .}
+  {-referrer .}
 }
 
 # permissions?
 portal::remove_element -element_id $element_id
 # redirect and abort
-ad_returnredirect $referer
+ad_returnredirect $referrer
 ad_script_abort
 
 

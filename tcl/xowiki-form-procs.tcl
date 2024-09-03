@@ -24,33 +24,35 @@ namespace eval ::xowiki {
         {f.description "="}
         {f.nls_language "="}
         {validate {
-          {name {\[::xowiki::validate_name\]} {Another item with this name exists \
-                already in this folder}}
+          {name {\[::xowiki::validate_name\]}
+            {Another item with this name exists already in this folder} }
+          {name {[string length \$name] < 4000}
+            {The name is too long.  Please  enter a value of at most 4000 characters long} }
           {page_order {\[::xowiki::validate_form_field page_order\]} {Page Order invalid; \
-                might only contain upper and lower case letters, underscore, digits and dots}}
+                might only contain upper and lowercase letters, underscore, digits and dots}}
         }}
         {with_categories true}
         {submit_link "view"}
         {folderspec ""}
         {autoname 0}
       } -ad_doc {
-        Form Class for XoWiki Pages. 
-        
-        You can manipulate the form elements shown by editing the field_list. 
+        Form Class for XoWiki Pages.
+
+        You can manipulate the form elements shown by editing the field_list.
         The following elements are mandatory in field_list
         and should never be left out:
         <ul>
         <li>name
         <li>item_id
         </ul>
-        
+
       }
 
   WikiForm instproc mkFields {} {
     set __fields ""
     set field_list [:field_list]
     set show_page_order [[${:data} package_id] show_page_order]
-    if {!$show_page_order} { :f.page_order "= hidden" } 
+    if {!$show_page_order} { :f.page_order "= hidden" }
     if {${:autoname}}      { :f.name       "= hidden,optional"}
     set form_fields [list]
 
@@ -58,7 +60,7 @@ namespace eval ::xowiki {
       # if there is no field spec, use the default from the slot definitions
       set __spec  [expr {[info exists :f.$__field] ? [set :f.$__field] : "="}]
       set __wspec [lindex $__spec 0]
-      #my msg "$__field: wspec=$__wspec, spec=$__spec"
+      #:msg "$__field: wspec=$__wspec, spec=$__spec"
 
       # check first if we have widget_specs.
       # TODO: this part is likely to be removed in the future.
@@ -89,7 +91,7 @@ namespace eval ::xowiki {
           set __spec $__newspec
         }
       } elseif {[lindex $__wspec 0] eq "="} {
-        # 
+        #
         # Get the information from the attribute definitions and given
         # specs.
         #
@@ -119,7 +121,7 @@ namespace eval ::xowiki {
       }
 
       if {[string first "richtext" $__wspec] > -1} {
-        # ad_form does a subst, therefore escape esp. the JavaScript stuff
+        # ad_form does a subst, therefore, escape esp. the JavaScript stuff
         set __spec [string map {\[ \\[ \] \\] \$ \\$ \\ \\\\} $__spec]
       }
 
@@ -133,7 +135,7 @@ namespace eval ::xowiki {
     set :fields $__fields
   }
 
-  proc ::xowiki::locales {} {
+  ad_proc -private ::xowiki::locales {} {
     set locales [lang::system::get_locales]
     if {[ns_conn isconnected]} {
       #
@@ -148,7 +150,7 @@ namespace eval ::xowiki {
     return $lpairs
   }
 
-  proc ::xowiki::page_templates {} {
+  ad_proc -private ::xowiki::page_templates {} {
     set form ::xowiki::f1 ;# form has to be named this way for the time being
     #set form [lindex [::xowiki::WikiForm info instances -closure] 0]
     $form instvar folder_id
@@ -187,14 +189,14 @@ namespace eval ::xowiki {
 
   proc ::xowiki::guesstype {fn} {
     set mime [ns_guesstype $fn]
-    if {$mime eq "*/*" 
-        || $mime eq "application/octet-stream" 
+    if {$mime eq "*/*"
+        || $mime eq "application/octet-stream"
         || $mime eq "application/force-download"} {
       #
       # ns_guesstype was failing, which should not be the case with
       # recent versions of NaviServer
       #
-      switch [file extension $fn] {
+      switch [ad_file extension $fn] {
         .xotcl {set mime text/plain}
         .mp3 {set mime audio/mpeg}
         .cdf {set mime application/x-netcdf}
@@ -213,12 +215,12 @@ namespace eval ::xowiki {
     upvar duration duration
     set form ::xowiki::f1 ;# form has to be named this way for the time being
     #set form [lindex [::xowiki::WikiForm info instances -closure] 0]
-    $form instvar data 
+    $form instvar data
     $data instvar package_id
     if {[$data istype ::xowiki::PodcastItem] && $duration eq "" && [$data exists import_file]} {
       set filename [expr {[$data exists full_file_name] ? [$data full_file_name] : [$data set import_file]}]
-      set ffmpeg [$package_id get_parameter "ffmpeg" "/usr/bin/ffmpeg"]
-      if {[file exists $ffmpeg]} {
+      set ffmpeg [::$package_id get_parameter -check_query_parameter false "ffmpeg" "/usr/bin/ffmpeg"]
+      if {[ad_file exists $ffmpeg]} {
         catch {exec $ffmpeg -i $filename} output
         if {[info exists output]} {
           regexp {Duration: +([0-9:.]+)[ ,]} $output _ duration
@@ -230,6 +232,13 @@ namespace eval ::xowiki {
 
 
   proc ::xowiki::validate_name {{data ""}} {
+    #
+    # This proc is not only a validator of the "name" attribute, but
+    # modifies "name" according to the value of the language settings,
+    # in case it is applied on non-file pages. In cases of data of the
+    # autonamed forms (i.e. for pages of type ::xowiki::PageInstance),
+    # it avoids name clashes as well.
+    #
     upvar name name
     if {$data eq ""} {
       unset data
@@ -237,39 +246,79 @@ namespace eval ::xowiki {
       # $form log "--F validate_name data=[$form exists data]"
       $form instvar data
     }
-    $data instvar package_id
-    set cc [$package_id context]
+    #$data log "validate_name: '$name'"
 
-    set old_name [$cc form_parameter __object_name ""]
+    $data instvar package_id
+    set cc [::$package_id context]
+
+    set old_name [$cc form_parameter __object_name:signed,convert ""]
     #$data msg "validate: old='$old_name', current='$name'"
 
-    if {[$data istype ::xowiki::File] && [$data exists mime_type]} {
-      #$data log "--mime validate_name MIME [$data set mime_type]"
+    if {[$data istype ::xowiki::File]
+        && [$data exists upload_file]
+        && [$data exists mime_type]} {
+      #$data log "validate_name: MIME [$data set mime_type]"
       set name [$data build_name $name [$data set upload_file]]
-      # 
+      #
       # Check, if the user is allowed to create a file with the specified
       # name. Files ending in .css or .js might require special permissions.
       # Caveat: the error message is always the same.
       #
       set package_id [$cc package_id]
-      set computed_link [export_vars -base [$package_id package_url] {{edit-new 1} name 
+      set computed_link [export_vars -base [::$package_id package_url] {{edit-new 1} name
         {object_type ::xowiki::File}}]
-      set granted [$package_id check_permissions -link $computed_link $package_id edit-new]
-      #$data msg computed_link=$computed_link,granted=$granted
+      set granted [::$package_id check_permissions -link $computed_link $package_id edit-new]
+      #$data log "validate_name: computed_link=$computed_link,granted=$granted"
       if {!$granted} {
         util_user_message -message "User not authorized to create a file named $name"
         return 0
       }
     } else {
+      if {![$data istype ::xowiki::File] && [regexp {^[a-zA-Z][a-zA-Z]:$} $name]} {
+        #
+        # The name looks like a language prefix followed by an empty
+        # name. Empty names are not allowed.
+        #
+        return 0
+      }
       $data name $name
-      set name [$data build_name -nls_language [$data form_parameter nls_language {}]]
+      #
+      # Try first to get the language from the form parameter
+      # "nls_language". If this fails, get it from "nls_language". If
+      # this fails as well, fall back to "en_US". Actually, one should
+      # consider parameterizing/refactoring validate_name which
+      # predates form-fields and follows ad_form conventions and uses
+      # upvar, etc.
+      #
+      set nls_language [$data form_parameter \
+                            nls_language:token \
+                            [$data form_parameter _nls_language:token]]
+      if {$nls_language eq ""} {
+        set nls_language en_US
+      } elseif {$nls_language ni [lang::system::get_locales]} {
+        #
+        # The locale does not belong to the enabled locales. This can
+        # be still wanted by the application, but we should provide a
+        # hint in the log file about this unusual situation.
+        #
+        if {$nls_language ni [lang::system::get_locales -all]} {
+          set message "'$nls_language' not defined in the system, call back to 'en_US'"
+          set severity warning
+          set nls_language en_US
+        } else {
+          set severity notice
+          set message "'$nls_language' not enabled in the system"
+        }
+        ns_log $severity "suspect content of form variable nls_language: $message"
+      }
+      set name [$data build_name -nls_language $nls_language]
     }
     if {$name ne ""} {
       set prefixed_page_p [expr {![$data is_folder_page] && ![$data is_link_page]}]
       set name [::$package_id normalize_name -with_prefix $prefixed_page_p $name]
     }
 
-    #$data msg "validate: old='$old_name', new='$name'"
+    #$data log "validate_name: old='$old_name', new='$name'"
     if {$name eq $old_name && $name ne ""} {
       # do not change names, which are already validated;
       # otherwise, autonamed entries might get an unwanted en:prefix
@@ -277,23 +326,31 @@ namespace eval ::xowiki {
     }
 
     # check, if we try to create a new item with an existing name
-    #$data msg "validate: new=[$data form_parameter __new_p 0], eq=[expr {$old_name ne $name}]"
-    if {[$data form_parameter __new_p 0]
+    #$data log "validate_name: new=[$data form_parameter __new_p 0], eq=[expr {$old_name ne $name}]"
+    if {[$data form_parameter __new_p:boolean 0]
         || $old_name ne $name
       } {
       if {[::xo::db::CrClass lookup -name $name -parent_id [$data parent_id]] == 0} {
         # the provided name is really new
         return 1
       }
+      #$data log "validate_name: entry '$name' exists here already"
       if {[$data istype ::xowiki::PageInstance]} {
+        #
         # The entry might be autonamed. In case of imports from other
         # xowiki instances, we might have name clashes. Therefore, we
         # compute a fresh name here.
+        #
         set anon_instances [$data get_from_template anon_instances f]
         if {$anon_instances} {
           set basename [::xowiki::autoname basename [[$data page_template] name]]
-          $data name [::xowiki::autoname new -name $basename -parent_id [$data parent_id]]
-          return 1
+          $data log "validate_name: have anon_instances basename '$basename' name '$name'"
+          if {[string match $basename* $name]} {
+            set name [::xowiki::autoname new -name $basename -parent_id [$data parent_id]]
+            $data name $name
+            $data log "validate_name: changed data name to '$name'"
+            return 1
+          }
         }
       }
       return 0
@@ -309,17 +366,19 @@ namespace eval ::xowiki {
     # form_fields
     #
     upvar $field_name $field_name
-    $form instvar data
+    set data [$form set data]
     #
     # Get the form-field and set its value....
     #
     set f [$data lookup_form_field -name $field_name [$form set form_fields]]
     $f value [set $field_name]
+
     set validation_error [$f validate $data]
     #
     # If we get an error, we report it as well via util-user message
-    # 
-    #$form msg "***** field_name = $field_name, cls=[$f info class] validation_error=$validation_error"
+    #
+    #$form log "***** field_name = $field_name, validation_error=$validation_error"
+
     if {$validation_error ne ""} {
       util_user_message -message "Error in field [$f label]: $validation_error"
       return 0
@@ -349,17 +408,19 @@ namespace eval ::xowiki {
       }
     }
   }
-  
+
+  WikiForm instproc on_submit args {
+    #:log "--form on_submit $args <[${:data} info vars]> "
+    :var page_order [${:data} set page_order]
+    next
+  }
+
   WikiForm instproc data_from_form {{-new 0}} {
-    if {[${:data} exists_form_parameter text.format]} {
+    if {[${:data} exists_form_parameter text.format:graph]} {
       ${:data} set mime_type [${:data} form_parameter text.format]
     }
-    if {$new && [[${:data} set package_id] get_parameter production_mode 0]} {
+    if {$new && [[${:data} set package_id] get_parameter production_mode:boolean 0]} {
       ${:data} set publish_status production
-    }
-    upvar #[template::adp_level] page_order page_order
-    if {[info exists page_order] && $page_order ne ""} {
-      set page_order [string trim $page_order " ."]
     }
     :tidy
   }
@@ -369,7 +430,7 @@ namespace eval ::xowiki {
       ### danger: update references does an ad_eval, which breaks the [template::adp_level]
       ### ad_form! don't do it in pageinstanceforms.
       ${:data} render_adp false
-      ${:data} render -update_references true
+      ${:data} render -update_references all
     }
     # Delete the link cache entries for this entry.
     # The logic could be made more intelligent to delete entries is more rare cases, like
@@ -393,33 +454,33 @@ namespace eval ::xowiki {
       }
     }
 
-    #:log "v=[ad_acs_version] 5.2] compare: [apm_version_names_compare [ad_acs_version] 5.2]"
     if {[apm_version_names_compare [ad_acs_version] 5.3.0d4] == 1} {
       application_data_link::update_links_from \
           -object_id [${:data} set item_id] \
           -text [${:data} set text]
     }
   }
-  
-  
+
+
   WikiForm instproc new_request {} {
     #
-    # get the defaults from the slots and set it in the data.
+    # Get the defaults from the slots and set it in the data.
     # This should not be necessary with xotocl 1.6.*
     #
     foreach f [:field_list] {
-      set s [${:data} find_slot $f] 
+      set s [${:data} find_slot $f]
       if {$s ne "" && [$s exists default] && [$s default] ne ""} {
         #:msg "new_request $f default = '[$s default]'"
         ${:data} set $f [$s default]
       }
     }
-    # 
+    #
     # set the following defaults manually
     #
     ${:data} set creator [::xo::get_user_name [::xo::cc user_id]]
     if {[${:data} name] eq ""} {
-      ${:data} set nls_language [::xo::cc locale]
+      set nls_language [[${:data} package_id] default_locale]
+      ${:data} set nls_language $nls_language
     }
     next
   }
@@ -432,7 +493,7 @@ namespace eval ::xowiki {
   }
 
   WikiForm instproc new_data {} {
-    :data_from_form -new 1 
+    :data_from_form -new 1
     ${:data} set __autoname_prefix [string range [${:data} set nls_language] 0 1]:
     set item_id [next]
     ${:data} set creation_user [::xo::cc user_id]
@@ -441,6 +502,7 @@ namespace eval ::xowiki {
   }
 
   WikiForm instproc edit_data {} {
+    #:log "--form edit_data "
     :data_from_form -new 0
     set item_id [next]
     :update_references
@@ -448,9 +510,10 @@ namespace eval ::xowiki {
   }
 
   WikiForm instproc after_submit {item_id} {
+    #:log "--form after submit"
     set link [:submit_link]
     if {$link eq "."} {
-      # we can determine submit link only after nls_language 
+      # we can determine submit link only after nls_language
       # is returned from the user
       :submit_link [${:data} pretty_link]
     }
@@ -478,14 +541,14 @@ namespace eval ::xowiki {
         {f.name  "= optional,help_text=#xowiki.File-name-help_text#"}
         {f.title "= optional"}
         {f.text
-          {upload_file:file(file) 
+          {upload_file:file(file),optional
             {label #xowiki.content#}
             {html {size 30}} }}
         {validate {
           {upload_file {\[::xowiki::validate_file\]} {For new entries, \
                                                           a upload file must be provided}}
-          {page_order {\[::xowiki::validate_form_field page_order\]} {Page Order invalid; 
-            might only contain upper and lower case letters, underscore, digits and dots}}
+          {page_order {\[::xowiki::validate_form_field page_order\]} {Page Order invalid;
+            might only contain upper and lowercase letters, underscore, digits and dots}}
           {name {\[::xowiki::validate_name\]} {Another item with this name exists \
                                                    already in this folder}}
         }}
@@ -504,8 +567,8 @@ namespace eval ::xowiki {
       set mime_type [${:data} form_parameter upload_file.content-type]
       if {[::xo::dc 0or1row check_mimetype {
         select 1 from cr_mime_types where mime_type = :mime_type
-      }] == 0 
-          || $mime_type eq "application/octet-stream" 
+      }] == 0
+          || $mime_type eq "application/octet-stream"
           || $mime_type eq "application/force-download"} {
         set guessed_mime_type [::xowiki::guesstype $upload_file]
         #:msg guess=$guessed_mime_type
@@ -524,46 +587,36 @@ namespace eval ::xowiki {
         ${:data} set import_file [${:data} full_file_name]
         # :log "--F upload_file $upload_file  import_file [${:data} full_file_name]"
         #:log "   import_type=[${:data} set import_file]"
-      } 
+      }
     } else {
       # :log "--F no name and no upload file"
       ${:data} set upload_file ""
     }
   }
   FileForm instproc new_data {} {
-    #my get_uploaded_file
+    #:get_uploaded_file
     return [next]
   }
   FileForm instproc edit_data {} {
-    #my get_uploaded_file
+    #:get_uploaded_file
     return [next]
   }
-
-  #         {f.pub_date 
-  #       {pub_date:date,optional {format "YYYY MM DD HH24 MI"} {html {id date}}
-  #         {after_html {<input type="button" 
-  #           style="height:23px; width:23px; background: url('/resources/acs-templating/calendar.gif');" 
-  #           onclick ="return showCalendarWithDateWidget('date', 'y-m-d');" /> Y-M-D}
-  #         }}
-  #     }
 
   Class create PodcastForm -superclass FileForm \
       -parameter {
         {html { enctype multipart/form-data }} \
-            {field_list {item_id name page_order text title subtitle creator pub_date duration keywords 
+            {field_list {item_id name page_order text title subtitle creator pub_date duration keywords
               description}}
         {validate {
           {upload_file {\[::xowiki::validate_file\]} {For new entries, \
                                                           a upload file must be provided}}
           {name {\[::xowiki::validate_name\]} {Another item with this name exists \
                                                    already in this folder}}
-          {page_order {\[::xowiki::validate_form_field page_order\]} {Page Order invalid; 
-            might only contain upper and lower case letters, underscore, digits and dots}}
+          {page_order {\[::xowiki::validate_form_field page_order\]} {Page Order invalid;
+            might only contain upper and lowercase letters, underscore, digits and dots}}
           {duration {\[::xowiki::validate_duration\]} {Check duration and provide default}}
         }}
       }
-
-  #        {help_text {E.g. 9:16 means 9 minutes 16 seconds (if ffmpeg is installed and configured, it will get the value automatically)}}
 
   PodcastForm instproc to_timestamp {widgetinfo} {
     if {$widgetinfo ne ""} {
@@ -572,7 +625,7 @@ namespace eval ::xowiki {
       #
       # be sure to avoid bad side effects from LANG environment variable
       #
-      set ::env(LANG) en_US.UTF-8 
+      set ::env(LANG) en_US.UTF-8
       return [clock format $t]
       #return [clock format $t -format "%y-%m-%d %T"]
     }
@@ -636,7 +689,7 @@ namespace eval ::xowiki {
   }
 
   ObjectForm instproc edit_request {item_id} {
-    #my f.name {{name:text {label #xowiki.Page-name#}}}
+    #:f.name {{name:text {label #xowiki.Page-name#}}}
     permission::require_permission \
         -party_id [ad_conn user_id] -object_id [${:data} set parent_id] \
         -privilege "admin"
@@ -654,7 +707,7 @@ namespace eval ::xowiki {
   Class create PageTemplateForm -superclass WikiForm \
       -parameter {
         {field_list {
-          item_id name page_order title creator text anon_instances 
+          item_id name page_order title creator text anon_instances
           description nls_language
         }}
       }
@@ -678,11 +731,11 @@ namespace eval ::xowiki {
   }
   PageInstanceForm instproc set_submit_link_edit {} {
     set object_type [[${:data} info class] object_type]
-    #:log "-- data=${:data} cl=[${:data} info class] ot=$object_type"
+    #:log "-- data=${:data} cl=[${:data} info class] object_type=$object_type"
     set item_id [${:data} set item_id]
     set page_template [${:data} form_parameter page_template]
     if {[${:data} exists_query_parameter return_url]} {
-      set return_url [${:data} query_parameter return_url]
+      set return_url [${:data} query_parameter return_url:localurl]
     }
     :submit_link [${:data} pretty_link -query [export_vars {
       {m edit} page_template return_url item_id
@@ -717,7 +770,7 @@ namespace eval ::xowiki {
   PageInstanceEditForm instproc new_data {} {
     set __vars {folder_id item_id page_template return_url}
     set object_type [[${:data} info class] object_type]
-    #:log "-- cl=[${:data} info class] ot=$object_type $__vars"
+    #:log "-- class=[${:data} info class] object_type=$object_type $__vars"
     foreach __v $__vars {set $__v [${:data} from_parameter $__v] ""}
     set item_id [next]
 
@@ -753,7 +806,7 @@ namespace eval ::xowiki {
   }
 
   PageInstanceEditForm instproc init {} {
-    set item_id [${:data} form_parameter item_id]
+    set item_id [${:data} form_parameter item_id:int32]
     #
     # make sure to have page template object loaded
     #
@@ -780,7 +833,7 @@ namespace eval ::xowiki {
     set :field_list [concat [:field_list_top] ${:page_instance_form_atts} [:field_list_bottom]]
 
     #
-    # get widget specs from folder. 
+    # get widget specs from folder.
     # All other specs are taken form attributes or form constraints.
     # The widget_spec functionality might be deprecated in the future.
     #
@@ -800,16 +853,18 @@ namespace eval ::xowiki {
     upvar text text
     if {$text eq ""} { return 1 }
     if {[llength $text] != 2} { return 0 }
-    regsub -all "­" $text "" text  ;# get rid of strange utf-8 characters hex C2AD (firefox bug?)
+    #regsub -all -- "­" $text "" text  ;# get rid of strange utf-8 characters hex C2AD (Firefox bug?)
     lassign $text content mime
     if {$content eq ""} {return 1}
     #ns_log notice "VALUE='$content'"
     set clean_content $content
-    regsub -all "<br */?>" $clean_content "" clean_content
-    regsub -all "</?p */?>" $clean_content "" clean_content
+    regsub -all -- "<br */?>" $clean_content "" clean_content
+    regsub -all -- "</?p */?>" $clean_content "" clean_content
     #ns_log notice "--validate_form_content '$content' clean='$clean_content', \
         #    stripped='[string trim $clean_content]'"
-    if {[string trim $clean_content] eq ""} { set text [list "" $mime]}
+    if {[string is space $clean_content]} {
+      set text [list "" $mime]
+    }
     #:log "final text='$text'"
     return 1
   }
@@ -817,36 +872,36 @@ namespace eval ::xowiki {
   proc ::xowiki::validate_form_form {} {
     upvar form form
     if {$form eq ""} {return 1}
-    dom parse -simple -html [lindex $form 0] doc
+    dom parse -simple -- [lindex $form 0] doc
     $doc documentElement root
     return [expr {$root ne "" && [$root nodeName] eq "form"}]
   }
 
   Class create FormForm -superclass ::xowiki::PageTemplateForm \
       -parameter {
-        {field_list {item_id name page_order title creator text form form_constraints 
+        {field_list {item_id name page_order title creator text form form_constraints
           anon_instances description nls_language}}
-        {f.text "= richtext,height=150px,editor=xinha,label=#xowiki.Form-template#"}
-        {f.form "= richtext,height=150px,editor=xinha"}
+        {f.text "= richtext,height=150px,label=#xowiki.Form-template#"}
+        {f.form "= richtext,editor=none,height=150px"}
         {f.form_constraints "="}
         {validate {
           {name {\[::xowiki::validate_name\]} {Another item with this name exists \
                                                    already in this folder}}
           {text {\[::xowiki::validate_form_text\]} {Form must contain a valid template}}
-          {page_order {\[::xowiki::validate_form_field page_order\]} {Page Order invalid; 
-            might only contain upper and lower case letters, underscore, digits and dots}}
-          {form {\[::xowiki::validate_form_form\]} {Form must contain a toplevel HTML form element}}
+          {page_order {\[::xowiki::validate_form_field page_order\]} {Page Order invalid;
+            might only contain upper and lowercase letters, underscore, digits and dots}}
+          {form {\[::xowiki::validate_form_form\]} {Form must contain a top-level HTML form element}}
           {form_constraints {\[::xowiki::validate_form_field form_constraints\]} {Invalid form constraints}}
         }}
       }
-  
+
   FormForm instproc new_data {} {
     set item_id [next]
-    
+
     # provide unique ids and names, if form is provided
     #     set form [${:data} set form]
     #     if {$form ne ""} {
-    #       dom parse -simple -html [lindex $form 0] doc
+    #       dom parse -simple -- [lindex $form 0] doc
     #       $doc documentElement root
     #       set id ID$item_id
     #       $root setAttribute id $id
@@ -866,7 +921,7 @@ namespace eval ::xowiki {
 
 
 }
-::xo::library source_dependent 
+::xo::library source_dependent
 
 #
 # Local variables:

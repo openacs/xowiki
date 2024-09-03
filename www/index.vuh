@@ -1,26 +1,24 @@
 # -*- Tcl -*-
 ::xowiki::Package initialize -ad_doc {
 
-  This is the resolver for this package. It turns a request into
-  an object and executes the object with the computed method
+  This is the default resolver for the xowiki package. In essence, it
+  determines from the provided method "m" a web-callable method via
+  the package specific "invoke" method, executes it and returns the
+  result to the requester.
 
   @author Gustaf Neumann (gustaf.neumann@wu-wien.ac.at)
   @creation-date July, 2006
   @cvs-id $Id$
 
 } -parameter {
-  {-m view}
-  {-folder_id:integer 0}
+  {-m:token view}
 }
 
 ::$package_id log "--starting... [ns_conn url] [ns_conn query]"
 #	form vars = [ns_set array [ns_getform]]
-
-#::$package_id log "-- [::xo::cc serialize]"
-
 ::$package_id reply_to_user [::$package_id invoke -method $m]
+::$package_id log "--done... [ns_conn url]"
 
-::$package_id log "--i ::$package_id DONE"
 ad_script_abort
 
 # Local variables:

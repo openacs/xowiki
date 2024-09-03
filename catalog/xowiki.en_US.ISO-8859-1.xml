@@ -2,6 +2,7 @@
 <message_catalog package_key="xowiki" locale="en_US" charset="ISO-8859-1">
 
   <msg key="abstract">Abstract</msg>
+  <msg key="abstract_page-validate_options">Invalid selected page</msg>
   <msg key="add">Add</msg>
   <msg key="added">added</msg>
   <msg key="admin">Admin</msg>
@@ -9,26 +10,39 @@
   <msg key="admin_title">Administer this package ...</msg>
   <msg key="ago">%time% ago</msg>
   <msg key="All_pages">All items</msg>
+  <msg key="answers">Answers</msg>
   <msg key="Answers_for_Surveys">Answers_for_Survey</msg>
+  <msg key="Archive">Archive</msg>
+  <msg key="Archive_title">Archive item. When the item is archived, it is not shown to users anymore.</msg>
   <msg key="attached_images">Attached images</msg>
   <msg key="attached_media">Attached media</msg>
+  <msg key="autosave_pending">changed</msg>
+  <msg key="autosave_rejected">change rejected</msg>
+  <msg key="autosave_saved">changes saved</msg>
   <msg key="back">Back</msg>
+  <msg key="boolean_checkbox-validate_options">Invalid Boolean value</msg>
   <msg key="By_user">By User</msg>
   <msg key="Candidates">Candidates</msg>
   <msg key="categories">Categories</msg>
+  <msg key="chat_has_entered_the_room">has entered the room</msg>
+  <msg key="chat_has_left_the_room">has left the room</msg>
+  <msg key="chat_message">Message</msg>
+  <msg key="chat_Send_Refresh">Send/Refresh</msg>
   <msg key="choiceInteraction_maxChoices">Single Choice</msg>
-  <msg key="choiceInteraction_maxChoices_help_text">Single Choice means that only once chice is correct.</msg>
+  <msg key="choiceInteraction_maxChoices_help_text">Single Choice means that only once choice is correct.</msg>
   <msg key="choiceInteraction_simpleChoice">Enter some choices.</msg>
   <msg key="choose_file">Choose file</msg>
-  <msg key="ckeip_help">Inplace mode</msg>  
+  <msg key="ckeip_help">In-place mode</msg>
   <msg key="clear">clear</msg>
   <msg key="CompoundField-validate_compound">%errorMsg%</msg>
   <msg key="Configure">Configure</msg>
   <msg key="content">Content</msg>
   <msg key="content_type">Content Type</msg>
   <msg key="copy_entry">Copy Entry</msg>
+  <msg key="correct_when-validate_valid_predicate">%errorMsg%</msg>
   <msg key="create_new_entry_of_type">Create new entry of type %type%</msg>
   <msg key="create_this_page_in_language">Create this page in a different language</msg>
+  <msg key="datetime-local-validate_valid_format">Invalid datetime string</msg>
   <msg key="day">day</msg>
   <msg key="days">days</msg>
   <msg key="delete">Delete</msg>
@@ -37,30 +51,33 @@
   <msg key="delete_all_instances">Delete all %pretty_plural% of this instance</msg>
   <msg key="delete_all_items">Delete all such items of this instances</msg>
   <msg key="delete_confirm">Confirm delete?</msg>
+  <msg key="Delete_selected">Delete selected</msg>
   <msg key="delete_title">Delete this page ...</msg>
   <msg key="details">Detail Link</msg>
+  <msg key="duplicate">Duplicate</msg>
   <msg key="edit">Edit</msg>
   <msg key="Edit_category">Edit Category Tree</msg>
   <msg key="edit_link">edit tags</msg>
   <msg key="edit_title">Edit this page ...</msg>
+  <msg key="Enter_message">Enter Message</msg>
   <msg key="entries_using_form">Entries for form %form%</msg>
   <msg key="error-delete_entries_first">This page is still used by %count% entries. Please delete these first before deleting this page.</msg>
   <msg key="error-form_constraint-invalid_characters">Form constraint contains invalid characters</msg>
-  <msg key="error-form_constraint-unknown_attribute">From field '%name%' (class %class%) has unknown attribute '%entry%'</msg>
+  <msg key="error-form_constraint-unknown_attribute">From field &#39;%name%&#39; (class %class%) has unknown attribute &#39;%entry%&#39;</msg>
   <msg key="error-form_constraint-unknown_editor">Unknown editor %editor%. Possible values are: %editors%</msg>
-  <msg key="error-form_constraint-unknown_spec_entry">From field '%name%' has unknown specification '%entry%'</msg>
+  <msg key="error-form_constraint-unknown_spec_entry">From field &#39;%name%&#39; has unknown specification &#39;%entry%&#39;</msg>
   <msg key="error-includelet-adp_syntax_invalid">Syntax: adp &amp;lt;name of adp-file&amp;gt; {&amp;lt;argument list&amp;gt;}&lt;br/&gt;
 
-Invalid argument list: '%adp%'; must be of form: attribute value pairs (even number of elements)</msg>
+Invalid argument list: &#39;%adp%&#39;; must be of form: attribute value pairs (even number of elements)</msg>
   <msg key="error-includelet-dash_syntax_invalid">&lt;pre&gt;%errMsg%&lt;/pre&gt;
 
 Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="error-includelet-error_during_adp_evaluation">evaluation of adp file returned error message: %errorMsg%</msg>
-  <msg key="error-includelet-error_during_render">Error in includelet '%page_name%':
+  <msg key="error-includelet-error_during_render">Error in includelet &#39;%page_name%&#39;:
 &lt;pre&gt;%::errorInfo%&lt;/pre&gt;</msg>
   <msg key="error-includelet-nesting_to_deep">Nesting of includelets is too deep</msg>
-  <msg key="error-includelet-unknown">Error: includelet '%page_name%' unknown</msg>
-  <msg key="error_in_includelet">Error in includelet '{{%arg%}}' of page %name%:</msg>
+  <msg key="error-includelet-unknown">Error: includelet &#39;%page_name%&#39; unknown</msg>
+  <msg key="error_in_includelet">Error in includelet &#39;{{%arg%}}&#39; of page %name%:</msg>
   <msg key="event">Event</msg>
   <msg key="event-end_of_event">End Time</msg>
   <msg key="event-end_of_lecture">End of Lecture</msg>
@@ -77,6 +94,7 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="File-name-help_text">Can be obtained from the name of the uploaded file</msg>
   <msg key="File_pretty_name">Wiki File</msg>
   <msg key="File_pretty_plural">Wiki Files</msg>
+  <msg key="file_upload">File Upload</msg>
   <msg key="form-created">Created form</msg>
   <msg key="Form-form">Form</msg>
   <msg key="Form-form_constraints">Form Constraints</msg>
@@ -88,6 +106,9 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="form-menu-button-wf-instances">Instances of %form_name%</msg>
   <msg key="form-menu-new_link">Fill out</msg>
   <msg key="form-repeatable-add">[add another]</msg>
+  <msg key="form-repeatable-add-another-file">[add another file]</msg>
+  <msg key="form-repeatable-add-condition">[add condition]</msg>
+  <msg key="form-repeatable-add-file">[add file]</msg>
   <msg key="form-repeatable-delete">[x]</msg>
   <msg key="Form-submit_button">       OK       </msg>
   <msg key="Form-template">Template</msg>
@@ -98,7 +119,13 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="Form_pretty_name">Wiki Form</msg>
   <msg key="Form_pretty_plural">Wiki Forms</msg>
   <msg key="formfield-author">Author</msg>
-  <msg key="formfield-image_url-help_text">HTTP Url of the Image (you might drag an image displayed by a web-browser here)</msg>
+  <msg key="formfield-comp_correct_when-help_text">All specified
+  conditions must be true for a correct answer.</msg>
+  <msg key="formfield-correct_when-help_text">Condition, when
+  the answer is correct, specified as a predicate followed by arguments (Tcl
+  words). The predefined predicates are &#34;eq&#34;, &#34;gt&#34;, &#34;ge&#34;, &#34;lt&#34;,
+  &#34;le&#34;, &#34;btwn&#34;, &#34;in&#34;, &#34;contains&#34;, &#34;match&#34;, &#34;answer_words&#34;</msg>
+  <msg key="formfield-image_url-help_text">HTTP URL of the Image (you might drag an image displayed by a web-browser here)</msg>
   <msg key="formfield-import_archive-help_text">Select the Name of a .zip or .tar.gz File</msg>
   <msg key="formfield-import_archive-label">Import Archive</msg>
   <msg key="formfield-youtube_url-help_text">Cut&amp;Paste URL of YouTube video (http://www.youtube.com/....)</msg>
@@ -107,11 +134,15 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="FormPage_parameters_title">Wiki parameters</msg>
   <msg key="FormPage_pretty_name">Wiki FormPage</msg>
   <msg key="FormPage_pretty_plural">Wiki FormPages</msg>
+  <msg key="From">From</msg>
   <msg key="future_interval">in %time%</msg>
+  <msg key="h5date-validate_valid_format">Invalid date string</msg>
+  <msg key="h5time-validate_valid_format">Invalid time string</msg>
   <msg key="has_modified_this_page">has modified this page while you were editing it</msg>
   <msg key="height">Height</msg>
   <msg key="hour">hour</msg>
   <msg key="hours">hours</msg>
+  <msg key="ignore_case">Ignore case</msg>
   <msg key="image_width_hint">The width and height are calculated in pixels (proportions might get lost).</msg>
   <msg key="import">Import</msg>
   <msg key="import_create_user_ids">Create user_ids</msg>
@@ -134,12 +165,12 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="listing_title">Index of %pretty_plural%</msg>
   <msg key="listing_title_all">List of all kind of %pretty_plural%</msg>
   <msg key="Manage_categories">Manage Categories</msg>
-  <msg key="menu-Clipboard-Add">Add</msg>
-  <msg key="menu-Clipboard-Clear">Clear</msg>
-  <msg key="menu-Clipboard-Content">Content</msg>
-  <msg key="menu-Clipboard-Copy">Copy</msg>
-  <msg key="menu-Clipboard-Use-Copy">Copy</msg>
-  <msg key="menu-Clipboard-Use-Export">Export</msg>
+  <msg key="menu-Clipboard-Add">Add to Clipboard</msg>
+  <msg key="menu-Clipboard-Clear">Clear Clipboard</msg>
+  <msg key="menu-Clipboard-Content">Show Clipboard Content</msg>
+  <msg key="menu-Clipboard-Use-Copy">Insert content here ...</msg>
+  <msg key="menu-Clipboard-Use-Export">Export content</msg>
+  <msg key="menu-Clipboard-Use-Move">Move content here ...</msg>
   <msg key="menu-New">New</msg>
   <msg key="menu-New-File">File</msg>
   <msg key="menu-New-Folder">Folder</msg>
@@ -149,8 +180,8 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="menu-Package-Admin">Admin</msg>
   <msg key="menu-Package-ImportArchive">Import Archive</msg>
   <msg key="menu-Package-ImportDump">Import Dump</msg>
-  <msg key="menu-Package-Notifications">Notifications</msg>
-  <msg key="menu-Package-Startpage">Startpage</msg>
+  <msg key="menu-Package-Notifications">Manage Notifications</msg>
+  <msg key="menu-Package-Startpage">Start Page</msg>
   <msg key="menu-Package-Subscribe">Subscribe</msg>
   <msg key="menu-Package-Toc">Table of Contents</msg>
   <msg key="menu-Page">This Page</msg>
@@ -159,6 +190,7 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="menu-Page-Revisions">Show Revisions</msg>
   <msg key="menu-Page-Show">Show Page Object</msg>
   <msg key="menu-Page-View">View</msg>
+  <msg key="Message">Message</msg>
   <msg key="minute">minute</msg>
   <msg key="minutes">minutes</msg>
   <msg key="modified_page">modified page</msg>
@@ -166,6 +198,8 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="months">months</msg>
   <msg key="most_frequent_visitors">Most Frequent Visitors</msg>
   <msg key="most_popular_pages">Most Popular Pages</msg>
+  <msg key="multiple_lines">Multiple Lines</msg>
+  <msg key="multiple_words">Multiple Words</msg>
   <msg key="name">Name</msg>
   <msg key="new">New Page</msg>
   <msg key="new_page">New Page</msg>
@@ -176,6 +210,7 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="no_data">no data</msg>
   <msg key="notifications">Notifications</msg>
   <msg key="notifications_title">Manage notifications ...</msg>
+  <msg key="number">Number</msg>
   <msg key="numeric-validate_numeric">Invalid numeric value</msg>
   <msg key="Object_pretty_name">Wiki Object</msg>
   <msg key="Object_pretty_plural">Wiki Objects</msg>
@@ -188,15 +223,17 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="Page-description">Description</msg>
   <msg key="Page-last_modified">Last Modified</msg>
   <msg key="Page-name">Name</msg>
-  <msg key="Page-name-help_text">Shortname to identify an entry within a folder, typically lowercase characters</msg>
+  <msg key="Page-name-help_text">Short-name to identify an entry within a folder, typically lowercase characters</msg>
   <msg key="Page-nls_language">Language</msg>
   <msg key="Page-page_order">Section</msg>
   <msg key="Page-publish_date">Publish Date</msg>
   <msg key="Page-text">Content</msg>
   <msg key="Page-title">Page Title</msg>
   <msg key="Page-validate_form_constraints">%errorMsg%</msg>
-  <msg key="Page-validate_name">Another item with the name '%value%' exists already in this folder</msg>
-  <msg key="Page-validate_page_order">Page Order invalid; might only contain upper and lower case letters, underscore, digits and dots</msg>
+  <msg key="Page-validate_name">%errorMsg%</msg>
+  <msg key="Page-validate_name-duplicate_item">Another item with the name &#39;%value%&#39; exists already in this folder</msg>
+  <msg key="Page-validate_name-invalid_name">Name &#39;%value%&#39; is invalid</msg>
+  <msg key="Page-validate_page_order">Page Order invalid; might only contain upper and lowercase letters, underscore, digits and dots</msg>
   <msg key="page_kind">Type</msg>
   <msg key="Page_pretty_name">XoWiki Page</msg>
   <msg key="Page_pretty_plural">Wiki Pages</msg>
@@ -209,6 +246,7 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="PageTemplate-anon_instances">Autonamed Entries</msg>
   <msg key="PageTemplate_pretty_name">Wiki Page Template</msg>
   <msg key="PageTemplate_pretty_plural">Wiki Page Templates</msg>
+  <msg key="Participants">Participants</msg>
   <msg key="party_id-validate_party_id_check">Value is not a valid party_id</msg>
   <msg key="permissions_manage_package">Manage Permissions for Wiki: %package_name%</msg>
   <msg key="permissions_manage_page">Manage Permissions for Page: %page_name%</msg>
@@ -218,7 +256,7 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="PodcastItem-duration">Duration</msg>
   <msg key="PodcastItem-duration-help_text">E.g. 9:16 means 9 minutes 16 seconds (if ffmpeg is installed and configured, it will get the value automatically)</msg>
   <msg key="PodcastItem-keywords">Keywords</msg>
-  <msg key="PodcastItem-keywords-help_text">comma separated itunes keywords, e.g. salt, pepper, shaker, exciting</msg>
+  <msg key="PodcastItem-keywords-help_text">comma separated iTunes keywords, e.g. salt, pepper, shaker, exciting</msg>
   <msg key="PodcastItem-name-help_text">Can be obtained from the name of the uploaded file</msg>
   <msg key="PodcastItem-pub_date">Publication Date</msg>
   <msg key="PodcastItem-subtitle">Subtitle</msg>
@@ -226,16 +264,20 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="PodcastItem_pretty_plural">Podcast Items</msg>
   <msg key="popular_tags_label">Popular tags</msg>
   <msg key="popular_tags_link">popular tags</msg>
-  <msg key="portlet_name_does_not_exist_error_long">There is no page with name &quot;%page_name%&quot; available.</msg>
+  <msg key="portlet_page_does_not_exist_error_long">There is no page with name &#34;%page_name%&#34; available.</msg>
   <msg key="portlet_page_does_not_exist_error_short">The given page does not exist</msg>
-  <msg key="portlet_title_exists_error_long">Please either change the existing portlets' name or the title of the xowiki page you want to add to the portal.</msg>
-  <msg key="portlet_title_exists_error_short">A portlet with the title '%page_title%' already exists in this portal.</msg>
+  <msg key="portlet_title_exists_error_long">Please either change the existing portlets&#39; name or the title of the xowiki page you want to add to the portal.</msg>
+  <msg key="portlet_title_exists_error_short">A portlet with the title &#39;%page_title%&#39; already exists in this portal.</msg>
   <msg key="pretty_name">Wiki</msg>
   <msg key="processing_objects">Processing objects:</msg>
   <msg key="prompt">Prompt</msg>
-  <msg key="publish_status">Published</msg>
+  <msg key="publish_status">Publish status</msg>
+  <msg key="publish_status_make_expired">Set publish state to expired</msg>
+  <msg key="publish_status_make_production">Set publish state to production</msg>
+  <msg key="publish_status_make_ready">Publish</msg>
   <msg key="QtiInteraction_weight">Weight</msg>
   <msg key="QtiInteraction_weight_help_text">For the overall score of the question, each interaction is weighted by this value.</msg>
+  <msg key="questions">Questions</msg>
   <msg key="recently_changed_pages">Recently Changed Pages</msg>
   <msg key="recently_changed_pages_by_categories">Recently Changed Pages (by categories)</msg>
   <msg key="references_label">References to this Page:</msg>
@@ -253,15 +295,24 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="seconds">seconds</msg>
   <msg key="select_link_target">To create a link, click on a page name </msg>
   <msg key="Selection">Selection</msg>
+  <msg key="Send">Send</msg>
+  <msg key="Send_message_to">Send Message to</msg>
   <msg key="shuffle">Shuffle Answers</msg>
   <msg key="shuffle_help_text">Should the order of choices be presented in randomized order?</msg>
+  <msg key="ShuffleField-validate_options">Invalid option value</msg>
+  <msg key="single_word">Single Word</msg>
   <msg key="Size">Size</msg>
   <msg key="subscribe">Subscribe</msg>
   <msg key="title">Title</msg>
   <msg key="title_of_event">Title</msg>
+  <msg key="to">to</msg>
   <msg key="unread_items">Unread Items</msg>
   <msg key="updated">updated</msg>
   <msg key="upload_file">Upload file</msg>
+  <msg key="Urgency">Urgency</msg>
+  <msg key="urgency_high">high</msg>
+  <msg key="urgency_low">low</msg>
+  <msg key="urgency_normal">medium</msg>
   <msg key="User">User</msg>
   <msg key="view">View</msg>
   <msg key="view_in_context">View page in original context %context%</msg>
@@ -270,6 +321,7 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="week">week</msg>
   <msg key="weeks">weeks</msg>
   <msg key="width">Width</msg>
+  <msg key="words">Words</msg>
   <msg key="workflow_definition-validate_workflow">%errorMsg%</msg>
   <msg key="year">year</msg>
   <msg key="years">years</msg>

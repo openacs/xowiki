@@ -17,98 +17,124 @@ namespace eval ::xowiki {
   #
   # Externally callable method: bulk-delete
   #
-  Page instproc www-bulk-delete {} {
+  Page ad_instproc www-bulk-delete {} {
+
+    This web-callable method performs a bulk delete based on the
+    object names provided by the form-variable "objects" and refresh
+    then the caller page.  This method is e.g. called by the
+    folder-procs.
+
+    By passing the "instantiate_p" one can decide whether each item
+    should be instantiated (useful when the delete logic from the
+    whole item ancestry is required), or if we will rely on the
+    cheaper deletion at the package level. The default is false.
+
+  } {
     ::security::csrf::validate
 
     if {![:exists_form_parameter "objects"]} {
       :msg "nothing to delete"
     }
 
-    # By default we resolve object names from this object...
-    set parent_id ${:item_id}
-    set root_folder_id [${:package_id} folder_id]
-    if {${:parent_id} == $root_folder_id} {
-      # ...unless we realize this is the package index page. In this
-      # case we resolve based on the root folder (this happens e.g. in
-      # the table of contents for xowf).
-      set index_name [${:package_id} get_parameter index_page index]
-      ${:package_id} get_lang_and_name -name $index_name lang stripped_name
-      set index_item_id [::xo::db::CrClass lookup \
-                             -name ${lang}:${stripped_name} \
-                             -parent_id $root_folder_id]
-      if {${:item_id} == $index_item_id} {
-        set parent_id ${:parent_id}
+    set instantiate_p [:form_parameter instantiate_p:boolean false]
+
+    set item_ids [:get_ids_for_bulk_actions [:form_parameter objects:int32,0..n]]
+    foreach item_id $item_ids {
+      :log "bulk-delete: DELETE item_id $item_id"
+      if {$instantiate_p} {
+        set i [::xo::db::CrClass get_instance_from_db -item_id $item_id]
+        $i www-delete
+      } else {
+        ${:package_id} www-delete -item_id $item_id
       }
     }
-
-    foreach page_name [:form_parameter objects] {
-      set item_id [::xo::db::CrClass lookup -name $page_name -parent_id $parent_id]
-      :log "bulk-delete: DELETE $page_name in folder ${:name}-> $item_id"
-      ${:package_id} www-delete -item_id $item_id
-    }
-    ${:package_id} returnredirect .
+    :return_redirect_without_params
   }
 
   #
   # Externally callable method: clipboard-add
   #
-  Page instproc www-clipboard-add {} {
-    if {![:exists_form_parameter "objects"]} {
+  Page ad_instproc www-clipboard-add {} {
+
+    This web-callable method adds elements to the clipboard based on
+    the names provided by the form variable "objects". The objects are
+    resolved below the current object, which is treated as containing
+    folder.
+
+    After adding elements to the clipboard, redirect either to the
+    return_url of the calling page.
+
+  } {
+    if {![:exists_form_parameter "objects"] && [ns_conn method] eq "POST"} {
       :msg "nothing to copy"
     }
-    set ids [list]
-    foreach page_name [:form_parameter objects] {
-      # the page_name is the name exactly as stored in the content repository
-      set item_id [::xo::db::CrClass lookup -name $page_name -parent_id ${:item_id}]
-      if {$item_id == 0} {
-        #
-        # When the pasted item was from a child-resources includelet
-        # included on e.g. a plain page. We look for a sibling.
-        #
-        set item_id [::xo::db::CrClass lookup -name $page_name -parent_id ${:parent_id}]
-      }
-      #:msg "want to copy $page_name // $item_id"
-      if {$item_id ne 0} {lappend ids $item_id}
+
+    ::xowiki::clipboard add [:get_ids_for_bulk_actions [:form_parameter objects:int32,0..n]]
+    #
+    # When called via AJAX, we have reason to make a redirect.
+    #
+    if {[ns_set iget [ns_conn headers] "X-Requested-With"] eq "XMLHttpRequest"} {
+      ns_log notice "HEADERS: got X-Requested-With"
+      return OK
+    } else {
+      #ns_log notice "HEADERS: no X-Requested-With"
+      :return_redirect_without_params
     }
-    ::xowiki::clipboard add $ids
-    ${:package_id} returnredirect [:query_parameter "return_url" [::xo::cc url]]
   }
 
   #
   # Externally callable method: clipboard-clear
   #
-  Page instproc www-clipboard-clear {} {
+  Page ad_instproc www-clipboard-clear {} {
+
+    This web-callable method clears the clibpboard contents.  Finally
+    redirect either to the return_url of the calling page.
+
+  } {
     ::xowiki::clipboard clear
-    ${:package_id} returnredirect [:query_parameter "return_url" [::xo::cc url]]
+    :return_redirect_without_params
   }
 
   #
   # Externally callable method: clipboard-content
   #
-  Page instproc www-clipboard-content {} {
+  Page ad_instproc www-clipboard-content {} {
+
+    This web-callable method displays the content of the clipboard.
+    Finally redirect either to the return_url of the calling page.
+
+  } {
     set clipboard [::xowiki::clipboard get]
     if {$clipboard eq ""} {
       util_user_message -message "Clipboard empty"
     } else {
       foreach item_id $clipboard {
         if {[::xo::db::CrClass get_instance_from_db -item_id $item_id] ne ""} {
-          util_user_message -message [$item_id pretty_link]
+          util_user_message -message [::$item_id pretty_link]
         } else {
           util_user_message -message "item $item_id deleted"
         }
       }
     }
-    ${:package_id} returnredirect [:query_parameter "return_url" [::xo::cc url]]
+    :return_redirect_without_params
   }
 
   #
   # Externally callable method: clipboard-copy
   #
-  Page instproc www-clipboard-copy {} {
-    set package_id ${:package_id}
+  Page ad_instproc www-clipboard-copy {} {
+
+    This web-callable method copies the content of the clipboard to
+    the current folder.
+
+    After copying the elements from the clipboard, redirect either
+    to the return_url of the calling page.
+
+  } {
     set clipboard [::xowiki::clipboard get]
     set item_ids [::xowiki::exporter include_needed_objects $clipboard]
     set content [::xowiki::exporter marshall_all -mode copy $item_ids]
+
     ad_try {
       namespace eval ::xo::import $content
     } on error {errMsg} {
@@ -116,40 +142,105 @@ namespace eval ::xowiki {
       return
     }
     set folder_id [expr {[:is_folder_page] ? ${:item_id} : ${:parent_id}}]
-    set msg [$package_id import -replace 0 -create_user_ids 1 \
+    set msg [::${:package_id} import -replace 0 -create_user_ids 1 \
                  -parent_id $folder_id -objects $item_ids]
     util_user_message -html -message $msg
     ::xowiki::clipboard clear
-    ::$package_id returnredirect [:query_parameter "return_url" [::xo::cc url]]
+    :return_redirect_without_params
   }
 
   #
   # Externally callable method: clipboard-export
   #
-  Page instproc www-clipboard-export {} {
+  Page ad_instproc www-clipboard-export {} {
+
+    This web-callable method exports the content of the clipboard in
+    form of an xowiki dump.  Then clear the clipboard and stop the
+    script.
+
+  } {
     set clipboard [::xowiki::clipboard get]
     ::xowiki::exporter export $clipboard
     ns_conn close
     ::xowiki::clipboard clear
     ad_script_abort
-    #${:package_id} returnredirect [:query_parameter "return_url" [::xo::cc url]]
+  }
+
+  Page instproc return_redirect_without_params {} {
+    #
+    # Return to [xo::cc url], the current URL without query
+    # parameters.
+    #
+    ::${:package_id} returnredirect \
+        [:query_parameter return_url:localurl [ad_urlencode_folder_path [::xo::cc url]]]
+  }
+
+  #
+  # Externally callable method: duplicate
+  #
+  Page ad_instproc www-duplicate {} {
+
+    This web-callable method duplicated the current object. It uses the
+    same mechanisms as the clipboard-copy operation.
+
+    After adding elements to the clipboard, redirect either to the
+    return_url of the calling page (as handled by www-clipboard-copy)
+
+  } {
+    ::xowiki::clipboard clear
+    ::xowiki::clipboard add [list ${:item_id}]
+
+    if {![regexp {^(.*[-]copy-)\d+} ${:name} . stem]} {
+      set stem ${:name}-copy-
+    }
+    set new_name [::xowiki::autoname new -name $stem -parent_id ${:package_id}]
+    set old_name ${:name}
+
+    ad_try {
+      set :name $new_name
+      #
+      # Call whatever clipboard-copy is doing....
+      #
+      :www-clipboard-copy
+
+    } finally {
+      #
+      # Restore the actual object
+      #
+      set :name $old_name
+      #
+      # To be on the save side, flush the cache
+      #
+      ::xo::xotcl_object_cache flush ${:item_id}
+    }
   }
 
   #
   # Externally callable method: create-new
   #
 
-  Page instproc www-create-new {
+  Page ad_instproc www-create-new {
     {-parent_id 0}
     {-view_method edit}
     {-name ""}
     {-nls_language ""}
     {-publish_status ""}
   } {
+
+    This web-callable method creates a new page, typically an instance
+    of a form page. The method accesses several form variables such as
+    "__form_redirect", "__text_to_html", "last_page_id", "name",
+    "nls_language", "package_id", "package_instance", "page_order",
+    "parent_id", "publish_status", "source_item_id", "title"
+
+    The call redirects either to the "__form_redirect" or to the
+    created page.
+
+  } {
     set original_package_id ${:package_id}
 
     if {[:exists_query_parameter "package_instance"]} {
-      set package_instance [:query_parameter "package_instance"]
+      set package_instance [:query_parameter package_instance:localurl]
       #
       # Initialize the target package and set the variable package_id.
       #
@@ -159,18 +250,31 @@ namespace eval ::xowiki {
             -actual_query ""
       } on error {errorMsg} {
         ns_log error "Package initialize: $errorMsg\n$::errorInfo"
-        return [$original_package_id error_msg \
+        return [::$original_package_id error_msg \
                     "Page <b>'${:name}'</b> invalid provided package instance=$package_instance<p>$errorMsg</p>"]
       }
     }
 
     #
-    # collect some default values from query parameters
+    # Collect some default values from query parameters.
     #
-    set default_variables [list]
-    foreach key {name title page_order last_page_id nls_language} {
+    set default_variables {}
+    #
+    # The value for "name" is validated later, and requires the type
+    # of the object. Different names are allowed for files, folders
+    # and other wiki pages.
+    #
+    foreach name_and_spec [list \
+                               name \
+                               title \
+                               page_order:graph \
+                               last_page_id:int32 \
+                               nls_language:oneof,arg=[join [lang::system::get_locales] |] \
+                              ] {
+      set p [string first : $name_and_spec]
+      set key [expr {$p > -1 ? [string range $name_and_spec 0 $p-1] : $name_and_spec}]
       if {[:exists_query_parameter $key]} {
-        lappend default_variables $key [:query_parameter $key]
+        lappend default_variables $key [:query_parameter $name_and_spec]
       }
     }
 
@@ -182,7 +286,7 @@ namespace eval ::xowiki {
     # We should probably allow as well controlling auto-naming and
     # and prohibit empty postings.
 
-    set text_to_html [:form_parameter "__text_to_html" ""]
+    set text_to_html [:form_parameter __text_to_html:0..n ""]
     foreach key {_text _name} {
       if {[:exists_form_parameter $key]} {
         set __value [:form_parameter $key]
@@ -196,7 +300,7 @@ namespace eval ::xowiki {
       }
     }
 
-    # load the instance attributes from the form parameters
+    # Load the instance attributes from the form parameters
     set instance_attributes [list]
     foreach {_att _value} [::xo::cc get_all_form_parameter] {
       if {[string match _* $_att]} continue
@@ -212,17 +316,56 @@ namespace eval ::xowiki {
     # parent_id has priority over the other measures to obtain it.
     #
     if {$parent_id == 0} {
-      if {![info exists :parent_id]} {:parent_id [${:package_id} folder_id]}
-      set fp_parent_id [:form_parameter "parent_id" [:query_parameter "parent_id" ${:parent_id}]]
+      if {![info exists :parent_id]} {
+        set :parent_id [::${:package_id} folder_id]
+      }
+      set fp_parent_id [:form_parameter parent_id:int32 [:query_parameter parent_id:int32 ${:parent_id}]]
     } else {
       set fp_parent_id $parent_id
     }
+    #
+    # Allow only inserts to own package.
+    #
+    if {![::xo::db::CrClass id_belongs_to_package -item_id $fp_parent_id -package_id ${:package_id}]} {
+      ad_return_complaint 1 "invalid parent_id"
+      ad_script_abort
+    }
+
     # In case the Form is inherited and package_id was not specified, we
     # use the actual package_id.
-    set fp_package_id [:form_parameter "package_id" [:query_parameter "package_id" ${:package_id}]]
+    set fp_package_id [:form_parameter package_id:int32 [:query_parameter package_id:int32 ${:package_id}]]
 
+    #
+    # Handling publish_status. When the publish_status is provided via
+    # query parameter, this has the highest priority. Otherwise use
+    # the publish_status according to the production_mode. We control
+    # this here explicitly, since when "name" is provided via query
+    # variable, the default production/ready selection fails, and we
+    # have to set the publish_status manually (see issue #3380).
+    #
     if {$publish_status eq ""} {
-      set publish_status [:query_parameter "publish_status" ""]
+      set publish_status [:query_parameter publish_status:wordchar ""]
+    }
+    if {$publish_status eq "" && [:exists_query_parameter name]} {
+      if {[::${:package_id} get_parameter production_mode:boolean 0]} {
+        set publish_status "production"
+      } else {
+        set publish_status "ready"
+      }
+      #:log "FINAL publish_status $publish_status"
+    }
+
+    #
+    # Provide "p.source" hook to configure pages by copying variables
+    # from other pages (e.g. sitewide pages)
+    #
+    set source_item_id 0
+    if {[:exists_query_parameter p.source]} {
+      set source_page [:query_parameter p.source:token]
+      set source_item_id [::${:package_id} lookup -use_site_wide_pages true -name $source_page]
+    }
+    if {$source_item_id == 0} {
+      set source_item_id [:query_parameter source_item_id:int32 ""]
     }
 
     ::xo::Package require $fp_package_id
@@ -233,16 +376,31 @@ namespace eval ::xowiki {
                -package_id $fp_package_id \
                -default_variables $default_variables \
                -instance_attributes $instance_attributes \
-               -source_item_id [:query_parameter source_item_id ""]]
+               -source_item_id $source_item_id]
 
-    if {$publish_status ne "" && $publish_status in {"production" "ready" "live" "expired"}} {
+    if {$publish_status ne ""
+        && $publish_status in {"production" "ready" "live" "expired"}
+      } {
       $f publish_status $publish_status
+    }
+
+    #
+    # Provide "p.configure" hook to programmatically configure pages
+    #
+    if {[:exists_query_parameter p.configure]} {
+      set configure_method [:query_parameter p.configure:wordchar]
+      if {[$f procsearch configure_page=$configure_method] ne ""} {
+        #ns_log notice "call [$f procsearch configure_page=$configure_method] // [$f info class]"
+        $f configure_page=$configure_method $name
+      } else {
+        ns_log notice "cannot find configure_page=$configure_method on [$f info precedence]"
+      }
     }
 
     if {$name eq ""} {
       $f save_new
     } else {
-      set id [$fp_package_id lookup -parent_id $fp_parent_id -name $name]
+      set id [::$fp_package_id lookup -parent_id $fp_parent_id -name $name]
       if {$id == 0} {
         $f save_new
       } else {
@@ -252,15 +410,34 @@ namespace eval ::xowiki {
         $f save
       }
     }
+
     $f notification_notify
 
-    foreach var {return_url template_file title detail_link text} {
-      if {[:exists_query_parameter $var]} {
-        set $var [:query_parameter $var]
+    foreach name_and_spec {
+      return_url:localurl
+      template_file
+      title
+      detail_link:localurl
+      text
+    } {
+      set p [string first : $name_and_spec]
+      set key [expr {$p > -1 ? [string range $name_and_spec 0 $p-1] : $name_and_spec}]
+      if {[:exists_query_parameter $key]} {
+        set $key [:query_parameter $name_and_spec]
+        :log "set instance var from query param '$key' -> '[set $key]'"
       }
     }
 
-    set form_redirect [:form_parameter "__form_redirect" ""]
+    if {[info exists template_file]} {
+      #
+      # strip the leading "/" added by ns_normalizepath.
+      #
+      # TODO: check use-cases, with the restricted case actually still
+      # makes sense.
+      #
+      set template_file [$fp_package_id normalizepath $template_file]
+    }
+    set form_redirect [:form_parameter __form_redirect:0..n ""]
     if {$form_redirect eq ""} {
       set form_redirect [$f pretty_link -query [export_vars {
         {m $view_method} return_url template_file title detail_link text
@@ -274,11 +451,16 @@ namespace eval ::xowiki {
   # Externally callable method: create-or-use
   #
 
-  Page instproc www-create-or-use {
+  Page ad_instproc www-create-or-use {
     {-parent_id 0}
     {-view_method edit}
     {-name ""}
     {-nls_language ""}
+  } {
+
+    This web-callable method calls www-create-new, unless overloaded
+    from some other package, as done e.g. by xowf.
+
   } {
     # can be overloaded
     :www-create-new \
@@ -290,7 +472,12 @@ namespace eval ::xowiki {
   # Externally callable method: csv-dump
   #
 
-  Page instproc www-csv-dump {} {
+  Page ad_instproc www-csv-dump {} {
+
+    This web-callable method produces a CSV dump based on the
+    includelet "form-usages".
+
+  } {
     if {![:is_form]} {
       error "not called on a form"
     }
@@ -302,9 +489,11 @@ namespace eval ::xowiki {
     foreach i [$items children] {array set vars [$i set instance_attributes]}
     array set vars [list _name 1 _last_modified 1 _creation_user 1]
     set attributes [lsort -dictionary [array names vars]]
-    # make sure, we the includelet honors the cvs generation
+    #
+    # Make sure, we the includelet honors the CSV generation
+    #
     set includelet_key name:form-usages,form_item_ids:$form_item_id,field_names:[join $attributes " "],
-    ::xo::cc set queryparm(includelet_key) $includelet_key
+    ::xo::cc set queryparm(includelet_key) [ns_base64urlencode $includelet_key]
     # call the includelet
     :www-view [:include [list form-usages -field_names $attributes \
                              -extra_form_constraints _creation_user:numeric,format=%d \
@@ -314,29 +503,41 @@ namespace eval ::xowiki {
   #
   # Externally callable method: use-template
   #
-  PageInstance instproc www-use-template {} {
-    set package_id ${:package_id}
+  PageInstance ad_instproc www-use-template {} {
+
+    This web-callable method can be used to change the "template" of a
+    PageInstance.  The caller provides the "form" as query parameter
+    which should be used in future for handling the instance
+    parameters of the PageInstance.
+
+    This method can be as well be used for changing the associated
+    workflow of a workflow instance.
+
+  } {
     set formName [:query_parameter "form" ""]
     if {$formName eq ""} {
       error "no form specified"
     }
-    $package_id get_lang_and_name -default_lang [::xo::cc lang] -path $formName lang stripped_url
-    array set "" [$package_id item_ref -default_lang $lang -parent_id [$package_id folder_id] $formName]
-    if {$(item_id) == 0} { error "cannot lookup page $formName" }
-    ::xo::db::CrClass get_instance_from_db -item_id $(item_id)
-    if {[info commands ::$(item_id)] eq ""
-        || "::xowiki::PageTemplate" ni [$(item_id) info precedence]} {
+    ::${:package_id} get_lang_and_name -default_lang [::xo::cc lang] -path $formName lang stripped_url
+    set d [::${:package_id} item_ref -default_lang $lang -parent_id [::${:package_id} folder_id] $formName]
+    set item_id [dict get $d item_id]
+    if {$item_id == 0} {
+      error "cannot lookup page $formName"
+    }
+    ::xo::db::CrClass get_instance_from_db -item_id $item_id
+    if {![nsf::is object ::$item_id]
+        || "::xowiki::PageTemplate" ni [::$item_id info precedence]} {
       error "OK $formName is not suited to be used as template. Should be a Form!"
     }
-    if {[:page_template] == $(item_id)} {
-      :msg "old page_template $(item_id) is already the same as the new one"
+    if {${:page_template} == $item_id} {
+      :msg "old page_template $item_id is already the same as the new one"
     } else {
-      set msg "change template_id [:page_template] to $(item_id)"
-      :page_template $(item_id)
+      set msg "change template_id ${:page_template} to $item_id"
+      :page_template $item_id
       :save
-      :msg "ok $msg"
+      #:msg "ok $msg"
     }
-    $package_id returnredirect [::xo::cc url]
+    ::${:package_id} returnredirect [ad_return_url]
   }
 
 
@@ -344,12 +545,25 @@ namespace eval ::xowiki {
   # Externally callable method: delete
   #
 
-  Page instproc www-delete {} {
+  Page ad_instproc www-delete {-return_url} {
+
+    This web-callable method deletes a page via the delete
+    method of the package.
+
+  } {
+    set returnUrlOpt [expr {[info exists return_url] ? [list -return_url $return_url] : ""}]
+
     # delete always via package
-    ${:package_id} www-delete -item_id ${:item_id} -name ${:name}
+    ${:package_id} www-delete -item_id ${:item_id} -name ${:name} {*}$returnUrlOpt
   }
 
-  PageTemplate instproc www-delete {} {
+  PageTemplate ad_instproc www-delete {-return_url} {
+
+    This web-callable method deletes a page via the delete method
+    of the package.  This method checks first, if there exists still
+    instances of this page (depending on it).
+
+  } {
     set count [:count_usages -publish_status all]
     #:msg count=$count
     if {$count > 0} {
@@ -368,23 +582,31 @@ namespace eval ::xowiki {
   # Externally callable method: delete-revision
   #
 
-  Page instproc www-delete-revision {} {
+  Page ad_instproc www-delete-revision {} {
+
+    This web-callable method deletes a single revision of a Page,
+    which is actually performed by the "delete_revision" method of the
+    package, which is responsible for caching.
+
+    Since we instantiate the Page based on the "revision_id" query
+    parameter, it is sufficient to delete here just based on the
+    current instance variable of the revision_id.
+
+  } {
     set item_id ${:item_id}
-    set package_id ${:package_id}
-    ::xo::dc 1row get_revision {
+    ::xo::dc 1row -prepare integer get_revision {
       select latest_revision,live_revision from cr_items where item_id = :item_id
     }
+
     # do real deletion via package
-    $package_id delete_revision -revision_id ${:revision_id} -item_id $item_id
-    # Take care about UI specific stuff....
-    set redirect [:query_parameter "return_url" \
-                      [export_vars -base [$package_id url] {{m revisions}}]]
+    ${:package_id} delete_revision -revision_id ${:revision_id} -item_id $item_id
+
     if {$live_revision == ${:revision_id}} {
       # latest revision might have changed by delete_revision, so we have to fetch here
       xo::dc 1row -prepare integer get_revision {select latest_revision from cr_items where item_id = :item_id}
       if {$latest_revision eq ""} {
         # we are out of luck, this was the final revision, delete the item
-        $package_id delete -name ${:name} -item_id $item_id
+        ${:package_id} delete -name ${:name} -item_id $item_id
       } else {
         # Fetch fresh instance from db so that we have actual values
         # from the latest revision for e.g. the update of the
@@ -395,8 +617,8 @@ namespace eval ::xowiki {
     }
     if {$latest_revision ne ""} {
       # otherwise, "delete" did already the redirect
-      ::$package_id returnredirect [:query_parameter "return_url" \
-                                        [export_vars -base [$package_id url] {{m revisions}}]]
+      ${:package_id} returnredirect [:query_parameter return_url:localurl \
+                                         [export_vars -base [${:package_id} url] {{m revisions}}]]
     }
   }
 
@@ -404,23 +626,30 @@ namespace eval ::xowiki {
   # Externally callable method: diff
   #
 
-  Page instproc www-diff {} {
+  Page ad_instproc www-diff {} {
 
-    set compare_id [:query_parameter "compare_revision_id" 0]
+    This web-callable method produces a "diff" of two pages based on
+    the current page and the revision_id provided as query parameter
+    by "compare_revision_id".  We can choose here between the more
+    fancy "::util::html_diff" and a plain text diff.  The latter is
+    used, when the query variable "plain_text_diff" is provided, or
+    when the fancy diff raises an exception.
+
+  } {
+
+    set compare_id [:query_parameter compare_revision_id:int32 0]
     if {$compare_id == 0} {
       return ""
     }
-    ::xo::Page requireCSS urn:ad:css:xowiki
+    ::xo::Page requireCSS urn:ad:css:xowiki-[::xowiki::CSS toolkit]
 
     set my_page [::xowiki::Package instantiate_page_from_id -revision_id ${:revision_id}]
-    $my_page volatile
 
     ad_try {
       set html1 [$my_page render]
     } on error {errorMsg} {
       set html1 "Error rendering ${:revision_id}: $errorMsg"
     }
-    set text1 [ad_html_text_convert -from text/html -to text/plain -- $html1]
     set user1 [::xo::get_user_name [$my_page set creation_user]]
     set time1 [$my_page set creation_date]
     set revision_id1 [$my_page set revision_id]
@@ -435,7 +664,6 @@ namespace eval ::xowiki {
     } on error {errorMsg} {
       set html2 "Error rendering $compare_id: $errorMsg"
     }
-    set text2 [ad_html_text_convert -from text/html -to text/plain -- $html2]
     set user2 [::xo::get_user_name [$other_page set creation_user]]
     set time2 [$other_page set creation_date]
     set revision_id2 [$other_page set revision_id]
@@ -444,12 +672,25 @@ namespace eval ::xowiki {
     set title "Differences for ${:name}"
     set context [list $title]
 
-    # try util::html diff if it is available and works
-    ad_try {
-      set content [::util::html_diff -old $html2 -new $html1 -show_old_p t]
-    } on error {errMsg} {
-      # otherwise, fall back to proven text based diff
-      set content [::xowiki::html_diff $text2 $text1]
+    if {![:exists_query_parameter plain_text_diff]} {
+      #
+      # try util::html diff if it is available and works
+      #
+      ad_try {
+        set content [::util::html_diff -old $html2 -new $html1 -show_old_p t]
+      } on error {errMsg} {
+        ns_log notice "::util::html_diff failed on comparing page ${:name}, revisions_id ${:revision_id} and $compare_id"
+      }
+    }
+
+    if {![info exists content]} {
+      #
+      # If the fist attempt failed, or the plain text based diff was
+      # desired, fall back to proven plain text based diff
+      #
+      set text1 [ad_html_text_convert -from text/html -to text/plain -- $html1]
+      set text2 [ad_html_text_convert -from text/html -to text/plain -- $html2]
+      set content [::xowiki::text_diff_in_html $text2 $text1]
     }
 
     ::xo::Page set_property doc title $title
@@ -462,16 +703,17 @@ namespace eval ::xowiki {
     }
   }
 
-  proc html_diff {doc1 doc2} {
+  ad_proc -private text_diff_in_html {doc1 doc2} {
+
+    Simple plain text based diff, used as fallback.
+
+  } {
     set out ""
     set i 0
     set j 0
 
-    #set lines1 [split $doc1 "\n"]
-    #set lines2 [split $doc2 "\n"]
-
-    regsub -all \n $doc1 " <br />" doc1
-    regsub -all \n $doc2 " <br />" doc2
+    regsub -all \n $doc1 " <br>" doc1
+    regsub -all \n $doc2 " <br>" doc2
     set lines1 [split $doc1 " "]
     set lines2 [split $doc2 " "]
 
@@ -507,26 +749,33 @@ namespace eval ::xowiki {
       #puts "\t$j\t$m"
       append out "<span class='added'>$m</span>\n"
     }
+
     return $out
   }
 
   #
   # Externally callable method: download
   #
-  File instproc www-download {} {
-    #
-    # determine the delivery method
-    #
-    set use_bg_delivery [expr {![catch {ns_conn contentsentlength}] &&
-                               [info commands ::bgdelivery] ne ""}]
+  File ad_instproc www-download {} {
+
+    This web-callable method downloads the file content of the current
+    File object.  The following query parameter can be used to
+    influence the behavior
+
+    @query_param filename  use this query parameter as filename in the content-disposition.
+    @query_param geometry  when used on images, the images are scaled before delivery
+
+  } {
     #
     # The package where the object is coming from might be different
     # from the package on which it is delivered. Use the latter one
     # with the proper delivery information.
+    #
     set package_id [::xo::cc package_id]
-    $package_id set mime_type ${:mime_type}
-    $package_id set delivery \
-        [expr {$use_bg_delivery ? "ad_returnfile_background" : "ns_returnfile"}]
+    #
+    # Use always ad_returnfile_background, it is clever enough to use
+    # the right delivery mode in case of doubt.
+    #
 
     if {[:exists_query_parameter filename]} {
       set fn [::xo::backslash_escape \" [:query_parameter filename]]
@@ -534,15 +783,41 @@ namespace eval ::xowiki {
     }
 
     set full_file_name [:full_file_name]
+
+    if {![ad_file exists $full_file_name]} {
+      #
+      # This should not happen on a production system. In certain
+      # testing setups, a system admin might not have provided the
+      # full content repository.  We fail more gracefully in this
+      # case.
+      #
+      ad_log error "The file '$full_file_name' does not exist." \
+          "Maybe the content repository is (partially) missing?"
+
+      return [::${:package_id} error_msg -status_code 500 [subst {
+        No file for link <b>'[ns_quotehtml [ns_conn url]]'</b> available.<br>
+        Please report this to the web master of this site.
+      }]]
+    }
+
+    ::$package_id set mime_type ${:mime_type}
+    ::$package_id set delivery ad_returnfile_background
+
     #:log "--F FILE=$full_file_name // ${:mime_type}"
 
     set geometry [::xo::cc query_parameter geometry ""]
-    if {[string match "image/*" ${:mime_type}] && $geometry ne ""} {
-      if {![file isdirectory /tmp/$geometry]} {
-        file mkdir /tmp/$geometry
+    if {[string match "image/*" ${:mime_type}]
+        && $geometry ne ""
+      } {
+      if {![regexp {^\d*x?\d*$} $geometry]} {
+        error "invalid geometry $geometry"
       }
-      set scaled_image /tmp/$geometry/${:revision_id}
-      if {![file readable $scaled_image]} {
+      set tmpdir [ad_tmpdir]
+      if {![ad_file isdirectory $tmpdir/$geometry]} {
+        file mkdir $tmpdir/$geometry
+      }
+      set scaled_image $tmpdir/$geometry/${:revision_id}
+      if {![ad_file readable $scaled_image]} {
         set cmd [::util::which convert]
         if {$cmd ne ""} {
           if {![catch {exec $cmd -geometry $geometry -interlace None -sharpen 1x2 \
@@ -554,7 +829,7 @@ namespace eval ::xowiki {
         return $scaled_image
       }
     }
-    set modtime [file mtime $full_file_name]
+    set modtime [ad_file mtime $full_file_name]
     set cmptime [ns_set iget [ns_conn headers] If-Modified-Since]
     if {$cmptime ne ""} {
       if {[clock scan $cmptime] >= $modtime} {
@@ -563,7 +838,7 @@ namespace eval ::xowiki {
         # way, ... but keep things compatible for now.
         #
         ::xo::cc set status_code 304
-        $package_id set delivery ns_return
+        ::$package_id set delivery ns_return
         return ""
       }
     }
@@ -593,12 +868,19 @@ namespace eval ::xowiki {
   #
 
   Page instproc edit_set_default_values {} {
-    set package_id ${:package_id}
     # set some default values if they are provided
-    foreach key {name title page_order last_page_id nls_language} {
-      if {[$package_id exists_query_parameter $key]} {
-        #:log "setting [self] set $key [$package_id query_parameter $key]"
-        set :$key [$package_id query_parameter $key]
+    foreach name_and_spec [list \
+                               name \
+                               title \
+                               page_order:graph \
+                               last_page_id:int32 \
+                               nls_language:oneof,arg=[join [lang::system::get_locales] |] \
+                      ] {
+      set p [string first : $name_and_spec]
+      set key [expr {$p > -1 ? [string range $name_and_spec 0 $p-1] : $name_and_spec}]
+      if {[::${:package_id} exists_query_parameter $key]} {
+        #:log "setting [self] set $key [::${:package_id} query_parameter $key]"
+        set :$key [::${:package_id} query_parameter $name_and_spec]
       }
     }
   }
@@ -626,8 +908,7 @@ namespace eval ::xowiki {
   # was specified.
   #
   Page instproc changed_redirect_url {} {
-    set package_id ${:package_id}
-    if {[$package_id exists_query_parameter "return_url"]} {
+    if {[::${:package_id} exists_query_parameter "return_url"]} {
       return ""
     }
     return [:pretty_link]
@@ -637,19 +918,33 @@ namespace eval ::xowiki {
   # Externally callable method: edit
   #
 
-  Page instproc www-edit {
+  Page ad_instproc www-edit {
     {-new:boolean false}
     {-autoname:boolean false}
     {-validation_errors ""}
   } {
 
-    :instvar package_id item_id revision_id parent_id
-    #:log "--edit new=$new autoname=$autoname, valudation_errors=$validation_errors, parent=${:parent_id}"
+    This web-callable method renders a page in "edit" mode
+    (i.e. provide input fields).  This is the old-style edit based on
+    the old-style xowiki-form-procs.  FormPages should be used when
+    possible for better user experience.
+
+    @param new is this an edit-new operation?
+    @param autoname value to be passed to getFormClass
+    @param validation_errors ignored in this class, but used for
+           compatibility with FormPage.www-edit
+  } {
+    #
+    # We have to keep the instvar for "item_id" for the time being.
+    #
+    :instvar item_id
+
+    #:log "--edit new=$new autoname=$autoname, validation_errors=$validation_errors, parent=${:parent_id}"
     :edit_set_default_values
     set fs_folder_id [:edit_set_file_selector_folder]
 
-    if {[$package_id exists_query_parameter "return_url"]} {
-      set submit_link [:query_parameter "return_url" "."]
+    if {[::${:package_id} exists_query_parameter "return_url"]} {
+      set submit_link [:query_parameter return_url:localurl]
       set return_url $submit_link
     } else {
       #
@@ -665,28 +960,36 @@ namespace eval ::xowiki {
 
     # We have to do template mangling here; ad_form_template writes
     # form variables into the actual parse-level, so we have to be in
-    # our own level in order to access an pass these.
+    # our own level in order to access and pass these.
+    #
     lappend ::template::parse_level [info level]
 
     set action_vars [expr {$new ? "{edit-new 1} object_type return_url" : "{m edit} return_url"}]
-    #:log "--formclass=[$object_type getFormClass -data [self]] ot=$object_type"
+    #:log "--formclass=[$object_type getFormClass -data [self]] object_type=$object_type"
 
     #
     # Determine the package_id of some mounted xowiki instance to find
     # the directory + URL, from where the scripts called from Xinha
     # can be used.
-    if {[$package_id info class] eq "::xowiki::Package"} {
-      # The actual instance is a plain xowiki instance, we can use it
-      set folder_spec [list script_dir [$package_id package_url]]
+    #
+    if {[::${:package_id} info class] eq "::xowiki::Package"} {
+      #
+      # The actual instance is a plain xowiki instance, we can use it.
+      #
+      set folder_spec [list script_dir [::${:package_id} package_url]]
     } else {
+      #
       # The actual instance is not a plain xowiki instance, so, we try
       # to find one, where the current user has at least read
       # permissions.  This act is required for sub-packages, which
       # might not have the script dir.
-      set first_instance_id [::xowiki::Package first_instance -party_id [::xo::cc user_id] -privilege read]
+      #
+      set first_instance_id [::xowiki::Package first_instance \
+                                 -party_id [::xo::cc user_id] \
+                                 -privilege read]
       if {$first_instance_id ne ""} {
         ::xowiki::Package require $first_instance_id
-        set folder_spec [list script_dir [$first_instance_id package_url]]
+        set folder_spec [list script_dir [::$first_instance_id package_url]]
       }
     }
 
@@ -695,13 +998,17 @@ namespace eval ::xowiki {
     }
 
     [$object_type getFormClass -data [self]] create ::xowiki::f1 -volatile \
-        -action  [export_vars -base [$package_id url] $action_vars] \
+        -action  [export_vars -base [::${:package_id} url] $action_vars] \
         -data [self] \
         -folderspec $folder_spec \
         -submit_link $submit_link \
         -autoname $autoname
     #:log "form created"
 
+    #
+    # The variable "item_id" is hard-wired in the old-style "generate"
+    # method.
+    #
     if {[info exists return_url]} {
       ::xowiki::f1 generate -export [list [list return_url $return_url]]
     } else {
@@ -711,50 +1018,33 @@ namespace eval ::xowiki {
     ::xowiki::f1 instvar edit_form_page_title context formTemplate
 
     if {[info exists item_id]} {
-      set rev_link    [$package_id make_link [self] revisions]
-      set view_link   [$package_id make_link [self] view]
+      set rev_link  [::${:package_id} make_link [self] revisions]
+      set view_link [::${:package_id} make_link [self] view]
     }
     if {[info exists last_page_id]} {
-      set back_link [$package_id url]
+      set back_link [::${:package_id} url]
     }
 
-    set index_link  [$package_id make_link -privilege public -link "" $package_id {} {}]
-    ::xo::Page set_property doc title "[$package_id instance_name] - $edit_form_page_title"
+    set index_link  [::${:package_id} make_link -privilege public ${:package_id}]
+    ::xo::Page set_property doc title "[::${:package_id} instance_name] - $edit_form_page_title"
 
     array set property_doc [::xo::Page get_property doc]
-    set edit_tmpl [$package_id get_adp_template "edit"]
-    set html [$package_id return_page -adp $edit_tmpl \
+    set edit_tmpl [::${:package_id} get_adp_template "edit"]
+
+    set html [::${:package_id} return_page -adp $edit_tmpl \
                   -form f1 \
-                  -variables {item_id parent_id edit_form_page_title context formTemplate
-                    view_link back_link rev_link index_link property_doc}]
+                  -variables {
+                    item_id {parent_id ${:parent_id}}
+                    edit_form_page_title context formTemplate
+                    view_link back_link rev_link index_link property_doc
+                  }]
     template::util::lpop ::template::parse_level
     #:log "--edit html length [string length $html]"
     return $html
   }
 
-  FormPage instproc setCSSDefaults {} {
-    #:log setCSSDefaults
-    # check empty
-    if {[parameter::get_global_value -package_key xowiki -parameter PreferredCSSToolkit -default bootstrap] eq "bootstrap"} {
-      ::xowiki::formfield::FormField parameter {
-        {CSSclass form-control}
-        {form_item_wrapper_CSSclass form-group}
-        {form_widget_CSSclass ""}
-        {form_button_CSSclass "btn btn-default"}
-        {form_button_wrapper_CSSclass ""}
-        {form_help_text_CSSclass help-block}
-      }
-    } else {
-      ::xowiki::formfield::FormField parameter {
-        {CSSclass}
-        {form_widget_CSSclass form-widget}
-        {form_item_wrapper_CSSclass form-item-wrapper}
-        {form_button_CSSclass ""}
-        {form_button_wrapper_CSSclass form-button}
-        {form_help_text_CSSclass form-help-text}
-      }
-      ::xowiki::Form requireFormCSS
-    }
+  FormPage instproc -deprecated setCSSDefaults {} {
+    ad_log warning "deprecated method setCSSDefaults was called. The call should be removed"
   }
 
   FormPage instproc action_url {} {
@@ -764,15 +1054,33 @@ namespace eval ::xowiki {
     return [:pretty_link]
   }
 
-  FormPage instproc www-edit {
+  FormPage ad_instproc extra_html_fields {} {
+
+    Should be overloaded to provide extra content to some forms. This
+    method can be used to add additional (e.g. hidden) HTML input
+    fields to form pages. Example:
+
+    ::html::input -type hidden -name __object_name -value [::security::parameter::signed ${:name}]
+
+  } {
+    return ""
+  }
+
+  FormPage ad_instproc www-edit {
     {-validation_errors ""}
     {-disable_input_fields 0}
-    {-view true}
+    {-view:boolean true}
+  } {
+
+    This web-callable method renders a form page in "edit" mode
+    (i.e. provide input fields).
+
+    The following query parameters can be used to influene the results
+    "return_url", "title", "detail_link", "text", and "description".
+
   } {
     #:log "edit [self args]"
-    set package_id ${:package_id}
 
-    :setCSSDefaults
     :include_header_info -prefix form_edit
     if {[::xo::cc mobile]} {
       :include_header_info -prefix mobile
@@ -784,8 +1092,11 @@ namespace eval ::xowiki {
     #:log anon_instances=$anon_instances
 
     set field_names [:field_names -form $form]
-    #:msg field_names=$field_names
+    #:log field_names=$field_names
     set form_fields [:create_form_fields $field_names]
+    #foreach f0 $form_fields {
+    #  ns_log notice "... created ff [$f0 name] [$f0 info class] '[$f0 value]'"
+    #}
 
     if {$form eq ""} {
       #
@@ -804,10 +1115,13 @@ namespace eval ::xowiki {
     #  - if it is required but hidden, show it anyway
     #    (might happen, when e.g. set via @cr_fields ... hidden)
     set name_field [:lookup_form_field -name _name $form_fields]
+
     if {$anon_instances} {
       #$name_field config_from_spec hidden
     } else {
-      if {[$name_field istype ::xowiki::formfield::hidden] && [$name_field required] == true} {
+      if {[$name_field istype ::xowiki::formfield::hidden]
+          && [$name_field required] == true
+        } {
         $name_field config_from_spec text,required
         $name_field type text
       }
@@ -817,7 +1131,7 @@ namespace eval ::xowiki {
     # Include _text only, if explicitly needed (in form
     # needed(_text))".
     #
-    if {![info exists :__field_needed(_text)]} {
+    if {![dict exists ${:__field_needed} _text]} {
       #:msg "setting text hidden"
       set f [:lookup_form_field -name _text $form_fields]
       $f config_from_spec hidden
@@ -828,9 +1142,9 @@ namespace eval ::xowiki {
       # Disable some form-fields since these are disabled in the form
       # as well.
       #
-      foreach name [:form_parameter __disabled_fields] {
+      foreach name [:form_parameter __disabled_fields:0..n] {
         set f [:lookup_form_field -name $name $form_fields]
-        $f disabled disabled
+        $f set_disabled true
       }
     }
 
@@ -838,18 +1152,23 @@ namespace eval ::xowiki {
     #:log "__form_action [:form_parameter __form_action {}]"
 
     if {[:form_parameter __form_action ""] eq "save-form-data"} {
+      #
+      # We want to save the form data, so we have to validate.
+      #
       #:log "we have to validate"
       #
-      # We have to valiate and save the form data.
-      #
       # In case we are triggered internally, we might not have a
-      # a connection and therefore do not valide the csrf token
-      if {![$package_id exists __batch_mode]} {
+      # a connection. Therefore, do not validate the CSRF token.
+      #
+      if {![::${:package_id} exists __batch_mode]} {
         security::csrf::validate
       }
 
       lassign [:get_form_data $form_fields] validation_errors category_ids
       if {$validation_errors != 0} {
+        #
+        # We have validation errors.
+        #
         #:log "$validation_errors validation errors in $form_fields"
         #foreach f $form_fields { :log "$f: [$f name] '[$f set value]' err: [$f error_msg] " }
         #
@@ -858,7 +1177,7 @@ namespace eval ::xowiki {
         # error messages again, but we return simply the validation
         # problems.
         #
-        if {[$package_id exists __batch_mode]} {
+        if {[::${:package_id} exists __batch_mode]} {
           set errors [list]
           foreach f $form_fields {
             if {[$f error_msg] ne ""} {
@@ -866,70 +1185,82 @@ namespace eval ::xowiki {
             }
           }
           set evaluation_errors ""
-          if {[$package_id exists __evaluation_error]} {
-            set evaluation_errors "\nEvaluation error: [$package_id set __evaluation_error]"
-            $package_id unset __evaluation_error
+          if {[::${:package_id} exists __evaluation_error]} {
+            set evaluation_errors "\nEvaluation error: [::${:package_id} set __evaluation_error]"
+            ::${:package_id} unset __evaluation_error
           }
           error "[llength $errors] validation error(s): $errors $evaluation_errors"
         }
         #
         # Reset the name in error cases to the original one.
         #
-        set :name [:form_parameter __object_name]
+        set :name [:form_parameter __object_name:signed,convert]
       } else {
         #
-        # we have no validation errors, so we can save the content
+        # We have no validation errors, so we can save the content.
         #
         :save_data \
             -use_given_publish_date [expr {"_publish_date" in $field_names}] \
-            [::xo::cc form_parameter __object_name ""] $category_ids
+            [::xo::cc form_parameter __object_name:signed,convert ""] $category_ids
+
         #
         # The data might have references. Perform the rendering here to compute
         # the references instead on every view (which would be safer, but slower). This is
         # roughly the counterpart to edit_data and save_data in ad_forms.
         #
-        set content [:render -update_references true]
+        set content [:render -update_references all]
         #:log "after save refs=[expr {[info exists :references]?${:references} : {NONE}}]"
 
-        set redirect_method [:form_parameter __form_redirect_method "view"]
+        set redirect_method [:form_parameter __form_redirect_method:wordchar "view"]
         #:log "redirect_method $redirect_method"
 
         if {$redirect_method eq "__none"} {
           return
         } else {
-          if {$redirect_method ne "view"} {set qp "?m=$redirect_method"} {set qp ""}
+          if {$redirect_method ne "view"} {
+            set qp "?m=$redirect_method"
+          } else {
+            set qp ""
+          }
           set url [:pretty_link]$qp
           #
           # The method query_parameter uses now "::xo::cc set_parameter ...."
           # with highest precedence
           #
-          set return_url [$package_id query_parameter return_url $url]
+          set return_url [::${:package_id} query_parameter return_url:localurl $url]
+
           #:log "${:name}: url=$url, return_url=$return_url"
-          $package_id returnredirect $return_url
+          ::${:package_id} returnredirect $return_url
 
           return
         }
       }
-    } elseif {[:form_parameter __form_action ""] eq "view-form-data" && ![info exists :__feedback_mode]} {
+    } elseif {[:form_parameter __form_action ""] eq "view-form-data"
+              && ![info exists :__feedback_mode]
+            } {
       #
       # We have nothing to save (maybe everything is read-only). Check
       # __feedback_mode to prevent recursive loops.
       #
-      set redirect_method [:form_parameter __form_redirect_method "view"]
+      set redirect_method [:form_parameter __form_redirect_method:wordchar "view"]
       #:log "__redirect_method=$redirect_method"
       return [:www-view]
     } else {
       #
       # Build the input form and display the current values.
       #
+      #:log "form_action is something different: <[:form_parameter __form_action {}]>"
       if {[:is_new_entry ${:name}]} {
         set :creator [::xo::get_user_name [::xo::cc user_id]]
-        set :nls_language [ad_conn locale]
+        set :nls_language [::${:package_id} default_locale]
       }
 
       #array set __ia ${:instance_attributes}
       :load_values_into_form_fields $form_fields
-      foreach f $form_fields {set ff([$f name]) $f }
+
+      foreach f $form_fields {
+        set ff([$f name]) $f
+      }
 
       #
       # For named entries, just set the entry fields to empty,
@@ -937,6 +1268,7 @@ namespace eval ::xowiki {
       #
       #:log "my is_new_entry ${:name} = [:is_new_entry ${:name}]"
       if {[:is_new_entry ${:name}]} {
+
         if {$anon_instances} {
           set basename [::xowiki::autoname basename [${:page_template} name]]
           set name [::xowiki::autoname new -name $basename -parent_id ${:parent_id}]
@@ -948,9 +1280,10 @@ namespace eval ::xowiki {
         if {![$ff(_title) istype ::xowiki::formfield::hidden]} {
           $ff(_title) value [$ff(_title) default]
         }
-        foreach var [list title detail_link text description] {
+        foreach param [list title detail_link:localurl text description] {
+          regexp {^([^:]+):?} $param . var
           if {[:exists_query_parameter $var]} {
-            set value [:query_parameter $var]
+            set value [:query_parameter $param]
             switch -- $var {
               detail_link {
                 set f [:lookup_form_field -name $var $form_fields]
@@ -976,6 +1309,20 @@ namespace eval ::xowiki {
     :post_process_form_fields $form_fields
 
     #
+    # "dom parse -html" has two problems with ADP tags like "<adp:icon ...>":
+    # a) If the tag name contains a colon or underscore, the tag is
+    #    treated like plain text, i.e. "<" and ">" are converted into
+    #    HTML entities.
+    # b) These tags have to be closed "<adp:icon ...>" is invalid.
+    #    Several existomg ADP tags have not closing tag.
+    #
+    # Therefore, we resolve the ADP tags before parsing the text by
+    # tdom. There should be some framework support to do this in
+    # general, but until we have this, resolve this problem here locally.
+    #
+    set form [::template::adp_parse_tags [:substitute_markup $form]]
+
+    #
     # The following command would be correct, but does not work due to a bug in
     # tdom.
     # set form [:regsub_eval  \
@@ -985,24 +1332,24 @@ namespace eval ::xowiki {
     # by \x03 to avoid conflict with the input and we replace these
     # magic chars finally with the fields resulting from tdom.
 
-    set form [:substitute_markup $form]
     set form [string map [list @ \x03] $form]
     #:msg form=$form
 
-    dom parse -simple -html $form :doc
+    dom parse -html -- $form :doc
     ${:doc} documentElement :root
 
     if {${:root} eq ""} {
       error "form '$form' is not valid"
     }
 
-    ::require_html_procs
+    ::xo::require_html_procs
     ${:root} firstChild fcn
     #:msg "orig fcn $fcn, root ${:root} [${:root} nodeType] [${:root} nodeName]"
 
     set formNode [lindex [${:root} selectNodes //form] 0]
     if {$formNode eq ""} {
       :msg "no form found in page [${:page_template} name]"
+      ns_log notice "no form found in page [${:page_template} name]\n$form"
       set rootNode ${:root}
       $rootNode firstChild fcn
     } else {
@@ -1018,9 +1365,10 @@ namespace eval ::xowiki {
     #
     $rootNode insertBeforeFromScript {
       ::html::div {
-        ::html::input -type hidden -name __object_name -value ${:name}
+        ::html::input -type hidden -name __object_name -value [::security::parameter::signed ${:name}]
         ::html::input -type hidden -name __form_action -value save-form-data
         ::html::input -type hidden -name __current_revision_id -value ${:revision_id}
+        :extra_html_fields
         ::html::CSRFToken
       }
       #
@@ -1028,9 +1376,9 @@ namespace eval ::xowiki {
       #
       foreach att $field_names {
         #if {$formgiven && ![string match _* $att]} continue
-        if {[info exists :__field_in_form($att)]} continue
+        if {[dict exists ${:__field_in_form} $att]} continue
         set f [:lookup_form_field -name $att $form_fields]
-        #:log "insert auto_field $att $f"
+        #:log "insert auto_field $att $f ([$f info class])"
         $f render_item
       }
     } $fcn
@@ -1057,14 +1405,6 @@ namespace eval ::xowiki {
       }
 
       #
-      # Insert unreported errors.
-      #
-      foreach f $form_fields {
-        if {[$f set error_msg] ne "" && ![$f exists error_reported]} {
-          $f render_error_msg
-        }
-      }
-      #
       # Add a submit field(s) at bottom.
       #
       :render_form_action_buttons -CSSclass [string trim "$button_class(wym) $button_class(xinha)"]
@@ -1073,7 +1413,7 @@ namespace eval ::xowiki {
     if {$formNode ne ""} {
 
       if {[:exists_query_parameter "return_url"]} {
-        set return_url [:query_parameter "return_url"]
+        set return_url [:query_parameter return_url:localurl]
       } else {
         #
         # When no return_url is specified and we edit a page different
@@ -1082,12 +1422,15 @@ namespace eval ::xowiki {
         # object after the edit. This happens if one edits e.g. a page
         # through a link.
         #
-        if {[::xo::cc exists invoke_object] && [::xo::cc invoke_object] ne [self]} {
-          #:log "=== no return_url specified, using [::xo::cc url] or [[$package_id context] url]"
+        if {[::xo::cc exists invoke_object]
+            && [::xo::cc invoke_object] ne [self]
+          } {
+          #:log "=== no return_url specified, using [::xo::cc url] or [[::${:package_id} context] url]"
           set return_url [::xo::cc url]
+          set return_url [ad_urlencode_url $return_url]
         }
       }
-      set m [:form_parameter __form_redirect_method "edit"]
+      set m [:form_parameter __form_redirect_method:wordchar "edit"]
       set url [export_vars -no_base_encode -base [:action_url] {m return_url}]
       #:log "=== setting action <$url> for form-action my-name ${:name}"
       $formNode setAttribute action $url method POST role form
@@ -1100,7 +1443,7 @@ namespace eval ::xowiki {
       #
       # (a) Disable explicit input fields.
       #
-      foreach f $form_fields {$f disabled 1}
+      foreach f $form_fields {$f set_disabled true}
       #
       # (b) Disable input in HTML-specified fields.
       #
@@ -1119,12 +1462,38 @@ namespace eval ::xowiki {
 
     set html [${:root} asHTML]
     set html [:regsub_eval  \
-                  {(^|[^\\])\x03([a-zA-Z0-9_:]+)\x03} $html \
+                  {(^|[^\\])\x03([[:alnum:]_:]+)\x03} $html \
                   {:form_field_as_html -mode edit "\\\1" "\2" $form_fields}]
     #
     # Replace unbalanced @ characters.
     #
     set html [string map [list \x03 @] $html]
+
+    #
+    # Handle unreported errors (in the future...). Unreported errors
+    # might occur, when a form-field was rendered above without
+    # "render_item". This can happen with inline rendering of the
+    # input fields where validation errors occur. Inline rendering
+    # happens very seldom (I know not a single occurrence in the
+    # wild). For such cases, one should define an extra field in the
+    # form with an idea, reparse the tree and insert the errors
+    # there. But first look, if we find a single occurrence.
+    #
+    set unprocessed {}
+    foreach f $form_fields {
+      if {[$f set error_msg] ne ""
+          && ![$f exists error_reported]
+        } {
+        ns_log notice "form-field [$f name] has unprocessed error msg '[$f set error_msg]'"
+        #$f render_error_msg
+        lappend unprocessed [$f name]
+      }
+    }
+    #ns_log notice "=============== $unprocessed unprocessed error messages"
+    if {[llength $unprocessed] > 0} {
+      ad_log warning "form has [llength $unprocessed] unprocessed " \
+          "error messages in fields $unprocessed"
+    }
 
     #:log "calling VIEW with HTML [string length $html]"
     if {$view} {
@@ -1139,46 +1508,86 @@ namespace eval ::xowiki {
   # Externally callable method: file-upload
   #
 
-  FormPage instproc www-file-upload {} {
-    #
-    # This method is typically called via drop-zone in a POST request,
-    # where the FormPage is a folder (which is treated as parent object).
-    #
+  FormPage ad_instproc www-file-upload {} {
+
+    This web-callable method can be used for uploading files using the
+    current object as parent object for the new content. This method
+    is typically called via drop-zone in a POST request, where the
+    FormPage is a folder (which is treated as parent object)
+
+  } {
+
     if {[ns_conn method] ne "POST"} {
       error "method should be called via POST"
     }
-    set form [ns_getform]
 
     #
-    # Get the uploader via query parameter.  We have currently the
-    # following uploader classes defined (see
+    # Get the disposition via query parameter.  We have currently the
+    # following disposition classes defined (see
     # xowiki-uploader-procs.tcl)
     #
     #   - ::xowiki::UploadFile
     #   - ::xowiki::UploadPhotoForm
+    #   - ::xowiki::UploadFileIconified
     #
     ::security::csrf::validate
-    set uploader [ns_set get $form uploader File]
-    set uploaderClass ::xowiki::UploadFile
-    if {[info commands ::xowiki::Upload$uploader] ne ""} {
-      set uploaderClass ::xowiki::Upload$uploader
+
+    set disposition [:query_parameter disposition:wordchar File]
+
+    #
+    # Filename is sanitized. If the filename contains only invalid
+    # characters, "ad_sanitize_filename" might return empty, and we
+    # complain.
+    #
+    set fileName [ad_sanitize_filename \
+                      [ns_queryget name [ns_queryget upload]]]
+    if {[string length $fileName] == 0} {
+      ad_return_complaint 1 [_ acs-templating.Invalid_filename]
+      ad_script_abort
     }
-    set uploaderObject [$uploaderClass new \
-                            -file_name [ns_set get $form upload] \
-                            -content_type [ns_set get $form upload.content-type] \
-                            -tmpfile [ns_set get $form upload.tmpfile] \
-                            -parent_object [self]]
-    set result [$uploaderObject store_file]
-    $uploaderObject destroy
+
+    set dispositionClass ::xowiki::UploadFile
+    if {[info commands ::xowiki::Upload$disposition] ne ""} {
+      set dispositionClass ::xowiki::Upload$disposition
+    }
+
+    #ns_log notice "disposition class '$dispositionClass'"
+    set dispositionObject [$dispositionClass new \
+                               -file_name $fileName \
+                               -content_type [ns_queryget upload.content-type] \
+                               -tmpfile [ns_queryget upload.tmpfile] \
+                               -parent_object [self]]
+    set result [$dispositionObject store_file]
+    $dispositionObject destroy
     ns_return [dict get $result status_code] text/plain [dict get $result message]
+    ad_script_abort
+  }
+
+  FormPage ad_instproc render_thumbnails {upload_info} {
+
+    Renderer of the thumbnail file(s). This method is a stub to be
+    refined (e.g. in xowf).
+
+    @param upload_info dict containing the "file_object" and "file_name"
+    @return HTML content
+
+  } {
+    return "[dict get $upload_info file_name] created"
   }
 
   #
   # Externally callable method: toggle-modebutton
   #
-  FormPage instproc www-toggle-modebutton {} {
+  FormPage ad_instproc www-toggle-modebutton {} {
+
+    AJAX called function, called via POST. The function toggles the
+    state of a button in the backend. The client provides the name of
+    the button as form field named "button". If none is provided, the
+    button is named as default "admin"
+
+  } {
     #
-    # This method is typically called via modebutton in a POST request via ajax;
+    # Check, if this function was called via POST
     #
     if {[ns_conn method] ne "POST"} {
       error "method should be called via POST"
@@ -1189,41 +1598,61 @@ namespace eval ::xowiki {
     #
     #    ::xowiki::mode::admin
     #
-    set form [ns_getform]
-    set button [ns_set get $form button admin]
+    set button [ns_queryget button admin]
     ::xowiki::mode::$button toggle
-    #${:package_id} returnredirect [ns_set get $form return_url [::xo::cc url]]
     ns_return 200 text/plain ok
   }
 
   #
   # Externally callable method: list
   #
-  Page instproc www-list {} {
-    if {[:is_form]} {
+  Page ad_instproc www-list {} {
+
+    This web-callable method provides a listing of pages.
+
+    When the query parameter "children" is used,  it returns
+    the children of this item via the "child-resources" includelet.
+
+    Otherwise, when this method is called on any kind of Form, it
+    returns the form instances via the "form-usages" includelet.
+
+    Otherwise, when this method is called on any kind of folder pages,
+    it returns the elements of this folder via the "child-resources"
+    includelet.
+
+    If the above fails, it redirects to the starting page.
+
+  } {
+    if {[:is_form] && ![:exists_query_parameter children]} {
       #
       # The following line is here to provide a short description for
       # larger form-usages (a few MB) where otherwise
       # "ad_html_text_convert" in Page.get_description tend to use
       # forever (at least in Tcl 8.5)
       #
-      set :description "form-usages for ${:name} [:title]"
+      set :description "form-usages for ${:name} ${:title}"
 
       return [:www-view [:include [list form-usages -form_item_id ${:item_id}]]]
     }
-    if {[:is_folder_page]} {
+    if {[:is_folder_page] || [:exists_query_parameter children]} {
       return [:www-view [:include [list child-resources -publish_status all]]]
     }
     #:msg "method list undefined for this kind of object"
-    ${:package_id} returnredirect [::xo::cc url]
+    ${:package_id} returnredirect [ad_return_url]
   }
 
   #
   # Externally callable method: make-live-revision
   #
 
-  Page instproc www-make-live-revision {} {
-    set page_id [:query_parameter "revision_id"]
+  Page ad_instproc www-make-live-revision {} {
+
+    This web-callable method makes the revision specified by parameter
+    "revision_id" the live revision, or when this is not available,
+    the parameter "local_return_url".
+
+  } {
+    set page_id [:query_parameter revision_id]
     if {[string is integer -strict $page_id]} {
       set revision_id $page_id
     } else {
@@ -1231,42 +1660,57 @@ namespace eval ::xowiki {
     }
     #:log "--M set_live_revision $revision_id"
     :set_live_revision -revision_id $revision_id
-    ${:package_id} returnredirect [:query_parameter "return_url" \
-                                       [export_vars -base [${:package_id} url] {{m revisions}}]]
+    ${:package_id} returnredirect [${:package_id} query_parameter_return_url \
+                                       [export_vars -base [::${:package_id} url] {{m revisions}}]]
   }
 
   #
   # Externally callable method: toggle-publish-status
   #
-  # Toggle from arbitrary states to "ready" and from "ready" to
-  # "production".
-  #
+  Page ad_instproc www-toggle-publish-status {-return_url} {
 
-  Page instproc www-toggle-publish-status {} {
+    This web-callable method toggles from "production" to "ready", and
+    from "ready" or "archived" to "production".
+
+    The return_url can be passed in for cases, where some proc calls
+    internally this function, since update_publish_status might have
+    to initialize some related objects, which might modify the
+    return_url as well (e.g., workflows with specialized return_url
+    handling).
+
+  } {
+    if {![info exists return_url]} {
+      set return_url [:query_parameter return_url:localurl [ad_return_url]]
+    }
     if {${:publish_status} ne "ready"} {
       set new_publish_status "ready"
     } else {
       set new_publish_status "production"
     }
     :update_publish_status $new_publish_status
-    ${:package_id} returnredirect [:query_parameter "return_url" [ad_return_url]]
+    ${:package_id} returnredirect $return_url
   }
 
   #
   # Externally callable method: popular-tags
   #
+  Page ad_instproc www-popular-tags {} {
 
-  Page instproc www-popular-tags {} {
-    set limit       [:query_parameter "limit" 20]
-    set weblog_page [${:package_id} get_parameter weblog_page weblog]
-    set href        [${:package_id} pretty_link -parent_id [${:package_id} folder_id] $weblog_page]?summary=1
+    AJAX called function, returns an HTML snippet with the popular
+    tags.
+
+  } {
+    set package     ::${:package_id}
+    set limit       [:query_parameter limit:int32 20]
+    set weblog_page [$package get_parameter weblog_page:graph weblog]
+    set href        [$package pretty_link -parent_id [$package folder_id] $weblog_page]?summary=1
 
     set entries [list]
     xo::dc foreach get_popular_tags \
         [::xo::dc select \
              -vars "count(*) as nr, tag" \
              -from "xowiki_tags" \
-             -where "item_id = ${:item_id}" \
+             -where "item_id = [ns_dbquotevalue ${:item_id}]" \
              -groupby "tag" \
              -orderby "nr" \
              -limit $limit] {
@@ -1274,6 +1718,7 @@ namespace eval ::xowiki {
                lappend entries "<a href='[ns_quotehtml $href&ptag=[ad_urlencode $tag]]'>$label</a>"
              }
     ns_return 200 text/html "<span class='popular-tags'>[_ xowiki.popular_tags_label]: [join $entries {, }]</span>"
+    ad_script_abort
   }
 
   #
@@ -1281,9 +1726,11 @@ namespace eval ::xowiki {
   #
 
   Page ad_instproc www-save-attributes {} {
-    The method save-attributes is typically callable over the
-    REST interface. It allows one to save attributes of a
-    page without adding a new revision.
+
+    The web-callable method save-attributes is typically callable over
+    the REST interface. It allows one to save attributes of a page
+    without adding a new revision.
+
   } {
     set field_names [:field_names]
     set form_fields [list]
@@ -1303,7 +1750,7 @@ namespace eval ::xowiki {
       #
       # We have no validation errors, so we can save the content.
       #
-      set update_without_revision [${:package_id} query_parameter replace 0]
+      set update_without_revision [::${:package_id} query_parameter replace:boolean 0]
 
       foreach form_field $form_fields {
         #
@@ -1339,25 +1786,103 @@ namespace eval ::xowiki {
         #
         :save_data \
             -use_given_publish_date [expr {"_publish_date" in $field_names}] \
-            [::xo::cc form_parameter __object_name ""] $category_ids
+            [::xo::cc form_parameter __object_name:signed,convert ""] $category_ids
       }
       ${:package_id} returnredirect \
-          [:query_parameter "return_url" [:pretty_link]]
+          [:query_parameter return_url:localurl [:pretty_link]]
       return
     } else {
-      # todo: handle errors in a user friendly way
-      :log "we have $validation_errors validation_errors"
+      # TODO: handle errors in a user friendly way
+      ns_log warning "www-save-attributes: we have $validation_errors validation_errors"
     }
     ${:package_id} returnredirect \
-        [:query_parameter "return_url" [:pretty_link]]
+        [:query_parameter return_url:localurl [:pretty_link]]
   }
+
+  #
+  # Externally callable method: autosave-attribute
+  #
+  Page ad_instproc www-autosave-attribute {} {
+
+    The web-callable method which is a simplified version of
+    save-attributes, but which does NOT perform input validation,
+    which might be a problem in case of partial input.
+
+  } {
+
+    set field_names [:field_names]
+    #ns_log notice "[self] autosave-attribute called field-names: $field_names"
+    set provided_form_parameters [xo::cc get_all_form_parameter]
+    set keys [dict keys $provided_form_parameters]
+
+    if {[llength $keys] == 1} {
+      set key   [lindex $keys 0]
+      set value [::xo::cc form_parameter $key]
+      ns_log notice "[self] autosave-attribute save '$key' <$value>"
+      set prefix ""
+      regexp {^([^.]+)[.]} $key . prefix
+
+      if {$prefix ne "" && $prefix in $field_names} {
+        #
+        # We are inside a compound field, which is saved in the instance
+        # attributes.
+        #
+        #ns_log notice "SAVE old ia <${:instance_attributes}>"
+        if {[dict exists ${:instance_attributes} $prefix]} {
+          set innerDict [dict get ${:instance_attributes} $prefix]
+        } else {
+          set innerDict ""
+        }
+        dict set innerDict $key $value
+        dict set :instance_attributes $prefix $innerDict
+
+        #ns_log notice "SAVE new ia <${:instance_attributes}>"
+        set s [:find_slot instance_attributes]
+        :update_attribute_from_slot $s ${:instance_attributes}
+        ns_return 200 text/plain ok
+
+      } elseif {$prefix eq "" && $key in $field_names} {
+        #
+        # It is a plain attribute, either from the cr-attributes
+        # (starting with an "_") or from the instance attributes.
+        #
+        if {[string match _* $key]} {
+          set s [:find_slot [string range $key 1 end]]
+          :update_attribute_from_slot $s $value
+        } else {
+          set s [:find_slot instance_attributes]
+          dict set :instance_attributes $key $value
+          :update_attribute_from_slot $s ${:instance_attributes}
+        }
+        ns_return 200 text/plain ok
+
+      } else {
+        ns_return 404 text/plain "not ok"
+        ns_log error "autosave attribute: unexpected field name <$key>" \
+            "(prefix '$prefix'), not contained in <$field_names> " \
+            "value [llength $value] bytes"
+      }
+    } else {
+      ns_log warning "autosave attribute: expecting a single form parameter with a prefix keys <$keys>"
+      ns_return 404 text/plain "not ok"
+    }
+    ns_log notice "SAVE-att DONE"
+    ad_script_abort
+  }
+
 
   #
   # Externally callable method: revisions
   #
 
-  Page instproc www-revisions {} {
-    #set context [list [list [${:package_id} url] ${:name} ] [_ xotcl-core.revisions]]
+  Page ad_instproc www-revisions {} {
+
+    This web-callable method lists the revisions based. The rendering
+    is actually performed in the cr-procs, but can overloaded per
+    package.
+
+  } {
+    #set context [list [list [::${:package_id} url] ${:name} ] [_ xotcl-core.revisions]]
     #set title "[_ xotcl-core.revision_title] '${:name}'"
     return [:www-view [next]]
   }
@@ -1366,28 +1891,37 @@ namespace eval ::xowiki {
   # Externally callable method: save-tags
   #
 
-  Page instproc www-save-tags {} {
+  Page ad_instproc www-save-tags {} {
+
+    This web-callable method saves tags (provided via form parameter "new_tags").
+
+  } {
     ::xowiki::Page save_tags \
         -user_id [::xo::cc user_id] \
         -item_id ${:item_id} \
         -revision_id ${:revision_id} \
         -package_id ${:package_id} \
-        [:form_parameter new_tags]
+        [:form_parameter new_tags:0..n]
 
     ::${:package_id} returnredirect \
-        [:query_parameter "return_url" [${:package_id} url]]
+        [:query_parameter return_url:localurl [ad_return_url]]
   }
 
   #
   # Externally callable method: validate-attribute
   #
 
-  Page instproc www-validate-attribute {} {
+  Page ad_instproc www-validate-attribute {} {
+
+    This web-callable method can be used to validate form attributes,
+    typically called via AJAX.
+
+  } {
     set field_names [:field_names]
     set validation_errors 0
 
     #
-    # Fet the first transmitted form field.
+    # Get the first transmitted form field.
     #
     foreach field_name $field_names {
       if {[::xo::cc exists_form_parameter $field_name]} {
@@ -1404,7 +1938,9 @@ namespace eval ::xowiki {
     } else {
       set status_code 406
       foreach f $form_fields {
-        if {[$f error_msg] ne ""} {set error [::xo::localize [$f error_msg] 1]}
+        if {[$f error_msg] ne ""} {
+          set error [::xo::localize [$f error_msg] 1]
+        }
       }
     }
     ns_return $status_code text/html $error
@@ -1414,111 +1950,80 @@ namespace eval ::xowiki {
   # Externally callable method: view
   #
 
-  Page instproc www-view {{content ""}} {
+  Page ad_instproc www-view {{content ""}} {
+
+    This web-callable method is called when viewing wiki content.  The
+    method "view" is used primarily as web API call, when the xowiki
+    page is viewed.  It is not intended for e.g. embedded wiki pages
+    (use includes), since it contains full framing, etc.
+
+    In most cases, the argument "content" is not provided, and it is
+    computed via the "render" method of the current object. It is as
+    well possible to reuse the rendering logic of the method for other
+    pages, where some HTML content is already computed, but it should
+    be viewed exactly as in the page viewing cases.
+
+  } {
+    #ns_log notice "www-view <$content>"
+
     #
-    # The method "view" is used primarily for the toplevel call, when
-    # the xowiki page is viewed.  It is not intended for e.g. embedded
-    # wiki pages (see include), since it contains full framing, etc.
+    # The recursion_count os maintained to avoid recursive includes
+    # inside a page.
     #
     ::xowiki::Page set recursion_count 0
     set page_package_id    ${:package_id}
     set context_package_id [::xo::cc package_id]
+    set folder_id [::$page_package_id folder_id]
 
     #:msg "page_package_id=$page_package_id, context_package_id=$context_package_id"
 
-    set template_file [:query_parameter "template_file" \
-                           [::$context_package_id get_parameter template_file view-default]]
-
-    if {[:isobject ::xowiki::$template_file]} {
+    set template_file [ns_normalizepath [:query_parameter "template_file" \
+                                             [::$context_package_id get_parameter template_file:graph view-default]]]
+    if {[nsf::is object ::xowiki::$template_file]} {
       $template_file before_render [self]
     }
 
     #
     # Set up template variables.
     #
-    set object_type [$page_package_id get_parameter object_type [:info class]]
-    set rev_link    [$page_package_id make_link -with_entities 0 [self] revisions]
+    set object_type [::$page_package_id get_parameter object_type:graph [:info class]]
+    set rev_link    [::$page_package_id make_link [self] revisions]
 
-    if {[$context_package_id query_parameter m ""] eq "edit"} {
-      set view_link [$page_package_id make_link -with_entities 0 [self] view return_url]
+    if {[::$context_package_id query_parameter m:token ""] eq "edit"} {
+      set view_link [::$page_package_id make_link [self] view return_url]
       set edit_link ""
     } else {
-      set edit_link [$page_package_id make_link -with_entities 0 [self] edit return_url]
+      set edit_link [::$page_package_id make_link [self] edit return_url]
       set view_link ""
     }
-    set delete_link [$page_package_id make_link -with_entities 0 [self] delete return_url]
+
+    set delete_link [::$page_package_id make_link [self] delete return_url]
     if {[info exists :__link(new)]} {
       set new_link [set :__link(new)]
     } else {
       set new_link [:new_link $page_package_id]
     }
 
-    set admin_link  [$context_package_id make_link -privilege admin -link admin/ $context_package_id {} {}]
-    set index_link  [$context_package_id make_link -privilege public -link "" $context_package_id {} {}]
-    set toc_link    [$context_package_id make_link -privilege public -link "list" $context_package_id {} {}]
-    set import_link [$context_package_id make_link -privilege admin -link "" $context_package_id {} {}]
-    set page_show_link [$page_package_id make_link -privilege admin [self] show-object return_url]
-    set view_link   [$page_package_id make_link -with_entities 0 [self] view return_url]
+    set admin_link  [::$context_package_id make_link -privilege admin -link admin/ ::$context_package_id]
+    set index_link  [::$context_package_id make_link -privilege public ::$context_package_id]
+    set view_link   [::$page_package_id make_link [self] view return_url]
 
     set notification_subscribe_link ""
-    if {[$context_package_id get_parameter "with_notifications" 1]} {
-      if {[::xo::cc user_id] != 0} { ;# notifications require login
+    if {[::$context_package_id get_parameter with_notifications:boolean 1]} {
+      if {[::xo::cc user_id] != 0} {
+        #
+        # Notifications are only be displayed for logged-in users.
+        #
         set notifications_return_url [expr {[info exists return_url] ? $return_url : [ad_return_url]}]
         set notification_type [notification::type::get_type_id -short_name xowiki_notif]
-        set notification_text "Subscribe to [$context_package_id instance_name]"
+        set notification_text "Subscribe to [::$context_package_id instance_name]"
         set notification_subscribe_link \
-                                         [export_vars -base /notifications/request-new \
-                                              {{return_url $notifications_return_url}
-                                                {pretty_name $notification_text}
-                                                {type_id $notification_type}
-                                                {object_id $context_package_id}}]
-        set notification_image \
-                                         "<img style='border: 0px;' src='/resources/xowiki/email.png' \
-        alt='$notification_text' title='$notification_text'>"
-      }
-    }
-
-    # the menubar is work in progress
-    set mb [$context_package_id get_parameter "MenuBar" 0]
-    if {$mb ne "0" && [info commands ::xowiki::MenuBar] ne ""} {
-
-      set clipboard_size [::xowiki::clipboard size]
-      set clipboard_label [expr {$clipboard_size ? "Clipboard ($clipboard_size)" : "Clipboard"}]
-
-      #
-      # Define standard xowiki menubar
-      #
-      set mb [::xowiki::MenuBar create ::__xowiki__MenuBar -id menubar]
-      $mb add_menu -name Package -label [$context_package_id instance_name]
-      $mb add_menu -name New -label [_ xowiki.menu-New]
-      $mb add_menu -name Clipboard -label $clipboard_label
-      $mb add_menu -name Page -label [_ xowiki.menu-Page]
-      $mb add_menu_item -name Package.Startpage -item [list url $index_link]
-      $mb add_menu_item -name Package.Toc -item [list url $toc_link]
-
-      $mb add_menu_item -name Package.Subscribe \
-          -item [list text #xowiki.subscribe# url $notification_subscribe_link]
-      $mb add_menu_item -name Package.Notifications \
-          -item [list text #xowiki.notifications# url /notifications/manage]
-      $mb add_menu_item -name Package.Admin \
-          -item [list text #xowiki.admin# url $admin_link]
-      $mb add_menu_item -name Package.ImportDump \
-          -item [list url $import_link]
-
-      $mb add_menu_item -name New.Page \
-          -item [list text #xowiki.new# url $new_link]
-
-      $mb add_menu_item -name Page.Edit \
-          -item [list text #xowiki.edit# url $edit_link]
-      $mb add_menu_item -name Page.View \
-          -item [list text #xowiki.menu-Page-View# url $view_link]
-      $mb add_menu_item -name Page.Delete \
-          -item [list text #xowiki.delete# url $delete_link]
-      $mb add_menu_item -name Page.Revisions \
-          -item [list text #xowiki.revisions# url $rev_link]
-      if {[acs_user::site_wide_admin_p]} {
-        $mb add_menu_item -name Page.Show \
-            -item [list text "Show Object" url $page_show_link]
+            [export_vars -base /notifications/request-new \
+                 {{return_url $notifications_return_url}
+                   {pretty_name $notification_text}
+                   {type_id $notification_type}
+                   {object_id $context_package_id}}]
+        set notification_image "<adp:icon name='envelope' title='[ns_quotehtml $notification_text]'>"
       }
     }
 
@@ -1527,14 +2032,17 @@ namespace eval ::xowiki {
     # make use of the same templating machinery below.
     #
     if {$content eq ""} {
-      set content [:render]
+      set content [:content_header_get][:render]
       #:msg "--after render"
+    } else {
+      set content [:content_header_get]$content
     }
+    #set content [::xowiki::adp_parse_tags $content]
 
     #
     # These variables can be influenced via set-parameter.
     #
-    set autoname [$page_package_id get_parameter autoname 0]
+    set autoname [::$page_package_id get_parameter autoname:boolean 0]
 
     #
     # Setup top includeletes and footers.
@@ -1542,31 +2050,34 @@ namespace eval ::xowiki {
 
     set footer [:htmlFooter -content $content]
     set top_includelets ""
-    set vp [string trim [$context_package_id get_parameter "top_includelet" ""]]
+    set vp [string trim [::$context_package_id get_parameter top_includelet ""]]
     if {$vp ne "" && $vp ne "none"} {
       set top_includelets [:include $vp]
     }
 
-    if {$mb ne "0"} {
+    if {[::$context_package_id get_parameter MenuBar:boolean 0]} {
       #
-      # The following block should not be here, but in the templates.
-      #
-      set showFolders [$context_package_id get_parameter "MenuBarWithFolder" 1]
-      if {$showFolders} {
-        set folderhtml [:include {folders -style folders}]
-      } else {
-        set folderhtml ""
-      }
+      # When a "MenuBar" is used, it might contain folder-specific
+      # content. Therefore, we have to compute the tree. The resulting
+      # HTML code can be placed via adp templates differently (or it
+      # can be ignored).
+
+      set folderhtml [:include {folders -style folders}]
+      ::xo::Page set_property body folderHTML $folderhtml
+      # TODO: there should be no need to pass manually folderhtml,
+      # use the property instead
 
       #
       # At this place, the menu should be complete, we can render it.
       #
-      set mbHTML [$mb render-preferred]
-      #append top_includelets \n "<div class='visual-clear'><!-- --></div>" $mbHTML
-      ::xo::Page set_property body menubarHTML $mbHTML
+      set mb [::xowiki::MenuBar info instances -closure]
+      if {$mb ne ""} {
+        set mbHTML [$mb render-preferred]
+        ::xo::Page set_property body menubarHTML $mbHTML
+      }
     }
 
-    if {[$context_package_id get_parameter "with_user_tracking" 1]} {
+    if {[::$context_package_id get_parameter with_user_tracking:boolean 1]} {
       :record_last_visited
     }
 
@@ -1574,19 +2085,19 @@ namespace eval ::xowiki {
     # Deal with the views package (many thanks to Malte for this
     # snippet!)
     #
-    if {[$context_package_id get_parameter with_views_package_if_available 1]
+    if {[::$context_package_id get_parameter with_views_package_if_available:boolean 1]
         && [info commands ::views::record_view] ne ""} {
       views::record_view -object_id ${:item_id} -viewer_id [::xo::cc user_id]
       array set views_data [views::get -object_id ${:item_id}]
     }
 
     if {[:exists_query_parameter return_url]} {
-      set return_url [:query_parameter return_url]
+      set return_url [:query_parameter return_url:localurl]
     }
 
     #:log "--after notifications [info exists notification_image]"
 
-    set master [$context_package_id get_parameter "master" 1]
+    set master [::$context_package_id get_parameter master:boolean 1]
     if {![string is boolean -strict $master]} {
       ad_return_complaint 1 "value of master is not boolean"
       ad_script_abort
@@ -1594,17 +2105,17 @@ namespace eval ::xowiki {
 
     if {$master} {
       set context [list ${:title}]
-      #:msg "$context_package_id title=[$context_package_id instance_name] - ${:title}"
+      #:msg "$context_package_id title=[::$context_package_id instance_name] - ${:title}"
       #:msg "::xo::cc package_id = [::xo::cc package_id]  ::xo::cc url= [::xo::cc url] "
-      ::xo::Page set_property doc title "[$context_package_id instance_name] - ${:title}"
+      ::xo::Page set_property doc title "[::$context_package_id instance_name] - ${:title}"
       ::xo::Page set_property body title ${:title}
 
       # We could offer a user to translate the current page to his preferred language
       #
       # set create_in_req_locale_link ""
-      # if {[$context_package_id get_parameter use_connection_locale 0]} {
-      #  $context_package_id get_lang_and_name -path [$context_package_id set object] req_lang req_local_name
-      #  set default_lang [$page_package_id default_language]
+      # if {[::$context_package_id get_parameter use_connection_locale:boolean 0]} {
+      #  $context_package_id get_lang_and_name -path [::$context_package_id set object] req_lang req_local_name
+      #  set default_lang [::$page_package_id default_language]
       #  if {$req_lang ne $default_lang} {
       #      set l [Link create new -destroy_on_cleanup \
           #             -page [self] -type language -stripped_name $req_local_name \
@@ -1617,39 +2128,57 @@ namespace eval ::xowiki {
       # }
 
       #:log "--after context delete_link=$delete_link "
-      set template [$context_package_id get_parameter "template" ""]
+      #set template [::$context_package_id get_parameter template ""]
+      set template ""
       set page [self]
 
-      foreach css [$context_package_id get_parameter extra_css ""] {
+      foreach css [::$context_package_id get_parameter extra_css:localurl ""] {
         ::xo::Page requireCSS -order 10 $css
       }
 
       #
       # Refetch "template_file", since it might have been changed via
-      # set-parameter the cache flush (next line) is not pretty here
+      # set-parameter. The cache-flush (next line) is not pretty here
       # and should be supported from xotcl-core.
       #
-      ::xo::cc unset -nocomplain cache([list $context_package_id get_parameter template_file])
+      ::xo::cc unset -nocomplain cache([list $context_package_id get_parameter template_file:graph])
       set template_file [:query_parameter "template_file" \
-                             [::$context_package_id get_parameter template_file view-default]]
+                             [::$context_package_id get_parameter template_file:graph view-default]]
       #
       # If the template_file does not have a path, assume it in the
       # standard location.
       #
-      if {![regexp {^[./]} $template_file]} {
-        set template_file [${:package_id} get_adp_template $template_file]
+      if {[string range $template_file 0 0] eq "/"} {
+        ns_log warning "ignore template as specified in parameter 'template_file'" \
+            "on non-standard location: $template_file. The template should be" \
+            " under\n/packages/[${:package_id} package_key]/resources/templates/..."
+        set template_file [::$context_package_id get_parameter \
+                               -check_query_parameter false \
+                               -nocache \
+                               template_file view-default]
       }
+      set validated_template_file [::${:package_id} get_adp_template $template_file]
+      if {$validated_template_file eq ""} {
+        ns_log error "invalid template specified in parameter 'template_file': '$template_file'"
+      }
+      set template_file $validated_template_file
+
+      # Force xowiki*.css to be loaded first(ish), so we can override
+      # its styling via the theme (e.g. different buttons...). This
+      # uses the "template::head" API directly, since resources from
+      # requireCSS are typically loaded later than those from the theme.
+
+      template::head::add_css \
+          -href urn:ad:css:xowiki-[::xowiki::CSS toolkit] \
+          -order 0
 
       #
-      # Initialize and set the template variables, to be used by
-      # a. "adp_compile" / "adp_eval"
-      # b. "return_page" / "adp_include"
+      # Popular tags handling (should probably go to includelets)
       #
-      ::xo::Page requireCSS urn:ad:css:xowiki
       if {$footer ne ""} {
         template::add_body_script -script {
           function get_popular_tags(popular_tags_link, prefix) {
-            var http = getHttpObject();
+            var http = new XMLHttpRequest();
             http.open('GET', popular_tags_link, true);
             http.onreadystatechange = function() {
               if (http.readyState == 4) {
@@ -1690,7 +2219,7 @@ namespace eval ::xowiki {
           }
         }
         if {$meta(keywords) eq ""} {
-          set meta(keywords) [$context_package_id get_parameter keywords ""]
+          set meta(keywords) [::$context_package_id get_parameter keywords ""]
         }
         foreach i [array names meta] {
           # don't set empty meta tags
@@ -1700,24 +2229,30 @@ namespace eval ::xowiki {
       }
 
       #
-      # pass variables for properties doc and body
-      # example: ::xo::Page set_property body class "yui-skin-sam"
+      # Pass variables for properties doc and body.
+      # Example: ::xo::Page set_property body class "yui-skin-sam"
       #
       array set body [::xo::Page get_property body]
       array set doc  [::xo::Page get_property doc]
 
       if {$page_package_id != $context_package_id} {
-        set page_context [$page_package_id instance_name]
+        set page_context [::$page_package_id instance_name]
       }
 
       if {$template ne ""} {
+
+        #
+        # Initialize and set the template variables, to be used by
+        # a. "adp_compile" / "adp_eval"
+        # b. "return_page" / "adp_include"
+        #
+
         set __including_page $page
-        #set __adp_stub [acs_root_dir]/packages/xowiki/www/view-default
-        set __adp_stub [$context_package_id get_adp_template view-default]
+        set __adp_stub [::$context_package_id get_adp_template view-default]
 
         set template_code [template::adp_compile -string $template]
         #
-        # make sure that <master/> and <slave/> tags are processed
+        # Make sure that <master/> and <slave/> tags are processed
         #
         append template_code {
           if { [info exists __adp_master] } {
@@ -1734,23 +2269,24 @@ namespace eval ::xowiki {
         }
         ad_script_abort
       } else {
-        # use adp file
-        #:log "use adp"
+        #
+        # Use adp file.
+        #
+        #:log "use adp content=$content"
         set package_id $context_package_id
         set title      ${:title}
         set name       ${:name}
         set item_id    ${:item_id}
-        $context_package_id return_page -adp $template_file -variables {
+        ::$context_package_id return_page -adp $template_file -variables {
           name title item_id context return_url
           content footer package_id page_package_id page_context
           rev_link edit_link delete_link new_link admin_link index_link view_link
           notification_subscribe_link notification_image
           top_includelets page views_data body doc
-          folderhtml
         }
       }
     } else {
-      set :mime_type [::xo::cc get_parameter content-type text/html]
+      set :mime_type [::xo::cc get_parameter content-type:graph text/html]
       return $content
     }
   }
@@ -1768,12 +2304,12 @@ namespace eval ::xowiki {
                                        -base_item
                                        -field_names
                                        -form_constraints
+                                       {-nls_language ""}
                                      } {
 
-    array set __att [list publish_status 1]
-    foreach att [::xowiki::FormPage array names db_slot] {set __att($att) 1}
-    foreach att [list last_modified creation_user] {
-      set __att($att) 1
+    set __att {publish_status 1}
+    foreach att [list last_modified creation_user {*}[::xowiki::FormPage array names db_slot]] {
+      dict set __att $att 1
     }
 
     # set cr_field_spec [::xowiki::PageInstance get_short_spec_from_form_constraints \
@@ -1797,22 +2333,28 @@ namespace eval ::xowiki {
         __* {error not_allowed}
         _* {
           set varname [string range $field_name 1 end]
-          if {![info exists __att($varname)]} {
+          if {![dict exists $__att $varname]} {
             error "unknown attribute $field_name"
           }
           #:log "create_raw_form_field of $field_name <$cr_field_spec,$short_spec>"
           set f [$base_item create_raw_form_field \
+                     -omit_field_name_spec true \
                      -name $field_name \
                      -slot [$base_item find_slot $varname] \
-                     -spec $cr_field_spec,$short_spec]
+                     -spec $cr_field_spec,$short_spec \
+                     -nls_language $nls_language \
+                    ]
           #:log "---> $f <[$f label]>"
           $f set __base_field $varname
         }
         default {
           set f [$base_item create_raw_form_field \
+                     -omit_field_name_spec true \
                      -name $field_name \
                      -slot "" \
-                     -spec $field_spec,$short_spec]
+                     -spec $field_spec,$short_spec \
+                     -nls_language $nls_language \
+                    ]
         }
       }
       lappend form_fields $f
@@ -1823,7 +2365,7 @@ namespace eval ::xowiki {
   Page proc find_slot {-start_class:required name} {
     foreach cl [list $start_class {*}[$start_class info heritage]] {
       set slotobj ${cl}::slot::$name
-      if {[:isobject $slotobj]} {
+      if {[nsf::is object $slotobj]} {
         #:msg $slotobj
         return $slotobj
       }
@@ -1844,12 +2386,18 @@ namespace eval ::xowiki {
     {-spec ""}
     {-configuration ""}
     {-omit_field_name_spec:boolean false}
+    {-nls_language ""}
+    {-form_constraints ""}
   } {
+    #ns_log notice "... create_raw_form_field name $name spec '$spec'"
     set save_slot $slot
     if {$slot eq ""} {
       # We have no slot, so create a minimal slot. This should only happen for instance attributes
       set slot [::xo::Attribute new -pretty_name $name -datatype text -noinit]
       $slot destroy_on_cleanup
+    }
+    if {$nls_language eq ""} {
+      set nls_language [:nls_language]
     }
 
     set spec_list [list]
@@ -1871,9 +2419,10 @@ namespace eval ::xowiki {
     } else {
       set default ""
     }
+    #ns_log notice "... create $name with spec '[join $spec_list ,]'"
     set f [::xowiki::formfield::FormField new -name $name \
                -id        [::xowiki::Includelet html_id F.${:name}.$name] \
-               -locale    [:nls_language] \
+               -locale    $nls_language \
                -label     $label \
                -type      [expr {[$slot exists datatype]  ? [$slot set datatype]  : "text"}] \
                -help_text [expr {[$slot exists help_text] ? [$slot set help_text] : ""}] \
@@ -1896,28 +2445,44 @@ namespace eval ::xowiki {
     {-spec ""}
     {-configuration ""}
     {-omit_field_name_spec:boolean false}
+    {-nls_language ""}
+    {-form_constraints ""}
   } {
+    #
     # For workflows, we do not want to get the form constraints of the
     # page itself (i.e. the property of the generic workflow form) but
-    # just the configured properties. Otherwise, we get for a
-    # wrong results for e.g. "{{form-usages -form de:Thread.wf ...}}"
-    # which picks up the label for the _title from the generic Workflow.
+    # just the configured properties. Otherwise, we get for a wrong
+    # results for e.g. "{{form-usages -form de:Thread.wf ...}}"  which
+    # picks up the label for the _title from the generic Workflow.
     # So, when we have configured properties, we use it, use the
     # primitive one just on despair.  Not sure, what the best solution
     # is,... maybe an additional flag.
+    #
     if { $omit_field_name_spec} {
       set short_spec ""
     } else {
-      set short_spec [:get_short_spec $name]
-      # :msg "[self] get_short_spec $name returns <$short_spec>"
+      #
+      # Get for the current page (self) the form-constraints and
+      # return the spec for the specifiled name.
+      #
+      set short_spec [:get_short_spec -form_constraints $form_constraints $name]
+      #:log "$name get_short_spec returns <$short_spec>"
     }
 
-    #:log "create form-field '$name', short_spec '$short_spec' spec '$spec', slot=$slot"
+    #:log "$name '$name', spec '$spec' short_spec '$short_spec', slot=$slot"
     set spec_list [list]
+
     if {$spec ne ""}       {lappend spec_list $spec}
     if {$short_spec ne ""} {lappend spec_list $short_spec}
-    #:log "$name: short_spec '$short_spec', spec_list 1 = '[join $spec_list ,]'"
-    set f [next -name $name -slot $slot -spec [join $spec_list ,] -configuration $configuration]
+    #:log "$name: composed spec '[join $spec_list ,]'"
+
+    set f [next \
+               -name $name \
+               -slot $slot \
+               -spec [join $spec_list ,] \
+               -configuration $configuration \
+               -nls_language $nls_language \
+              ]
     #:log "created form-field '$name' $f [$f info class] validator=[$f validator] p=[$f info precedence]"
     return $f
   }
@@ -2078,21 +2643,31 @@ namespace eval ::xowiki {
             $field setAttribute value $value
           }
         }
-        default {:log "can't handle $type so far $att=$value"}
+        default {
+          #:log "can't handle $type so far $att=$value"
+        }
       }
     }
   }
 
   FormPage ad_instproc set_form_data {form_fields} {
-    Store the instance attributes or default values in the form.
-  } {
-    ::require_html_procs
 
-    #array set __ia ${:instance_attributes}
+    Store the instance attributes or default values into the form via
+    set_form_value. This function iterates over the provided
+    form-fields and checks, if these are known fields in the current
+    form. These known field names are defined via the method
+    "field_names" that extracts these names from a form.
+
+    If one wants to load all values from an FormPage into the provided
+    form-fields, use method "load_values_into_form_fields" instead.
+
+  } {
+    ::xo::require_html_procs
+
     foreach f $form_fields {
       set att [$f name]
       # just handle fields of the form entry
-      if {![info exists :__field_in_form($att)]} continue
+      if {![dict exists ${:__field_in_form} $att]} continue
       #:msg "set form_value to form-field $att [dict exists ${:instance_attributes} $att]"
       if {[dict exists ${:instance_attributes} $att]} {
         #:msg "my set_form_value from ia $att '[dict get ${:instance_attributes} $att]', external='[$f convert_to_external [dict get ${:instance_attributes} $att]]' f.value=[$f value]"
@@ -2139,20 +2714,41 @@ namespace eval ::xowiki {
     specified, all form parameters are used.
 
   } {
+    #:log "===== Page get_form_data"
+
     set validation_errors 0
     set category_ids [list]
     array set containers [list]
-    set cc [${:package_id} context]
+    set cc [::${:package_id} context]
 
     if {![info exists field_names]} {
-      set field_names [$cc array names form_parameter]
-      #:log "form-params=[$cc array get form_parameter]"
+      #
+      # Field names might come directly from the POST request payload
+      # and need to be validated: enforce that field names are made
+      # only by alphanumeric characters and dots, with the exception
+      # of file related fields, where either .tmpfile or .content-type
+      # will be appended.
+      #
+      #:log "===== Page get_form_data RAW field_names from form data: [$cc array names form_parameter *_.*]"
+
+      set field_names [list]
+      foreach att [$cc array names form_parameter] {
+        if {[regexp {^[\w.]+(\.(tmpfile|content-type))?$} $att]} {
+          lappend field_names $att
+        } else {
+          #
+          # We might decide to return a 403 here instead...
+          #
+          ad_log warning "Page get_form_data: field name '$att' was skipped. Received field names: [$cc array names form_parameter]"
+        }
+      }
     }
+
     #:msg "fields $field_names // $form_fields"
     #foreach f $form_fields { :msg "... $f [$f name]" }
     #
-    # We have a form and get all form input from the fields of the
-    # from into form field objects.
+    # We have the form data and get all form_parameters into the
+    # form-field objects.
     #
     foreach att $field_names {
       #:msg "getting att=$att"
@@ -2160,65 +2756,72 @@ namespace eval ::xowiki {
       switch -glob -- $att {
         __category_* {
           set f [:lookup_form_field -name $att $form_fields]
-          set value [$f value [$cc form_parameter $att]]
-          foreach v $value {lappend category_ids $v}
+          if {![$f is_disabled]} {
+            set value [$f value [$cc form_parameter $att]]
+            foreach v $value {lappend category_ids $v}
+          }
         }
         __* {
-          # other internal variables (like __object_name) are ignored
+          #
+          # Other internal variables (like __object_name) are ignored
+          #
         }
         _* {
-          # instance attribute fields
-          set f     [:lookup_form_field -name $att $form_fields]
-          set value [$f value [string trim [$cc form_parameter $att]]]
-          set varname [string range $att 1 end]
-          # get rid of strange utf-8 characters hex C2AD (firefox bug?)
-          # ns_log notice "FORM_DATA var=$varname, value='$value' s=$s"
-          if {$varname eq "text"} {regsub -all "­" $value "" value}
-          #ns_log notice "FORM_DATA var=$varname, value='$value'"
-          if {![string match "*.*" $att]} {set :$varname $value}
+          #
+          # CR fields
+          #
+          set f [:lookup_form_field -name $att $form_fields]
+          if {![$f is_disabled]} {
+            set value [$f value [string trim [$cc form_parameter $att]]]
+            set varname [string range $att 1 end]
+            if {[string first . $att] == -1} {
+              set :$varname $value
+            }
+          }
         }
         default {
-          # user form content fields
+          #
+          # Application form content fields.
+          #
           if {[regexp {^(.+)[.](tmpfile|content-type)} $att _ file field]} {
+            #
+            # File related fields.
+            #
             set f [:lookup_form_field -name $file $form_fields]
-            $f $field [string trim [$cc form_parameter $att]]
+            if {![$f is_disabled]} {
+              $f $field [string trim [$cc form_parameter $att]]
+            }
             #:msg "[$f name]: [list $f $field [string trim [$cc form_parameter $att]]]"
+
           } else {
-            set f     [:lookup_form_field -name $att $form_fields]
-            set value [$f value [string trim [$cc form_parameter $att]]]
-            #:msg "value of $att ($f) = '$value' exists=[$cc exists_form_parameter $att]"
-            if {![string match "*.*" $att]} {dict set :instance_attributes $att $value}
-            if {[$f exists is_category_field]} {foreach v $value {lappend category_ids $v}}
+            #
+            # Fields related to instance variables.
+            #
+            #:log "===== Page get_form_data calls lookup_form_field -name $att"
+            set f [:lookup_form_field -name $att $form_fields]
+            if {![$f is_disabled]} {
+              set value [$f value [string trim [$cc form_parameter $att]]]
+              #:log "===== Page get_form_data calls lookup_form_field -name $att -> $f -> '$value'"
+              if {[string first . $att] == -1} {
+                #
+                # If the field is not a compound field, put the received
+                # value into the instance attributes. The containerized
+                # input values from compound fields are processed below.
+                #
+                dict set :instance_attributes $att $value
+              }
+              if {[$f exists is_category_field]} {
+                foreach v $value {
+                  lappend category_ids $v
+                }
+              }
+            }
           }
         }
       }
-      if {[string match "*.*" $att]} {
+      if {[string first . $att] > -1} {
         lassign [split $att .] container component
         lappend containers($container) $component
-      }
-    }
-
-    #:msg "containers = [array names containers]"
-    #:msg "ia=[array get __ia]"
-    #
-    # In a second iteration, combine the values from the components
-    # of a container to the value of the container.
-    #
-    foreach c [array names containers] {
-      switch -glob -- $c {
-        __* {}
-        _* {
-          set f  [:lookup_form_field -name $c $form_fields]
-          set processed($c) 1
-          set :[string range $c 1 end] [$f value]
-        }
-        default {
-          set f  [:lookup_form_field -name $c $form_fields]
-          set processed($c) 1
-          #:msg "container $c: compute value of $c [$f info class]"
-          dict set :instance_attributes $c [$f value]
-          #:msg "container $c: is set to '[dict get ${:instance_attributes} $c]'"
-        }
       }
     }
 
@@ -2227,16 +2830,37 @@ namespace eval ::xowiki {
     # fields of the forms. Now we use the formfields to complete the
     # data and to validate it.
     #
+    set leaf_components {}
+    set container_fields {}
     foreach f $form_fields {
-      #:msg "validate $f [$f name] [info exists processed([$f name])]"
+      if {[$f istype ::xowiki::formfield::CompoundField]} {
+        #ns_log notice "TOP call leaf_components for [$f info class]"
+        lappend leaf_components {*}[$f leaf_components]
+        lappend container_fields $f
+        set processed([$f name]) 1
+      }
+    }
+
+    #ns_log notice "PROCESSED <[lsort [array names processed]]>"
+    #ns_log notice "LEAF COMPONENTS <[lsort [lmap f $leaf_components {$f name}]]>"
+    #ns_log notice "FORM_FIELDS [lsort [lmap f $form_fields {$f name}]]"
+    #ns_log notice "CONTAINER   [lsort [array names containers]] + [lsort [lmap f $container_fields {$f name}]]"
+
+    #
+    # Certain HTML form field types are not transmitted by the browser
+    # (e.g. unchecked checkboxes). Therefore, we have not processed
+    # these fields above and have to do it now.
+    #
+    foreach f [concat $form_fields $leaf_components] {
+      #:log "check processed $f [$f name] [info exists processed([$f name])] disabled=[$f is_disabled]"
       set att [$f name]
 
-      # Certain form field types (e.g. checkboxes) are not transmitted, if not
-      # checked. Therefore, we have not processed these fields above and
-      # have to do it now.
+      if {![info exists processed($att)]
+          && ![$f exists is_repeat_template]
+          && ![$f is_disabled]
+        } {
+        #ns_log notice "==== form field $att [$f info class] not yet processed"
 
-      if {![info exists processed($att)]} {
-        #:msg "form field $att not yet processed"
         switch -glob -- $att {
           __* {
             # other internal variables (like __object_name) are ignored
@@ -2247,30 +2871,61 @@ namespace eval ::xowiki {
             set default ""
             if {[info exists :$varname]} {set default [set :$varname]}
             set v [$f value_if_nothing_is_returned_from_form $default]
+            #ns_log notice "===== value_if_nothing_is_returned_from_form [$f name] '$default' => '$v' (type=[$f info class])"
             set value [$f value $v]
             if {$v ne $default} {
-              if {![string match "*.*" $att]} {set :$varname $value}
+              if {[string first . $att] == -1} {
+                set :$varname $value
+              }
             }
           }
           default {
             # user form content fields
             set default ""
+            #
             # The reason, why we set in the next line the default to
             # the old value is due to "show-solution" in the qti
             # use-case. Maybe one should alter this use-case to
             # simplify the semantics here.
-            if {[dict exists ${:instance_attributes} $att]} {set default [dict get ${:instance_attributes} $att]}
+            #
+            if {[dict exists ${:instance_attributes} $att]} {
+              set default [dict get ${:instance_attributes} $att]
+            }
             set v [$f value_if_nothing_is_returned_from_form $default]
-            #:msg "value_if_nothing_is_returned_from_form '$default' => '$v' (type=[$f info class])"
+            #ns_log notice "===== value_if_nothing_is_returned_from_form [$f name] '$default' => '$v' (type=[$f info class])"
+
             set value [$f value $v]
-            if {![string match "*.*" $att]} {dict set :instance_attributes $att $value}
+            if {[string first . $att] == -1} {
+              dict set :instance_attributes $att $value
+            }
           }
         }
       }
+    }
 
+    #
+    # In the third iteration, combine the values from the components
+    # of a container to the value of the container.
+    #
+    foreach f $container_fields {
+      set name [$f name]
+      #:log "container $name: compute value for [$f info class]"
+      if {![$f is_disabled]} {
+        dict set :instance_attributes $name [$f value]
+        #:log "container $name: is set to '[dict get ${:instance_attributes} $name]'"
+      } elseif {[dict exists ${:instance_attributes} $name]} {
+        $f value [dict get ${:instance_attributes} $name]
+      }
+    }
+
+    #
+    # Finally run the validator on the top-level fields
+    #
+    foreach f [concat $form_fields] {
       #
-      # Run validators
+      # Run validator on every field
       #
+      #:log "validate [$f name] ([$f info class]) with value '[$f value]'"
       set validation_error [$f validate [self]]
       if {$validation_error ne ""} {
         #:log "validation of $f [$f name] with value '[$f value]' returns '$validation_error'"
@@ -2278,14 +2933,20 @@ namespace eval ::xowiki {
         incr validation_errors
       }
     }
+
     #:msg "validation returns $validation_errors errors"
     set current_revision_id [$cc form_parameter __current_revision_id ""]
-    if {$validation_errors == 0 && $current_revision_id ne "" && $current_revision_id != ${:revision_id}} {
+    if {$validation_errors == 0
+        && $current_revision_id ne ""
+        && $current_revision_id != ${:revision_id}
+      } {
       set validation_errors [:mutual_overwrite_occurred]
+      ad_log warning "mutual_overwrite occurred, current_revision_id <$current_revision_id> my ${:revision_id}"
     }
 
     if {[:validate=form_input_fields $form_fields] == 0} {
       incr validation_errors
+      #:log "validation error due validate=form_input_fields"
     }
 
     if {$validation_errors == 0} {
@@ -2293,23 +2954,23 @@ namespace eval ::xowiki {
       # Postprocess based on form fields based on form-fields methods.
       #
       foreach f $form_fields {
-        $f convert_to_internal
+        if {![$f is_disabled]} {
+          $f convert_to_internal
+        }
       }
     } else {
       :log validation_errors=$validation_errors
-
-      # There were validation erros.  Reset the value for form-fields
-      # of type "file" to avoid confusions, since a file-name was
-      # provided, but the file was not uploaded due to the validation
-      # error. If we would not reset the value, the provided name
-      # would cause an interpretation of an uploaded empty file. Maybe
-      # a new method "reset-to-default" would be a good idea.
+      #
+      # There were validation errors. Reset the value of form-fields
+      # which have to be reset on validation errors due to browser
+      # semantics.
+      #
       foreach f $form_fields {
-        if {[$f type] eq "file"} {
-          $f set value ""
-        }
+        $f reset_on_validation_error
       }
     }
+
+    #:log "=== get_form_data has validation_errors $validation_errors, instance_attributes: ${:instance_attributes}"
 
     return [list $validation_errors [lsort -unique $category_ids]]
   }
@@ -2322,8 +2983,8 @@ namespace eval ::xowiki {
     if {!$found} {
       set f [:create_raw_form_field -name $name -slot [:find_slot $name]]
     }
+    #:log "found $name in $form_fields -> $found [$f info class]"
 
-    #:msg "$found $name mode=$mode type=[$f set type] value=[$f value] disa=[$f exists disabled] display_field=[$f display_field]"
     if {$mode eq "edit" || [$f display_field]} {
       set html [$f asHTML]
     } else {
@@ -2366,14 +3027,16 @@ namespace eval ::xowiki {
   }
 
   FormPage instproc create_form_fields {field_names} {
-    set form_fields   [:create_category_fields]
+    set form_fields [:create_category_fields]
     foreach att $field_names {
       if {[string match "__*" $att]} continue
 
       if {[:form_field_exists $att]} {
-        #ns_log notice "... found [set $key] for $key"
+        #ns_log notice "... found form-field $att"
         lappend form_fields [:lookup_form_field -name $att {}]
+
       } else {
+        #ns_log notice "... create form-field for $att"
         lappend form_fields [:create_form_field \
                                  -cr_field_spec [:get_short_spec @cr_fields] \
                                  -field_spec [:get_short_spec @fields] $att]
@@ -2383,16 +3046,35 @@ namespace eval ::xowiki {
   }
 
   FormPage instproc field_names {{-form ""}} {
+    #ns_log notice "=== field_names form <$form>"
+    #
+    # Ge the field-names mentioned in form (the provided form has
+    # always highest precedence).
+    #
     lassign [:field_names_from_form -form $form] form_vars needed_attributes
-    #:msg "form=$form, form_vars=$form_vars needed_attributes=$needed_attributes"
-    array unset :__field_in_form
-    array unset :__field_needed
-    if {$form_vars} {foreach v $needed_attributes {set :__field_in_form($v) 1}}
-    foreach v $needed_attributes {set :__field_needed($v) 1}
+    #
+    # In case, we have no form, get the field-names from the form
+    # constraints.
+    #
+    if {[llength $needed_attributes] == 0} {
+      set needed_attributes [:field_names_from_form_constraints]
+    }
+    #:log "form=$form, form_vars=$form_vars needed_attributes=$needed_attributes"
+
+    set :__field_in_form ""
+    set :__field_needed ""
+    if {$form_vars} {
+      foreach v $needed_attributes {
+        dict set :__field_in_form $v 1
+      }
+    }
+    foreach v $needed_attributes {
+      dict set :__field_needed $v 1
+    }
 
     #
-    # Remove the fields already included in auto_fields form the needed_attributes.
-    # The final list field_names determines the order of the fields in the form.
+    # Remove the fields already included in auto_fields from the needed_attributes.
+    # The final list "field_names" determines the order of the fields in the form.
     #
     set auto_fields [list _name _page_order _title _creator _assignee _text _description _nls_language]
     set reduced_attributes $needed_attributes
@@ -2400,29 +3082,34 @@ namespace eval ::xowiki {
     foreach f $auto_fields {
       set p [lsearch -exact $reduced_attributes $f]
       if {$p > -1} {
-        #if {$form_vars} {
-        #set auto_field_in_form($f) 1
-        #}
         set reduced_attributes [lreplace $reduced_attributes $p $p]
       }
     }
     #:msg reduced_attributes(after)=$reduced_attributes
-    #:msg fields_from_form=[array names :__field_in_form]
+    #:msg fields_from_form=[dict keys ${:__field_in_form}]
 
-    set field_names [list _name]
-    if {[${:package_id} show_page_order]}  { lappend field_names _page_order }
+    set field_names _name
+    if {[::${:package_id} show_page_order]}  {
+      lappend field_names _page_order
+    }
     lappend field_names _title _creator _assignee
-    foreach fn $reduced_attributes                     { lappend field_names $fn }
-    foreach fn [list _text _description _nls_language] { lappend field_names $fn }
+    foreach fn $reduced_attributes {
+      lappend field_names $fn
+    }
+    foreach fn {_text _description _nls_language} {
+      lappend field_names $fn
+    }
     #:msg final-field_names=$field_names
     return $field_names
   }
 
   Page instproc field_names {{-form ""}} {
-    array set dont_modify [list item_id 1 revision_id 1 object_id 1 object_title 1 page_id 1 name 1]
+    array set dont_modify {item_id 1 revision_id 1 object_id 1 object_title 1 page_id 1 name 1}
     set field_names [list]
     foreach field_name [[:info class] array names db_slot] {
-      if {[info exists dont_modify($field_name)]} continue
+      if {[info exists dont_modify($field_name)]} {
+        continue
+      }
       lappend field_names _$field_name
     }
     #:msg field_names=$field_names
@@ -2430,7 +3117,7 @@ namespace eval ::xowiki {
   }
 
   FormPage instproc post_process_form_fields {form_fields} {
-    # We offer here the possibility to iterate over the form fields before it
+    # We offer here the possibility to iterate over the form fields
     # before they are rendered
   }
 
@@ -2440,19 +3127,57 @@ namespace eval ::xowiki {
     # is presented; can be overloaded
   }
 
-  FormPage instproc load_values_into_form_fields {form_fields} {
+  FormPage ad_instproc combine_data_and_form_field_default {is_new form_field data_value} {
+
+    Combine the value of the form field (e.g. determined by the
+    default) with the value in the instance attributes. This function
+    decides, whether it should honor the data value or the form field
+    value for e.g. rendering forms.
+
+    @param is_new is this a new entry?
+    @param form_field object id of the form field
+    @param data_value the data from the instance attributes.
+  } {
+    set form_field_value [$form_field value]
+    if {$is_new && $form_field_value ne "" && $data_value eq ""} {
+      #
+      # On fresh entries, take the default value in case the old
+      # value is blank.
+      #
+    } else {
+      #
+      # Reset for form field value to the external
+      # representation of the data value.
+      #
+      $form_field value [$form_field convert_to_external $data_value]
+    }
+    #ns_log notice "combine_data_and_form_field_default $is_new form_field [$form_field name] data_value <$data_value> final <[$form_field value]>"
+  }
+
+
+  FormPage ad_instproc load_values_into_form_fields {form_fields} {
+
+    Load either the instance variables or the instance attributes into
+    the provided form-fields. The function sets the values based on
+    the default values and the values for the current object.
+
+  } {
+    set is_new [:is_new_entry ${:name}]
+
     foreach f $form_fields {
       set att [$f name]
       switch -glob $att {
         __* {}
         _* {
           set varname [string range $att 1 end]
-          $f value [$f convert_to_external [set :$varname]]
+          :combine_data_and_form_field_default $is_new $f [set :$varname]
         }
         default {
+          #:log "load_values_into_form_field $att" \
+              "exists [dict exists ${:instance_attributes} $att]" \
+              "in [dict keys ${:instance_attributes}]"
           if {[dict exists ${:instance_attributes} $att]} {
-            #:msg "setting $f ([$f info class]) value [dict get ${:instance_attributes} $att]"
-            $f value [$f convert_to_external [dict get ${:instance_attributes} $att]]
+            :combine_data_and_form_field_default $is_new $f [dict get ${:instance_attributes} $att]
           }
         }
       }
@@ -2460,18 +3185,21 @@ namespace eval ::xowiki {
   }
 
   FormPage instproc render_form_action_buttons {{-CSSclass ""}} {
-    set f [::xowiki::formfield::submit_button new -destroy_on_cleanup \
+    set f [::xowiki::formfield::submit_button new \
                -name __form_button_ok \
-               -CSSclass $CSSclass]
+               -CSSclass $CSSclass \
+               -destroy_on_cleanup ]
 
-    ::html::div -class [$f form_button_wrapper_CSSclass] {
-      $f render_input
-    }
+    ::html::div [expr {[$f exists form_button_wrapper_CSSclass]
+                       ? [list class [$f form_button_wrapper_CSSclass]]
+                       : {} }] {
+                         $f render_input
+                       }
   }
 
   FormPage instproc form_fields_sanity_check {form_fields} {
     foreach f $form_fields {
-      if {[$f exists disabled]} {
+      if {[$f is_disabled]} {
         # don't mark disabled fields as required
         if {[$f required]} {
           $f required false

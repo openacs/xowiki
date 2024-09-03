@@ -27,7 +27,7 @@ namespace eval ::xowiki {
       error "not implemented"
     }
   }
-  
+
   nx::Class create ::xowiki::UploadFile -superclass ::xowiki::Upload {
     #
     # Class for storing files as xowiki::File instances.
@@ -35,7 +35,7 @@ namespace eval ::xowiki {
     :public method store_file {} {
       #
       # Store the file provided via instance variables by using the
-      # formfield::file implementation.
+      # formfield::file implementation (uses xowiki::File).
       #
       set f [::xowiki::formfield::file new -name upload -object ${:parent_object}]
       set file_object [$f store_file \
@@ -48,7 +48,25 @@ namespace eval ::xowiki {
                            -publish_date_cmd {;} \
                            -save_flag ""]
       $f destroy
-      return {status_code 201 message created}
+      return [list status_code 201 message created file_object $file_object file_name ${:file_name}]
+    }
+  }
+
+  nx::Class create ::xowiki::UploadFileIconified -superclass ::xowiki::UploadFile {
+    #
+    # Refinement of ::xowiki::UploadFile but returning content rended
+    # by a special renderer. There is e.g. such a renderer defined in
+    # xowf for the online exam.
+    #
+    :public method store_file {} {
+      #
+      # Store files and return a thumbnail rendering when successful.
+      #
+      set d [next]
+      if {[dict get $d status_code] in {200 201}} {
+        return [list status_code 201 message [${:parent_object} render_thumbnails $d]]
+      }
+      return {status_code 500 message "something wrong"}
     }
   }
 
@@ -65,13 +83,13 @@ namespace eval ::xowiki {
         return {status_code 200 message ok}
       }
       #
-      # Mime type is ok, save the file under the file name either as a
+      # Mime type is ok, save the file under the filename either as a
       # new item or as a new revision.
       #
       set package_id [${:parent_object} package_id]
       set parent_id [${:parent_object} item_id]
-      
-      set photo_object [$package_id get_page_from_name -name en:${:file_name} -parent_id $parent_id]
+
+      set photo_object [::$package_id get_page_from_name -name en:${:file_name} -parent_id $parent_id]
       if {$photo_object ne ""} {
         #
         # The photo page instance exists already, create a new revision.
@@ -83,14 +101,14 @@ namespace eval ::xowiki {
         $f content-type ${:content_type}
         $f set tmpfile ${:tmpfile}
         $f convert_to_internal
-        $photo_object save      
+        $photo_object save
       } else {
         #
         # Create a new page instance of photo.form.
         #
         ns_log notice "new Photo ${:file_name}"
-        set photoFormObj [::xowiki::Weblog instantiate_forms \
-                              -parent_id $parent_id -forms en:photo.form -package_id $package_id]
+        set photoFormObj [::$package_id instantiate_forms \
+                              -parent_id $parent_id -forms en:photo.form]
         set photo_object [$photoFormObj create_form_page_instance \
                               -name en:${:file_name} \
                               -nls_language en_US \
@@ -107,7 +125,7 @@ namespace eval ::xowiki {
         $f set tmpfile ${:tmpfile}
         $f convert_to_internal
       }
-      
+
       return {status_code 201 message created}
     }
   }

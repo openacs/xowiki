@@ -1,0 +1,200 @@
+/*
+ * Appearance of item-buttons based on bootstrap glyphicons.
+ */
+
+div.xowiki-content a.file-icon,
+div.xowiki-content a.folder-open-icon,
+div.xowiki-content a.level-up-icon,
+div.xowiki-content a.link-icon,
+div.xowiki-content a.broken-link-icon,
+div.xowiki-content a.edit-item-button,
+div.xowiki-content a.archive-item-button,
+div.xowiki-content a.delete-item-button,
+div.xowiki-content a.revisions-item-button,
+div.xowiki-content a.view-item-button,
+div.xowiki-content a.create-item-button,
+div.xowiki-content a.copy-item-button,
+div.xowiki-content a.add-item-button,
+div.xowiki-content a.notification-image-button {
+    text-decoration: none;
+    color: grey;
+}
+div.xowiki-content a.edit-item-button::before {
+    font-family: 'Glyphicons Halflings';
+    content: "\e065";
+}
+div.xowiki-content a.archive-item-button::before {
+    font-family: 'Glyphicons Halflings';
+    content: "\e025";
+}
+div.xowiki-content a.delete-item-button::before {
+    font-family: 'Glyphicons Halflings';
+    content: "\e020";
+}
+div.xowiki-content a.revisions-item-button::before {
+    font-family: 'Glyphicons Halflings';
+    content: "\e023";
+}
+div.xowiki-content a.view-item-button::before {
+    font-family: 'Glyphicons Halflings';
+    content: "\e105";
+}
+div.xowiki-content a.create-item-button::before {
+    font-family: 'Glyphicons Halflings';
+    content: "\2b";
+}
+div.xowiki-content a.copy-item-button::before {
+    font-family: 'Glyphicons Halflings';
+    content: "\e224";
+}
+div.xowiki-content a.add-item-button::before {
+    font-family: 'Glyphicons Halflings';
+    content: "\2b";
+}
+div.xowiki-content a.notification-image-button::before {
+    font-family: 'Glyphicons Halflings';
+    content: "\2709";
+}
+div.xowiki-content .upload-btn-label::before {
+    /* glyphicon-upload */
+    font-family: 'Glyphicons Halflings';
+    content: "\e027";
+    margin-right: 6px;
+}
+div.xowiki-content div.reorder_box li::before {
+    /* glyphicon-move */
+    font-family: 'Glyphicons Halflings';
+    content: "\e068 ";
+    float: left;
+    position: relative;
+    font-size: 12px;
+    margin-right: 10px;
+    color: #aaa;
+}
+div.xowiki-content a.publish-status-item-button.green {
+    color: green;
+    font-size: larger;
+}
+div.xowiki-content a.publish-status-item-button.red {
+    color: red;
+    font-size: larger;
+}
+div.xowiki-content a.publish-status-item-button.black {
+    color: black;
+    font-size: larger;
+}
+
+
+/*
+ * info sign (in forms)
+ */
+div.xowiki-content span.info-sign::before {
+    font-family: 'Glyphicons Halflings';
+    font-size: smaller;
+    padding: 0px 5px 0px 0px;
+    content: "\e086";
+}
+
+/*
+ * Spacing in form-usages
+ */
+.form-usages .table > tbody > tr > td.archive-item-button,
+.form-usages .table > tbody > tr > td.delete-item-button,
+.form-usages .table > tbody > tr > td.edit-item-button,
+.form-usages .table > tbody > tr > td.copy-item-button,
+.form-usages .table > tbody > tr > td.publish-status-item-button {
+    padding: 2px;
+}
+
+/*
+ * Icons in file listings
+ */
+
+div.xowiki-content a.file-icon::before {
+    /* glyphicon-file */
+    font-family: 'Glyphicons Halflings';
+    content: "\e022";
+}
+div.xowiki-content a.folder-open-icon::before {
+    /* glyphicon-folder-open */
+    font-family: 'Glyphicons Halflings';
+    content: "\e118";
+}
+div.xowiki-content a.level-up-icon::before {
+    /* glyphicon-level-up */
+    font-family: 'Glyphicons Halflings';
+    content: "\e204";
+}
+
+
+div.xowiki-content a.link-icon::before {
+    /* glyphicon-arrow-right */
+    font-family: 'Glyphicons Halflings';
+    content: "\e092";
+}
+
+div.xowiki-content a.broken-link-icon::before {
+    content: "broken";
+}
+div.xowiki-content a.broken-link-icon::after {
+    /* glyphicon-arrow-right */
+    font-family: 'Glyphicons Halflings';
+    content: "\e092";
+}
+
+/* appearance of link types */
+div.xowiki-content a.external::after {
+    /* glyphicon-new-window */
+    font-family: 'Glyphicons Halflings';
+    font-size: x-small;
+    vertical-align: sub;
+    margin-left: 2px;
+    margin-right: 2px;
+    content: "\e164";
+}
+
+div.xowiki-content a.file::after {
+    /* glyphicon-file */
+    font-family: 'Glyphicons Halflings';
+    font-size: x-small;
+    vertical-align: sub;
+    margin-left: 2px;
+    margin-right: 2px;
+    content: "\e022";
+}
+
+
+/*
+ * Icons in Book mode listings
+ */
+div.book span.book-item-menu {
+    float: right;
+    font-size: small;
+}
+
+/*
+ * form error styling
+ */
+div.xowiki-content .content-with-folders div.form-widget,
+div.xowiki-content .content-with-folders .form-help-text,
+div.xowiki-content .content-with-folders .form-button,
+div.xowiki-content .content-with-folders .form-widget-error,
+div.xowiki-content .content-with-folders .form-error {
+    margin-left: 0em;
+}
+
+/*
+ * treeview styling (make indentation more compact)
+ */
+div.folders div.treeview span.indent {
+    margin-left: 4px;
+    margin-right: 4px;
+}
+/*
+ * Local Variables:
+ * mode: css
+ * c-basic-offset: 4
+ * fill-column: 78
+ * indent-tabs-mode: nil
+ * End:
+ */

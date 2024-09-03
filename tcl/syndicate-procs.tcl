@@ -23,11 +23,11 @@ namespace eval ::xowiki {
   }
 
   Class create RSS -superclass XMLSyndication -parameter {
-    maxentries 
-    {parent_ids ""}
+    maxentries:integer,0..1
+    {parent_ids:integer,0..n ""}
     {name_filter ""}
     {entries_of ""}
-    {days ""}
+    {days:integer,0..1 ""}
     {css ""}
     {siteurl "[ad_url]"}
     {description ""}
@@ -35,11 +35,11 @@ namespace eval ::xowiki {
     {title ""}
   } \
       -ad_doc {
-        Report content of xowiki folder in rss 2.0 format. The
+        Report content of xowiki folder in RSS 2.0 format. The
         reporting order is descending by date. The title of the feed
         is taken from the title, the description
         is taken from the description field of the folder object.
-        
+
         @param maxentries maximum number of entries retrieved
         @param days report entries changed in specified last days
         @param name_filter include only pages matching the provided regular expression (postgres)
@@ -48,11 +48,11 @@ namespace eval ::xowiki {
   RSS instproc css_link {} {
     if {${:css} ne ""} {
       #
-      # firefox 2.0 appears to overwrite the style info, so one has to use such ugly tricks:
+      # Firefox 2.0 appears to overwrite the style info, so one has to use such ugly tricks:
       #    http://www.blingblog.info/2006/10/30/firefox-big-browser/
       # when we want to use custom style sheets
       #
-      set user_agent [string tolower [ns_set get [ns_conn headers] User-Agent]]
+      set user_agent [string tolower [ns_set iget [ns_conn headers] User-Agent]]
       set filler [expr {[string first firefox $user_agent] >- 1 ?
                         "<!-- [string repeat deadbef 100] -->" : ""
                       }]
@@ -86,16 +86,16 @@ namespace eval ::xowiki {
         [:tag pubDate $pubdate ] \n\
         </item> \n
   }
-  
+
   RSS instproc tail {} {
     return  "\n</channel>\n</rss>\n"
   }
-  
+
 
   RSS instproc limit {} {
     if {[info exists :maxentries] && ${:maxentries} ne ""} {
       return ${:maxentries}
-    } 
+    }
     return ""
   }
 
@@ -103,7 +103,7 @@ namespace eval ::xowiki {
     set extra_where_clause ""
     if {${:name_filter} ne ""} {
       append extra_where_clause " and ci.name ~ E'${:name_filter}' "
-    }    
+    }
     if {${:days} ne ""} {
       append extra_where_clause "and " \
           [::xo::dc since_interval_condition p.publish_date "${:days} days"]
@@ -113,17 +113,17 @@ namespace eval ::xowiki {
         # form item_ids were provided as a filter
         set form_items ${:entries_of}
       } else {
-        set form_items [::xowiki::Weblog instantiate_forms \
-                            -forms ${:entries_of} \
-                            -package_id ${:package_id}]
+        set form_items [::${:package_id} instantiate_forms -forms ${:entries_of}]
       }
 
       if {[llength $form_items] == 0} {
-        # In case, we have no form_items to select on, let the query fail 
+        # In case, we have no form_items to select on, let the query fail
         # without causing a SQL error.
         set form_items [list -1]
       }
-      append extra_where_clause " and p.page_template in ('[join $form_items ',']') and p.page_instance_id = p.revision_id "
+      append extra_where_clause [subst {
+        and p.page_template in ([ns_dbquotelist $form_items]) and p.page_instance_id = p.revision_id
+      }] " "
 
       set :base_table xowiki_form_pagex
     }
@@ -139,8 +139,8 @@ namespace eval ::xowiki {
     }
 
     set :link ${:siteurl}[lindex [site_node::get_url_from_object_id -object_id ${:package_id}] 0]
-    
-    set :base_table xowiki_pagex 
+
+    set :base_table xowiki_pagex
     set extra_where_clause [:extra_where_clause]
 
     if {${:base_table} ne "xowiki_pagex"} {
@@ -153,7 +153,7 @@ namespace eval ::xowiki {
     }
 
     if {[llength $folder_ids] > 1} {
-      set folder_select "ci.parent_id in ([join $folder_ids ,])"
+      set folder_select "ci.parent_id in ([ns_dbquotelist $folder_ids])"
     } else {
       set folder_select "ci.parent_id = :folder_ids"
     }
@@ -182,7 +182,7 @@ namespace eval ::xowiki {
   }
 
   Class create Podcast -superclass RSS -parameter {
-    {subtitle ""} 
+    {subtitle ""}
     {description ""}
     {summary ""}
     {author ""}
@@ -207,8 +207,8 @@ namespace eval ::xowiki {
   }
 
   Podcast instproc item {
-    -author -title -subtitle -description 
-    -link -guid -pubdate 
+    -author -title -subtitle -description
+    -link -guid -pubdate
     -mime_type -duration -keywords} {
       append result \n <item> \
           [:tag title $title] \n\
@@ -232,18 +232,18 @@ namespace eval ::xowiki {
     if {${:subtitle} eq ""} {set :subtitle ${:title}}
 
     set :link ${:siteurl}[lindex [site_node::get_url_from_object_id -object_id ${:package_id}] 0]
-    
+
     set content [:head]
     set sql [::xo::dc select \
                  -vars * \
                  -from "xowiki_podcast_itemi p, cr_items ci, cr_mime_types m" \
-                 -where  "ci.parent_id in ([join $folder_ids ,]) and ci.item_id = p.item_id \
+                 -where  "ci.parent_id in ([ns_dbquotelist $folder_ids]) and ci.item_id = p.item_id \
               and ci.live_revision = p.object_id \
               and p.mime_type = m.mime_type \
               and ci.publish_status <> 'production' [:extra_where_clause]" \
                  -orderby "p.pub_date asc" \
                  -limit [:limit]]
-    
+
     ::xo::dc foreach get_pages $sql {
       if {$content_type ne "::xowiki::PodcastItem"} continue
       if {${:title} eq ""} {set :title $name}
@@ -256,11 +256,11 @@ namespace eval ::xowiki {
                           -guid $link -pubdate $pub_date -duration $duration \
                           -keywords $keywords]
     }
-    
+
     append content [:tail]
     return $content
   }
-  
+
   Class create Timeline -superclass XMLSyndication \
       -parameter {user_id {limit 1000}}
 
@@ -272,21 +272,25 @@ namespace eval ::xowiki {
     set last_user ""
     set last_item ""
     set last_clock ""
-    if {[info exists :user_id]} { append where_clause " and o.creation_user = [:user_id] " }
-    if {[info exists :limit]} { set limit  [:limit] }
+    if {[info exists :user_id]} {
+      append where_clause " and o.creation_user = [ns_dbquotevalue ${:user_id}] "
+    }
+    if {[info exists :limit]} {
+      set limit  [:limit]
+    }
 
     ::xo::OrderedComposite items -destroy_on_cleanup
     set sql [::xo::dc select \
                  -vars "ci.name, ci.parent_id, o.creation_user, cr.publish_date, o2.creation_date, \
             cr.item_id, cr.title" \
                  -from "cr_items ci, cr_revisions cr, acs_objects o, acs_objects o2" \
-                 -where "cr.item_id = ci.item_id and o.object_id = cr.revision_id 
-                  and o2.object_id = cr.item_id 
-                  and ci.parent_id in ([join $folder_ids ,]) and o.creation_user is not null 
+                 -where "cr.item_id = ci.item_id and o.object_id = cr.revision_id
+                  and o2.object_id = cr.item_id
+                  and ci.parent_id in ([ns_dbquotelist $folder_ids]) and o.creation_user is not null
                   $where_clause" \
                  -orderby "revision_id desc" \
                  -limit $limit]
-    
+
     ::xo::dc foreach timeline-get_pages $sql {
       set publish_date [::xo::db::tcl_date $publish_date tz]
       set creation_date [::xo::db::tcl_date $creation_date tz]
@@ -310,7 +314,7 @@ namespace eval ::xowiki {
     }
 
     # The following loop tries to distinguis between create and modify by age.
-    # This does not work in cases, where we get just a limited amount 
+    # This does not work in cases, where we get just a limited amount
     # or restricted entries
     #     if {$limit eq ""} {
     #       foreach i [lreverse [items children]] {
@@ -352,7 +356,7 @@ namespace eval ::xowiki {
       append result [:tag -atts [list \
                                      start $stamp \
                                      title $title \
-                                     link [${:package_id} pretty_link \
+                                     link [::${:package_id} pretty_link \
                                                -parent_id [$i set parent_id] \
                                                [$i set name]]] \
                          event $event]  \n
@@ -365,7 +369,7 @@ namespace eval ::xowiki {
 namespace eval ::xowiki {
   # This is the class representing an RSS client
   Class create RSS-client -parameter url
-  
+
   # Constructor for a given URI
   RSS-client instproc init {} {
     set XML [:load]
@@ -373,14 +377,14 @@ namespace eval ::xowiki {
       :parse $XML
     }
   }
-  
+
   RSS-client instproc load { } {
     set request [util::http::get -url [:url]]
     set status [dict get $request status]
     set data [expr {[dict exists $request page] ? [dict get $request page] : ""}]
-    
+
     #:msg "statuscode = [$r set status_code], content_type=[$r set content_type]"
-    #set f [open /tmp/feed w]; fconfigure $f -translation binary; puts $f [$r set data]; close $f
+    #set f [open [ad_tmpdir]/feed w]; fconfigure $f -translation binary; puts $f [$r set data]; close $f
     # if {[$r exists status] && [$r set status] eq "canceled"} {
     #   set :errorMessage [$r set cancel_message]
     # }
@@ -388,7 +392,7 @@ namespace eval ::xowiki {
       set :errorMessage "$status - $data"
     }
     return $data
-    # the following does not appear to be necessary due to changes in http-client-procs. 
+    # the following does not appear to be necessary due to changes in http-client-procs.
     #set charset utf-8
     #regexp {^<\?xml\s+version\s*=\s*\S+\s+encoding\s*=\s*[\"'](\S+)[\"']} $xml _ charset
     #ns_log notice "charse=$charset,xml=$xml"
@@ -396,7 +400,7 @@ namespace eval ::xowiki {
   }
 
   RSS-client instproc parse {data} {
-    set doc [ dom parse $data ]
+    set doc [ dom parse -- $data ]
     set root [ $doc documentElement ]
 
     switch [RSS-client getRSSVersion $doc] {
@@ -431,7 +435,7 @@ namespace eval ::xowiki {
           itemPubDate    {*[local-name()='pubDate']/text()}
           itemDesc    {*[local-name()='description']/text()}
         }
-        
+
       }
       default {
         set :errorMessage "Unsupported RSS schema [RSS-client getRSSVersion $doc]"
@@ -497,7 +501,7 @@ namespace eval ::xowiki {
       return ""
     }
   }
-  
+
   RSS-client proc node_text {node xpath} {
     set n [$node selectNode $xpath]
     if {$n ne ""} {
@@ -507,7 +511,7 @@ namespace eval ::xowiki {
     }
   }
 
-  # this class is used to contain rss items
+  # this class is used to contain RSS items
   Class create RSS-client::item -parameter node
   RSS-client::item instforward xpath {%my info parent} %proc
 
@@ -550,7 +554,7 @@ namespace eval ::xowiki {
   RSS-client::channel instproc imgTitle {} {
     return [::xowiki::RSS-client node_text [:root] [:xpath imgTitle]]
   }
-  
+
   # get the image width
   RSS-client::channel instproc imgWidth {} {
     return [::xowiki::RSS-client node_text [:root] [:xpath imgWidth]]
@@ -559,11 +563,11 @@ namespace eval ::xowiki {
   RSS-client::channel instproc imgHeight {} {
     return [::xowiki::RSS-client node_text [:root] [:xpath imgHeight]]
   }
-  
+
 
 }
 
-::xo::library source_dependent 
+::xo::library source_dependent
 
 #
 # Local variables:

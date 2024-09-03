@@ -1,9 +1,7 @@
 <master>
   <property name="doc(title)">@title;literal@</property>
-  <property name="doc(title)">@title;literal@</property>
   <property name="context">@context;literal@</property>
   <property name="head">
-<link rel="stylesheet" type="text/css" href="/resources/xowiki/xowiki.css" media="all" >
 <style  type="text/css">
 .rss {border:1px solid;
 	border-color:#FC9 #630 #330 #F96;

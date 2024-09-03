@@ -1,0 +1,159 @@
+/* appearance of item-buttons */
+/*
+   Positions of images in the sprite:
+
+   Add16         -2,-1
+   Copy16        -2,-22
+   Delete16      -2,-44
+   Edit16        -2,-66
+   New16         -2,-88
+   Open16        -2,-110
+   Preferences16 -2,-132
+   Properties16  -2,-154
+   Zoom16        -2,-176
+   ZoomIn16      -2,-198
+   ZoomOut16     -2,-220
+   email.png     -2,-242
+   external.png  -2,-264
+   file.png      -2,-286
+   transparent.png  -1,-308
+*/
+div.xowiki-content a.edit-item-button {
+    background: transparent url(/resources/xowiki/sprite16.png) -2px -68px no-repeat;
+    padding-right: 16px;
+    text-decoration: none;
+}
+div.xowiki-content a.archive-item-button {
+    background: transparent url(/resources/xowiki/sprite16.png) -2px -46px no-repeat;
+    padding-right: 16px;
+    text-decoration: none;
+}
+div.xowiki-content a.delete-item-button {
+    background: transparent url(/resources/xowiki/sprite16.png) -2px -46px no-repeat;
+    padding-right: 16px;
+    text-decoration: none;
+}
+div.xowiki-content a.revisions-item-button {
+    background: transparent url(/resources/xowiki/sprite16.png) -2px -200px no-repeat;
+    padding-right: 16px;
+    text-decoration: none;
+}
+div.xowiki-content a.view-item-button {
+    background: transparent url(/resources/xowiki/sprite16.png) -2px -178px no-repeat;
+    padding-right: 16px;
+    text-decoration: none;
+}
+div.xowiki-content a.create-item-button {
+    background: transparent url(/resources/xowiki/sprite16.png) -2px -3px no-repeat;
+    padding-right: 16px;
+    text-decoration: none;
+}
+div.xowiki-content a.copy-item-button {
+    background: transparent url(/resources/xowiki/sprite16.png) -2px -24px no-repeat;
+    padding-right: 16px;
+    text-decoration: none;
+    width: 16px; height: 16px;
+}
+div.xowiki-content a.add-item-button {
+    background: transparent url(/resources/xowiki/sprite16.png) -2px -3px no-repeat;
+    padding-right: 16px;
+    text-decoration: none;
+}
+div.xowiki-content a.notification-image-button {
+    background: transparent url(/resources/xowiki/sprite16.png) -4px -248px no-repeat; /* 6px more */
+    padding-right: 16px;
+    text-decoration: none;
+}
+div.xowiki-content a.publish-status-item-button {
+    font-size: larger;
+    text-decoration: none;
+}
+div.xowiki-content a.publish-status-item-button.green {
+    color: green;
+}
+div.xowiki-content a.publish-status-item-button.red {
+    color: red;
+}
+div.xowiki-content a.publish-status-item-button.black {
+    color: black;
+}
+
+/*
+ * info sign (in forms)
+ */
+div.xowiki-content span.info-sign {
+    background: transparent url(/shared/images/info.gif);
+    height: 9px;
+    display: inline-block; /* otherwise height is ignored */
+    padding: 0px 12px 0px 0px;
+    margin: 0px 5px 0px 0px;
+}
+
+div.xowiki-content a.file-icon {
+    background: transparent url(/resources/file-storage/file.gif);
+    padding-right: 12px;
+    text-decoration: none;
+}
+div.xowiki-content a.folder-open-icon {
+    background: transparent url(/resources/file-storage/folder.gif);
+    padding-right: 12px;
+    text-decoration: none;
+}
+
+div.xowiki-content a.level-up-icon::before {
+    /* glyphicon-level-up */
+    content: "..";
+}
+
+div.xowiki-content a.link-icon {
+    background: transparent url(/resources/file-storage/link.gif);
+    padding-right: 12px;
+    text-decoration: none;
+}
+div.xowiki-content a.broken-link-icon {
+    background: transparent url(/resources/file-storage/link.gif);
+    padding-right: 12px;
+    text-decoration: none;
+}
+
+/* appearance of link types */
+
+div.xowiki-content a.external {
+    background: transparent url(/resources/xowiki/sprite16.png) right -265px no-repeat;
+    padding-right: 18px;
+    text-decoration: none; /* added here for &nbsp; required in IE */
+}
+
+div.xowiki-content a.file {
+    background: transparent url(/resources/xowiki/sprite16.png) right -286px no-repeat;
+    padding-right: 16px;
+    text-decoration: none;
+}
+
+
+/*
+ * Icons in Book mode listings
+ */
+div.book span.book-item-menu {
+    float: right;
+}
+
+/*
+ * form error styling
+ */
+div.xowiki-content .content-with-folders div.form-widget,
+div.xowiki-content .content-with-folders .form-help-text,
+div.xowiki-content .content-with-folders .form-button,
+div.xowiki-content .content-with-folders .form-widget-error,
+div.xowiki-content .content-with-folders .form-error {
+    margin-left: 0em;
+}
+
+/*
+ * Local Variables:
+ * mode: css
+ * c-basic-offset: 4
+ * fill-column: 78
+ * indent-tabs-mode: nil
+ * End:
+ */

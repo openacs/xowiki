@@ -1,6 +1,6 @@
 ::xo::library doc {
 
-  Form-field "repeat" 
+  Form-field "repeat"
 
   @author Gustaf Neumann
   @creation-date 2013-02-27
@@ -11,7 +11,7 @@
 namespace eval ::xowiki::formfield {
 
   # TODO:
-  # - improve styling (e.g. remove/deactivate controls for 
+  # - improve styling (e.g. remove/deactivate controls for
   #   addition/deletion, when min/max is reached)
   # - test for more input types
   # - maybe deactivate container display for "repeat=1..1"
@@ -21,7 +21,7 @@ namespace eval ::xowiki::formfield {
 
     set oldClass [:info class]
     :class ::xowiki::formfield::repeatContainer
-    
+
     if {$oldClass ne [:info class]} {
       :reset_parameter
       set :__state reset
@@ -43,6 +43,11 @@ namespace eval ::xowiki::formfield {
     }
     :initialize
   }
+  ::xowiki::formfield::FormField instproc repeat_add_label {label} {
+    if {[info exists :__initialized_repeat]} return
+    set :repeat_add_label $label
+  }
+
 
   ###########################################################
   #
@@ -53,7 +58,7 @@ namespace eval ::xowiki::formfield {
     {min 1}
     {max 5}
     {repeat_add_label "#xowiki.form-repeatable-add#"}
-    {repeat_remove_label "#xowiki.form-repeatable-delete#"}
+    {repeat_remove_label "#xowiki.delete#"}
   }
   repeatContainer instproc item_spec {} {
     #
@@ -74,7 +79,7 @@ namespace eval ::xowiki::formfield {
   repeatContainer instproc initialize {} {
     ::xo::Page requireJS "/resources/xowiki/repeat.js"
     ::xo::Page requireJS urn:ad:js:jquery
-    
+
     if {[info exists :__initialized_repeat]} {return}
     next
 
@@ -95,22 +100,12 @@ namespace eval ::xowiki::formfield {
     set componentItemSpecs [list [list 0 $itemSpec]]
 
     #
-    # Add max content items (1 .. max) and build form fields
+    # We use dynamic repeat fields. The number of fields generated on
+    # the server side is the minimum, while the rest will be created
+    # on demand via javascript.
     #
-    set formAction [${:object} form_parameter __form_action {}]
-    # TODO: we use for the time being the code for dynamic repeat field
-    if {0 && $formAction eq ""} {
-      #
-      # The form field is in input mode; as long there is no js
-      # support do incrementally add form fields in js, we have to
-      # generate it here.
-      #
-      set max [:max]
-    } else {
-      #set max [:max]
-      set max [:min] ;# use dynamic repeat fields: if set to min, repeat fields will be created on demand
-    }
-    #ns_log notice "dynamic repeat MAX=$max FORMACTION <$formAction>"
+    set max [:min]
+
     for {set i 1} {$i <= $max} {incr i} {
       set componentItemSpec [:component_item_spec $i $itemSpec $isRequired]
       #ns_log notice "dynamic repeat componentItemSpec $componentItemSpec"
@@ -121,7 +116,7 @@ namespace eval ::xowiki::formfield {
     #
     # Deactivate template item
     #
-    set componentList [:components]
+    set componentList ${:components}
     if {[llength $componentList] > 0} {
       [lindex $componentList 0] set_disabled true
       [lindex $componentList 0] set_is_repeat_template true
@@ -150,7 +145,7 @@ namespace eval ::xowiki::formfield {
     #ns_log notice "dynamic repeat field: add component on the fly: $componentItemSpec"
     :add_component $componentItemSpec
   }
-  
+
   repeatContainer instproc set_compound_value {value} {
     #
     # Before setting compound values, check if we have the repeat
@@ -176,7 +171,7 @@ namespace eval ::xowiki::formfield {
     set values [:value]
     :trim_values
     set r [next]
-    #my msg name=[:name],value=[:get_compound_value]
+    #:msg name=${:name},value=[:get_compound_value]
 
     #
     # remove "unneeded" entries from instance attributes
@@ -194,7 +189,7 @@ namespace eval ::xowiki::formfield {
     # Trim trailing values identical to default.
     # Trimming the components list seems sufficient.
     set count [:count_values [:value]]
-    set :components [lrange [:components] 0 $count]
+    set :components [lrange ${:components} 0 $count]
   }
 
   repeatContainer instproc count_values {values} {
@@ -203,7 +198,7 @@ namespace eval ::xowiki::formfield {
     if {![:required]} {set highestCount [:min]}
     # The first pair is the default from the template field (.0)
     set default [lindex $values 1]
-    foreach f [lrange [:components] 1 end] {name value} [lrange $values 2 end] {
+    foreach f [lrange ${:components} 1 end] {name value} [lrange $values 2 end] {
       if {[$f required] || ($value ne "" && ![$f same_value $value $default])} {set highestCount $count}
       incr count
     }
@@ -218,8 +213,9 @@ namespace eval ::xowiki::formfield {
     #
     html::fieldset [:get_attributes id {CSSclass class}] {
       set i 0
-      set clientData "{'min':${:min},'max':${:max}, 'name':'${:name}'}"
+      set clientData [subst {{"min":${:min},"max":${:max}, "name":"${:name}"}}]
       set CSSclass   "[:form_widget_CSSclass] repeatable"
+
       set providedValues [:count_values [:value]]
       if {${:min} > $providedValues} {
         set nrItems ${:min}
@@ -227,29 +223,34 @@ namespace eval ::xowiki::formfield {
         set nrItems $providedValues
       }
       incr nrItems
-      set containerIsDisabled [expr {[info exists :disabled] && [:disabled] != "false"}]
+
+      set containerIsDisabled [:is_disabled]
       set containerIsPrototype [string match "*.0*" ${:name}]
       set isPrototypeElement 0
-      foreach c [:components] {
+      foreach c ${:components} {
         set atts [list class $CSSclass]
         lappend atts data-repeat $clientData
         if {$i == 0 || $i >= $nrItems} {
           lappend atts style "display: none;"
         }
         ::html::div $atts {
-          $c render_input 
-          # compound fields - link not shown if we are not rendering for the template and copy the template afterwards
+          #
+          # Compound fields - link not shown if we are not rendering
+          # for the template and copy the template afterwards.
+          #
           if {!$containerIsDisabled || $containerIsPrototype} {
             set del_id "repeat-del-link-[$c set id]"
             ::html::a -href "#" \
                 -id $del_id \
-                -class "repeat-del-link" {
-                  html::t [:repeat_remove_label]
+                -title ${:repeat_remove_label} \
+                -class "delete-item-button repeat-del-link" {
+                  html::t ""
                 }
             template::add_event_listener \
                 -id $del_id \
-                -script [subst {xowiki.repeat.delItem(this,\"$clientData\");}]
+                -script [subst {xowiki.repeat.delItem(this,'$clientData');}]
           }
+          $c render_input
         }
         incr i
       }
@@ -257,22 +258,22 @@ namespace eval ::xowiki::formfield {
       if {!$containerIsDisabled || $containerIsPrototype } {
         set hidden [expr {[:count_values [:value]] == ${:max} ? "display: none;" : ""}]
         set add_id "repeat-add-link-[:id]"
-        ns_log notice "... add another for ${:name}"
+        #ns_log notice "... add another for ${:name}"
         html::a -href "#" \
             -id $add_id \
             -style $hidden \
             -class "repeat-add-link" {
-              html::t [:repeat_add_label]
+              html::t ${:repeat_add_label}
             }
         template::add_event_listener \
             -id $add_id \
-            -script [subst {xowiki.repeat.newItem(this,\"$clientData\");}]
+            -script [subst {xowiki.repeat.newItem(this,'$clientData');}]
       }
     }
   }
-  
-  repeatContainer instproc validate {obj} {
-    foreach c [lrange [:components] 1 [:count_values [:value]]] {
+
+  repeatContainer instproc validate {obj:object} {
+    foreach c [lrange ${:components} 1 [:count_values [:value]]] {
       set result [$c validate $obj]
       if {$result ne ""} {
         return $result
@@ -296,16 +297,6 @@ namespace eval ::xowiki::formfield {
     }
     append html "</ol>\n"
     return $html
-  }
-
-  repeatContainer instproc value_if_nothing_is_returned_from_form {default} {
-    # Here we have to distinguish between two cases to:
-    # - edit mode: somebody has removed a mark from a check button;
-    #   this means: clear the field
-    # - view mode: the fields were deactivated (made insensitive);
-    #   this means: keep the old value
-
-    if {[info exists :disabled]} {return $default} else {return ""}
   }
 
   Class create repeattest -superclass CompoundField

@@ -18,8 +18,8 @@ namespace eval ::xowiki {
     ::xowiki::sc::unregister_implementations
     ::xowiki::notifications-uninstall
 
-    # Unregister all types from all folders 
-    ::xowiki::Page folder_type_unregister_all 
+    # Unregister all types from all folders
+    ::xowiki::Page folder_type_unregister_all
 
     # Delete object types
     foreach type [::xowiki::Page object_types -subtypes_first true] {
@@ -28,17 +28,20 @@ namespace eval ::xowiki {
     }
   }
 
-  ad_proc -private ::xowiki::before-uninstantiate {
+  ad_proc -public ::xowiki::before-uninstantiate {
     {-package_id:required}
   } {
     Callback to be called whenever a package instance is deleted.
-    
+
     @author Gustaf Neumann
   } {
     ns_log notice "Executing before-uninstantiate"
-    ::xowiki::delete_gc_messages -package_id $package_id
+    # Delete the messages of general comments to allow one to
+    # uninstantiate the package without violating constraints.
+    general_comments_delete_messages -package_id $package_id
     set root_folder_id [::xo::db::CrClass lookup -name "xowiki: $package_id" -parent_id -100]
     if {$root_folder_id ne "0"} {
+
       # we deal with a correctly installed package
       if {[::xo::dc 0or1row is_transformed_folder {
         select 1 from cr_folders where folder_id = :root_folder_id}
@@ -48,37 +51,16 @@ namespace eval ::xowiki {
         ::xo::db::sql::content_item delete -item_id $root_folder_id
       }
     }
-   
+
     set instance_name [apm_instance_name_from_id $package_id]
-    
+
     ::xo::xotcl_package_cache flush package_id-$instance_name
     ::xo::xotcl_package_cache flush package_key-$package_id
     ::xo::xotcl_package_cache flush root_folder-$package_id
-    ::xo::xotcl_object_type_cache flush -partition_key -100 -100-$instance_name    
+    ::xo::xotcl_object_type_cache flush -partition_key -100 -100-$instance_name
 
     ns_log notice "before-uninstantiate DONE"
   }
-
-
-  ad_proc -public ::xowiki::delete_gc_messages {
-    {-package_id:required}
-  } {
-    Deletes the messages of general comments to allow one to
-    uninstantiate the package without violating constraints.
-    
-    @author Gustaf Neumann
-  } {
-    set comment_ids [::xo::dc list get_comments {
-      select g.comment_id
-      from general_comments g, cr_items i,acs_objects o
-      where i.item_id = g.object_id
-      and o.object_id = i.item_id
-      and o.package_id = :package_id}]
-    foreach comment_id $comment_ids {
-      ::xo::db::sql::acs_message delete -message_id $comment_id
-    }
-  }
-
 
   #
   # upgrade logic
@@ -95,7 +77,7 @@ namespace eval ::xowiki {
   } {
     ns_log notice "-- UPGRADE $from_version_name -> $to_version_name"
 
-    set upgrade_file [acs_root_dir]/packages/xowiki/tcl/upgrade/upgrade.tcl
+    set upgrade_file $::acs::rootdir/packages/xowiki/tcl/upgrade/upgrade.tcl
     #
     # The upgrade file contains the upgrade proc of the following form:
     #
@@ -108,8 +90,29 @@ namespace eval ::xowiki {
     # memory around, so we can delete it.
     rename __upgrade ""
   }
+
+  ad_proc -public -callback subsite::parameter_changed -impl xowiki {
+    -package_id:required
+    -parameter:required
+    -value:required
+  } {
+    Implementation of subsite::parameter_changed for xowiki parameters.
+
+    @param package_id the package_id of the package the parameter was changed for
+    @param parameter  the parameter name
+    @param value      the new value
+  } {
+    if {[::xowiki::Package is_xowiki_p $package_id]} {
+      if {$parameter eq "use_hstore" && $value eq 1} {
+        # hstore has been activated: make sure instance attributes are
+        # persisted in there
+        ::xowiki::hstore::update_hstore $package_id
+      }
+    }
+  }
+
 }
-::xo::library source_dependent 
+::xo::library source_dependent
 
 #
 # Local variables:

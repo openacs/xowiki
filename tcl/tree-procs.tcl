@@ -17,11 +17,12 @@ namespace eval ::xowiki {
       -superclass ::xo::OrderedComposite \
       -parameter {
         {name ""}
+        {owner}
         {verbose 0}
         id
       }
 
-  # 
+  #
   # Class methods
   #
   Tree proc renderer {style} {
@@ -50,18 +51,18 @@ namespace eval ::xowiki {
     -category
     -orderby
     -itemobj
-    {-increasing:boolean true} 
+    {-increasing:boolean true}
     {-open_item:boolean false}
   } {
     set items ${category}::items
-    if {![:isobject $items]} { 
+    if {![nsf::is object $items]} {
       ::xo::OrderedComposite create $items
       if {[info exists orderby]} {
-        if {$orderby eq "page_order"} {
-          $items mixin add ::xo::OrderedComposite::IndexCompare
-        }
         set direction [expr {$increasing ? "increasing" : "decreasing"}]
-        $items orderby -order $direction $orderby
+        $items orderby \
+            -order $direction \
+            -type [ad_decode $orderby page_order index dictionary] \
+            $orderby
       }
     }
     $items add $itemobj
@@ -71,12 +72,18 @@ namespace eval ::xowiki {
     }
   }
   Tree instproc open_tree {} {;}
-  Tree instproc render {{-style mktree} {-js ""} {-context ""}} {
+
+  Tree instproc render {
+    {-style mktree}
+    {-js ""}
+    {-context ""}
+    {-properties ""}
+  } {
     set renderer [[self class] renderer $style]
     $renderer set context $context
     $renderer set js $js
     TreeNode instmixin $renderer
-    set content [$renderer render [self]]
+    set content [$renderer render -properties $properties [self]]
     TreeNode instmixin ""
     if {[$renderer set js] ne ""} {
       template::add_body_script -script [$renderer set js]
@@ -85,47 +92,70 @@ namespace eval ::xowiki {
   }
 
   Tree instproc add_pages {
-    {-full false} 
-    {-remove_levels 0} 
-    {-book_mode false} 
-    {-open_page ""} 
+    {-full:boolean false}
+    {-remove_levels:integer 0}
+    {-book_mode:boolean false}
+    {-open_page ""}
     {-expand_all false}
-    -owner
-    pages
+    {-properties ""}
+    -owner:object
+    pages:object
   } {
+    #
+    # Add the pages of the ordered composite to the tree.  Note that
+    # it is intended to preserve the order criterion of the provided
+    # ordered composite in "pages". If you want to change the order
+    # set it already for the passed-in ordered composite via the
+    # method "orderby" of the OrderedComposite.
+    #
     set tree(-1) [self]
     set :open_node($tree(-1)) 1
     set pos 0
-    if {${:verbose}} {:log "add_pages want to add [llength [$pages children]] pages"}
+    if {${:verbose}} {
+      :log "add_pages want to add [llength [$pages children]] pages"
+    }
+    set ul_class [expr {[dict exists $properties CSSclass_ul] ?
+                        [dict get $properties CSSclass_ul] : ""}]
     foreach o [$pages children] {
       $o instvar page_order title name
-      if {![regexp {^(.*)[.]([^.]+)} $page_order _ parent]} {set parent ""}
+      if {![regexp {^(.*)[.]([^.]+)} $page_order _ parent]} {
+        set parent ""
+      }
       set page_number [$owner page_number $page_order $remove_levels]
 
-      set level [regsub -all {[.]} [$o set page_order] _ page_order_js]
-      if {${:verbose}} {:log "... work on [$o set page_order] level $level full $full"}
+      set level [regsub -all -- {[.]} [$o set page_order] _ page_order_js]
+      if {${:verbose}} {
+        :log "... work on [$o set page_order] level $level full $full"
+      }
       if {$full || [info exists :open_node($parent)] || [info exists :open_node($page_order)]} {
         set href [$owner href $book_mode $name]
         set is_current [expr {$open_page eq $name}]
         set is_open [expr {$is_current || $expand_all}]
-        set c [::xowiki::TreeNode new -orderby pos -pos [incr pos] -level $level \
-                   -object $o -owner [self] \
-                   -label $title -prefix $page_number -href $href \
+        set c [::xowiki::TreeNode new \
+                   -level $level \
+                   -object $o \
+                   -owner [self] \
+                   -label $title \
+                   -prefix $page_number \
+                   -href $href \
                    -highlight $is_current \
                    -expanded $is_open \
                    -open_requests 1 \
-                   -verbose ${:verbose}]
+                   -verbose ${:verbose} \
+                   -ul_class $ul_class]
         set tree($level) $c
         for {set l [expr {$level - 1}]} {![info exists tree($l)]} {incr l -1} {}
         $tree($l) add $c
-        if {$is_open} {$c open_tree}
+        if {$is_open} {
+          $c open_tree
+        }
       }
     }
     return $tree(-1)
   }
 
   #
-  # ::xowiki::TreeNode 
+  # ::xowiki::TreeNode
   #
   # The TreeNode represents an n-ary node storing its child nodes in
   # an ordered composite.  In addition to its children, every node may
@@ -137,7 +167,7 @@ namespace eval ::xowiki {
     level label pos
     {open_requests 0}
     count
-    {href ""} 
+    {href ""}
     object owner li_id ul_id ul_class
     {prefix ""}
     {expanded false}
@@ -152,7 +182,7 @@ namespace eval ::xowiki {
 
   TreeNode instproc some_child_has_items {} {
     foreach i [:children] {
-      if {[:isobject ${i}::items]} {return 1}
+      if {[nsf::is object ${i}::items]} {return 1}
       if {[$i some_child_has_items]} {return 1}
     }
     return 0
@@ -160,7 +190,7 @@ namespace eval ::xowiki {
 
   TreeNode instproc render {} {
     set content ""
-    if {[:isobject [self]::items]} {
+    if {[nsf::is object [self]::items]} {
       foreach i [[self]::items children] {
         append cat_content [:render_item -highlight [$i exists open_item] $i ]
       }
@@ -172,7 +202,9 @@ namespace eval ::xowiki {
       append content [:render_node -open true $cat_content]
 
     }
-    if {${:verbose}} {:log "TreeNode items [:isobject [self]::items] render open_requests ${:open_requests} -> $content"}
+    if {${:verbose}} {
+      :log "TreeNode items [nsf::is object [self]::items] render open_requests ${:open_requests} -> $content"
+    }
     return $content
   }
 
@@ -180,7 +212,7 @@ namespace eval ::xowiki {
   # The rendering of trees is performed via rendering classes.  All
   # renderers are created and configured via the meta-class
   # TreeRenderer. This meta-class defines the common attributes and
-  # behavior of all TreeRenders. 
+  # behavior of all TreeRenders.
   #
   # In particular, the TreeRenders are defined to work with xowiki's
   # page fragment caching. Via page fragment caching, the result of
@@ -201,10 +233,17 @@ namespace eval ::xowiki {
   TreeRenderer instproc include_head_entries {args} {
     # to be overloaded
   }
-  TreeRenderer instproc render {tree} {
+  TreeRenderer instproc render {{-properties ""} tree} {
     set content ""
     foreach c [$tree children] {append content [$c render] \n}
     return $content
+  }
+  TreeRenderer instproc get_property {properties property {default ""}} {
+    set value $default
+    if {[dict exists $properties $property]} {
+      set value [dict get $properties $property]
+    }
+    return $value
   }
 
   #
@@ -214,7 +253,7 @@ namespace eval ::xowiki {
   #   - render {tree}
   #
   # (both are optional) and the following methods as instprocs
-  # 
+  #
   #   - render_node {{-open:boolean false} cat_content}
   #   - render_item {{-highlight:boolean false} item}
   #
@@ -224,20 +263,24 @@ namespace eval ::xowiki {
 
   #--------------------------------------------------------------------------------
   # List-specific renderer
-  # 
+  #
   # This is a very common render that maps the tree structure into an
   # unordered HTML list. The rendered is specialized by e.g. the
-  # mktree an yuitree render below.
-  #--------------------------------------------------------------------------------  
+  # mktree a yuitree render below.
+  #--------------------------------------------------------------------------------
 
-  TreeRenderer create TreeRenderer=list 
+  TreeRenderer create TreeRenderer=list
   TreeRenderer=list proc include_head_entries {args} {
     # In the general case, we have nothing to include.  More
-    # specialized renders will provide their head entries.
+    # specialized renders could provide their head entries.
   }
-  TreeRenderer=list proc render {tree} {
-    return "<ul id='[$tree id]'>[next]</ul>"
+  TreeRenderer=list proc render {{-properties ""} tree} {
+    set CSSclass [:get_property $properties CSSclass_ul \
+                      [:get_property $properties CSSclass_top_ul]]
+    set my_ul_class [expr {$CSSclass ne "" ? "class='$CSSclass' " : ""}]
+    return "<ul ${my_ul_class}id='[$tree id]'>[next]</ul>"
   }
+
   TreeRenderer=list instproc render_item {{-highlight:boolean false} item} {
     $item instvar title href
     set prefix [$item set prefix]
@@ -259,8 +302,10 @@ namespace eval ::xowiki {
     set h_atts [lindex [$cl highlight_atts] [expr {${:highlight} ? 0 : 1}]]
     set u_atts ""
 
-    if {[info exists :li_id]} {append o_atts " id='${:li_id}'"}
-    if {[info exists :ul_id]} {append u_atts " id='${:ul_id}'"}
+    if {[info exists :li_id]}    {append o_atts " id='${:li_id}'"}
+    if {[info exists :li_atts]}  {append o_atts " ${:li_atts}"}
+    if {[info exists :ul_id]}    {append u_atts " id='${:ul_id}'"}
+    if {[info exists :ul_atts]}  {append u_atts " ${:ul_atts}"}
     if {[info exists :ul_class]} {append u_atts " class='${:ul_class}'"}
 
     set label [::xowiki::Includelet html_encode [:label]]
@@ -281,9 +326,9 @@ namespace eval ::xowiki {
     } else {
       set content ""
     }
-    return "<li $o_atts><span $h_atts>${:prefix} $entry</span>$content"
+    return "<li $o_atts><span $h_atts>${:prefix} $entry</span>$content</li>"
   }
-  
+
   #--------------------------------------------------------------------------------
   # List-specific renderer based on mktree
   #--------------------------------------------------------------------------------
@@ -296,13 +341,13 @@ namespace eval ::xowiki {
     #::xo::Page requireJS  "/resources/acs-templating/mktree.js"
     template::add_body_script -src "/resources/acs-templating/mktree.js"
   }
-  TreeRenderer=mktree proc render {tree} {
+  TreeRenderer=mktree proc render {{-properties ""} tree} {
     return "<ul class='mktree' id='[$tree id]'>[next]</ul>"
   }
 
   #--------------------------------------------------------------------------------
   # List-specific renderer based for some menus
-  #--------------------------------------------------------------------------------  
+  #--------------------------------------------------------------------------------
   TreeRenderer create TreeRenderer=samplemenu \
       -superclass TreeRenderer=list \
       -li_expanded_atts [list "class='menu-open'" "class='menu-closed'"] \
@@ -311,7 +356,7 @@ namespace eval ::xowiki {
   TreeRenderer=samplemenu proc include_head_entries {args} {
     # add your CSS here...
   }
-  TreeRenderer=samplemenu proc render {tree} {
+  TreeRenderer=samplemenu proc render {{-properties ""} tree} {
     return "<ul class='menu' id='[$tree id]'>[next]</ul>"
   }
 
@@ -337,7 +382,7 @@ namespace eval ::xowiki {
       append entry \
           "<a class='dropdown-toggle' data-toggle='dropdown' href='#'>" \
           [ns_quotehtml $label] \
-          "<span class='caret'></span></a>"
+          "</a>"
       set o_atts "class='dropdown'"
       set u_atts "class='dropdown-menu'"
 
@@ -362,8 +407,8 @@ namespace eval ::xowiki {
     }
     return "<li $o_atts>$entry $content"
   }
-  
-  TreeRenderer=bootstrap3horizontal proc render {tree} {
+
+  TreeRenderer=bootstrap3horizontal proc render {{-properties ""} tree} {
     set name [$tree name]
     if {$name ne ""} {
       set navbarLabel [subst {
@@ -374,19 +419,19 @@ namespace eval ::xowiki {
     } else {
       set navbarLabel ""
     }
-        
+
     return [subst {
       <nav class="navbar navbar-inverse">
       <div class="container-fluid">[ns_quotehtml $navbarLabel]
       <ul class="nav navbar-nav">
       [next]
       </ul>
-      </div>      
+      </div>
       </nav>
     }]
   }
-  
-  
+
+
   #--------------------------------------------------------------------------------
   # List-specific renderer based on yuitree
   #--------------------------------------------------------------------------------
@@ -394,7 +439,7 @@ namespace eval ::xowiki {
       -superclass TreeRenderer=list \
       -li_expanded_atts [list "class='expanded'" ""]
 
-  TreeRenderer=yuitree proc include_head_entries {{-style ""} {-ajax 1} args} {
+  TreeRenderer=yuitree proc include_head_entries {{-style ""} {-ajax:boolean 1} args} {
     ::xo::Page requireCSS urn:ad:css:yui2:fonts/fonts-min
     ::xo::Page requireCSS urn:ad:css:yui2:treeview/assets/skins/sam/treeview
     if {$style ne ""} {
@@ -405,56 +450,103 @@ namespace eval ::xowiki {
         ::xo::Page requireCSS urn:ad:css:yui2:treeview/assets/$style/tree
       }
     }
+    ::xo::Page requireJS urn:ad:js:yui2:yahoo/yahoo-min
     ::xo::Page requireJS urn:ad:js:yui2:yahoo-dom-event/yahoo-dom-event
 
     if {$ajax} {
+      ::xo::Page requireJS urn:ad:js:yui2:event/event-min
       ::xo::Page requireJS urn:ad:js:yui2:connection/connection-min
       ::xo::Page requireJS urn:ad:js:yui2:animation/animation-min
     }
     ::xo::Page requireJS urn:ad:js:yui2:treeview/treeview-min
   }
-  TreeRenderer=yuitree proc render {tree} {
+  TreeRenderer=yuitree proc render {{-properties ""} tree} {
     return "<div id='[$tree id]'><ul>[next]</ul></div>"
   }
 
 
   #--------------------------------------------------------------------------------
-  # list-specific render with YUI drag and drop functionality
-  #--------------------------------------------------------------------------------  
+  # list-specific render with drag and drop functionality
+  #--------------------------------------------------------------------------------
   TreeRenderer create TreeRenderer=listdnd \
       -superclass TreeRenderer=list \
       -li_expanded_atts [list "" ""]
 
   TreeRenderer=listdnd proc include_head_entries {args} {
-    set ajaxhelper 0
-    ::xo::Page requireJS urn:ad:js:yui2:utilities/utilities
-    ::xo::Page requireJS urn:ad:js:yui2:selector/selector-min
-    ::xo::Page requireJS "/resources/xowiki/yui-page-order-region.js"
+    ::xo::Page requireJS "/resources/xowiki/listdnd.js"
   }
-  TreeRenderer=listdnd proc render {tree} {
-    array set "" ${:context}
-    if {[info exists (min_level)] && $(min_level) == 1} {
-      set css_class "page_order_region" 
+  TreeRenderer=listdnd proc min_level {} {
+    if {[dict exists ${:context} min_level]} {
+      return [dict get ${:context} min_level]
+    }
+    return ""
+  }
+  TreeRenderer=listdnd proc add_handler {-id -event} {
+    template::add_event_listener \
+        -id $id \
+        -event $event \
+        -preventdefault=false \
+        -script "listdnd_${event}_handler(event);"
+  }
+
+  TreeRenderer=listdnd proc render {{-properties ""} tree} {
+    #:log "=== TreeRenderer=listdnd render $tree"
+    #
+    # Do we allow reorder on the top-level?
+    #
+    set id [$tree id]-topul
+    if {[:min_level] == -1} {
+      set css_class "page_order_region"
+      foreach event {drop dragover dragleave} {
+        :add_handler -id $id -event $event
+      }
     } else {
       set css_class "page_order_region_no_target"
     }
-    return "<div id='[$tree id]'><ul class='$css_class'>\n[next]</ul></div>"
+    #:log "=== TreeRenderer=listdnd render $tree min_level <[:min_level]>"
+    if {[$tree exists owner]} {
+      #
+      # assume, the "owner" is an includelet.
+      set owner [$tree set owner]
+      set page [$owner set __including_page]
+      set package_url [::[$page package_id] package_url]
+      set package_url_data " data-package_url='$package_url' data-folder_id='[$page parent_id]'"
+    } else {
+      set package_url_data ""
+    }
+
+    return [subst {<div id='[$tree id]' $package_url_data>
+      <ul id='$id' class='$css_class'>[next]
+      </ul></div>
+    }]
   }
   TreeRenderer=listdnd instproc render_node {{-open:boolean false} cat_content} {
+    #:log "=== TreeRenderer=listdnd render_node $cat_content"
     #set open_state [expr {${:open_requests} > 0 ?"class='liOpen'" : "class='liClosed'"}]
-    #set cl [lindex [:info precedence] 0]
-    set obj ${:object}
-    set o [:owner]
-    $obj instvar page_order
-    set :li_id [::xowiki::Includelet js_name [$o set id]_$page_order]
-    set :ul_id [::xowiki::Includelet js_name [$o set id]__l${:level}_$page_order]
+    ${:object} instvar page_order
 
-    set cl [self class]
-    $cl append js "\nYAHOO.xo_page_order_region.DDApp.cd\['${:li_id}'\] = '$page_order';"
+    set :li_id [::xowiki::Includelet js_name [${:owner} set id]_$page_order]
+    set :ul_id [::xowiki::Includelet js_name [${:owner} set id]__l${:level}_$page_order]
 
-    array set "" [$cl set context]
-    set :ul_class [expr {[info exists (min_level)] && ${:level} >= $(min_level) ?
-                           "page_order_region" : "page_order_region_no_target"}]
+    set min_level [[self class] min_level]
+    set reorder_child [expr {$min_level ne "" && ${:level} >= $min_level}]
+    set reorder_self [expr {$min_level ne "" && ${:level} > $min_level}]
+    #:log "=== render_node $page_order min_level $min_level level ${:level} reorder_child $reorder_child reorder_self $reorder_self"
+
+    if {$reorder_child} {
+      foreach event {drop dragover dragleave} {
+        [self class] add_handler -id ${:ul_id} -event $event
+      }
+      set :ul_class "page_order_region"
+    } else {
+      set :ul_class "page_order_region_no_target"
+    }
+    if {$reorder_self} {
+      set :li_atts [subst {data-value='$page_order' draggable='true'}]
+      [self class] add_handler -id ${:li_id} -event dragstart
+    }
+    set :ul_id [::xowiki::Includelet js_name [${:owner} set id]__l${:level}_$page_order]
+
     return [next]
   }
 
@@ -462,7 +554,7 @@ namespace eval ::xowiki {
   # Tree renderer based on a section structure
   #--------------------------------------------------------------------------------
   TreeRenderer create TreeRenderer=sections \
-      -superclass TreeRenderer=list 
+      -superclass TreeRenderer=list
   TreeRenderer=sections instproc render_item {{-highlight:boolean false} item} {
     $item instvar title href
     set prefix [$item set prefix]
@@ -487,7 +579,7 @@ namespace eval ::xowiki {
   #--------------------------------------------------------------------------------
   # Bootstrap tree renderer based on
   # http://jonmiles.github.io/bootstrap-treeview/
-  #--------------------------------------------------------------------------------  
+  #--------------------------------------------------------------------------------
 
   TreeRenderer create TreeRenderer=bootstrap3
   TreeRenderer=bootstrap3 proc include_head_entries {args} {
@@ -498,8 +590,7 @@ namespace eval ::xowiki {
     security::csp::require script-src cdnjs.cloudflare.com
   }
 
-  TreeRenderer=bootstrap3 proc render {tree} {
-    if {${:verbose}} {:log "TreeRenderer=bootstrap3 p=[:info precedence]"}
+  TreeRenderer=bootstrap3 proc render {{-properties ""} tree} {
     set jsTree [string trimright [next] ", \n"]
     set id [$tree id]
     set options ""
@@ -548,23 +639,29 @@ namespace eval ::xowiki {
 
   #--------------------------------------------------------------------------------
   # Bootstrap3 tree renderer with folder structure
-  #--------------------------------------------------------------------------------  
+  #--------------------------------------------------------------------------------
   TreeRenderer create TreeRenderer=bootstrap3-folders -superclass TreeRenderer=bootstrap3
-  TreeRenderer=bootstrap3-folders proc render {tree} {
+  TreeRenderer=bootstrap3-folders proc render {{-properties ""} tree} {
     set jsTree [string trimright [next] ", \n"]
     set id [$tree id]
-    set options ""
-    lappend options \
-        "expandIcon: 'glyphicon glyphicon-folder-close'" \
-        "collapseIcon: 'glyphicon glyphicon-folder-open'" \
-        "enableLinks: true"
+    set options [list "enableLinks: true"]
+    # see list of possible icons: https://github.com/jonmiles/bootstrap-treeview
+    if {[::xowiki::CSS toolkit] eq "bootstrap5"} {
+      lappend options \
+          "expandIcon: 'glyphicon glyphicon-none'" \
+          "collapseIcon: 'bi bi-folder2-open'"
+      #"expandIcon: 'bi bi-folder'"
+    } else {
+      lappend options \
+          "expandIcon: 'glyphicon glyphicon-none'" \
+          "collapseIcon: 'glyphicon glyphicon-folder-open'"
+    }
     template::add_body_script -script "\n\$('#$id').treeview({data: \[$jsTree\], [join $options ,] });"
     return "<div id='$id'></div>"
   }
 
-  
 }
-::xo::library source_dependent 
+::xo::library source_dependent
 
 #
 # Local variables:
