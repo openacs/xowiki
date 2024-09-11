@@ -1,0 +1,14 @@
+::xowiki::Page new -title "Book" -text {
+{{set-parameter template_file view-default}}
+<p></p>
+>>left-col25<<
+{{toc -decoration plain -book_mode 1 -expand_all 1}}
+>><<
+
+>>right-col75<<
+<h1>@title@</h1> 
+<p>Creator: <strong>@creator@</strong></p> 
+{{book -menu_buttons "edit copy create delete"}}
+>><<
+
+}

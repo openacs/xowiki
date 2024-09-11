@@ -1,0 +1,13 @@
+# -*- tcl-*-
+# $Id$
+::xowiki::Object new -title "Ajax Chat" -text {
+
+  proc content {} {
+    #::xowiki::Chat login -chat_id 22 -mode polling
+    ::xowiki::Chat login -chat_id 22
+  }
+
+}
+
+
+

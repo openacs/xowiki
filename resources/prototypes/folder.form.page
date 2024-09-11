@@ -1,0 +1,11 @@
+# -*- tcl-*-
+::xowiki::Form new \
+    -set name en:folder.form \
+    -title "Folder Form" \
+    -set anon_instances t \
+    -set text {@_description@} \
+    -set form {{<form>@_description@ @index@ @extra_menu_entries@</form>} text/plain} \
+    -set form_constraints {extra_menu_entries:menuentries _nls_language:omit _name:required _page_order:omit _title:localized_text _description:richtext,default={{child-resources}},label=Content}
+
+
+

@@ -1,0 +1,7 @@
+# -*- tcl-*-
+::xowiki::Object new -title "sitemap.xml" -set publish_status production -text {
+  proc content {} { [my package_id] google-sitemap }
+}
+
+
+

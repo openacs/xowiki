@@ -1,0 +1,161 @@
+# -*- tcl-*-
+# $Id$
+::xowiki::Object new -title "News" -text {
+  #
+  # A sample News object.
+  #
+  my initialize -parameter {
+    {-page_size:integer 10}
+    {-page_number:integer 1}
+    {-summary:boolean 0}
+    {-date ""}
+    {-tag ""}
+    {-ptag ""}
+    {-entries_of en:news-item.form|en:announcement-talk.form|en:announcement-workshop.form}
+  }
+
+  my get_parameters
+  #
+  # Don't add the footer (with tags, general comments, etc.) to the
+  # aggregated page, since this can be confusing..
+  #
+  [my info parent] set __no_footer 1
+
+  #
+  # get current folder
+  #
+  set folder_form_id [::xowiki::Weblog instantiate_forms -forms en:folder.form -package_id $package_id]
+  set current_folder [[my info parent] get_folder -folder_form_ids $folder_form_id]
+  my set current_folder_id [$current_folder item_id]
+ 
+  # Provide a tailored link for creating new pages in the wiki menu
+  #
+  set forms [::xowiki::Weblog instantiate_forms -parent_id [my set current_folder_id] \
+                 -forms $entries_of \
+                 -package_id $package_id]
+  set template_id [lindex $forms 0]
+  if {$template_id ne ""} {
+    set form_link [$template_id pretty_link]
+    set new_link  [$package_id make_link -link $form_link $template_id create-new return_url]
+  } else {
+    ns_log notice "Warning: could not resolve $entries_of with -parent_id [my set current_folder_id]"
+    set form_link ""
+    set new_link ""
+  }
+  
+  [my info parent] set __link(new) $new_link
+
+  #
+  # The following definition is the default rendering per 
+  # news entry. This is executed in the context of every displayed page.
+  #
+  Class create EntryRenderer -instproc render {} {
+    my instvar package_id name title creator creation_user pretty_date description publish_date
+    [my set __parent] instvar weblog_obj
+
+    set link [my detail_link]
+    regsub -all & $link "&amp;" link
+    set more [expr {[$weblog_obj summary] ? 
+                    " <span class='more'> \[<a href='[ns_quotehtml $link]'>#xowiki.weblog-more#</a>\]</span>" : ""}]
+    #append more "<p></p>"
+    set day [lc_time_fmt [my set publish_date] "%x"]
+    set my_footer [my htmlFooter]
+
+    set edit_button [my include [list edit-item-button -book_mode true]]
+    if {$edit_button ne ""} {set edit_button "<div style='float: right'>$edit_button</div>"}
+    append content "<DIV class='news-item' style='clear: both;'>" $edit_button \
+        "<div class='item-header'><h2><a href='[ns_quotehtml $link]'>[ns_quotehtml $title]</a></h2>" \
+        "&nbsp;<span class='date'>($day)</span></div>\n" \
+        $description $more $my_footer \n\
+        "</DIV>"
+  }
+
+  #
+  # The following definition is the renderer for the aggregated content.
+  # This is executed in the context of the whole weblog object
+  #
+  Class create NewsRenderer -instproc render {} {
+    my instvar filter_msg link name prev_page_link next_page_link title package_id
+
+    set filter ""
+    set prev ""
+    set next ""
+    
+    if {[info exists filter_msg]} {
+      set filter  "<div class='filter'>$filter_msg</div>"
+    } 
+    if {[info exists prev_page_link]} {
+	set prev "<a href='[ns_quotehtml $prev_page_link]'>\
+        <img border='0' src='/resources/acs-subsite/left.gif' width='13' height='13' \
+             alt='Previous Page' style='float: left;  top: 0px;'></a>"
+    }
+    if {[info exists next_page_link]} {
+	set next "<a href='[ns_quotehtml $next_page_link]'>\
+        <img border='0' src='/resources/acs-subsite/right.gif' width='13' height='13' \
+             alt='Next Page' style='float: left;  top: 0px;'></a>"
+    }
+    #
+    # Include the RSS Button
+    #
+    set page [my set __page]
+    set rss [$page include "rss-button -title {[$page title]} -entries_of [my entries_of] -decoration none"]
+    #
+    # If the user has creation rights (on the first form), include the RSS Bookmarklet button
+    #
+    if {[my exists form_ids] && [my set form_ids] ne ""} {
+      set can_create_news_item [$package_id make_link [lindex [my set form_ids] 0] create-new return_url]
+      if {$can_create_news_item ne ""} {
+        append rss "Bookmarklet: " [$page include "bookmarklet-button -label {[$page title]}"]
+      }
+    }
+
+    return "<div class='weblog'> $filter [next] $prev $next <br>$rss</div>"
+  }
+  
+  my proc content {} {
+    my get_parameters
+    set page [my info parent]
+
+    if {[$page exists __including_page]} {
+      set i [$page set __including_page]
+      set exclude_item_ids [$i item_id]
+      $i set render_adp 0  ;# no double substitutions
+      #my log "--W including page $i"
+    } else {
+      #my log "--W NO including page"
+      set exclude_item_ids [$page item_id]
+    }
+
+    # on the news page, an edit-new should not create an object
+    ::xo::cc set_parameter object_type ::xowiki::Page
+    ::xo::cc set_parameter autoname 1
+
+    # use the above defined custom renderers
+    set renderer       [self]::NewsRenderer
+    set entry_renderer [self]::EntryRenderer 
+    
+    set w [::xowiki::Weblog new -destroy_on_cleanup \
+               -package_id $package_id \
+               -parent_id [my set current_folder_id] \
+               -page_size $page_size \
+               -page_number $page_number \
+               -summary $summary \
+               -date $date \
+               -category_id [ns_queryget category_id] \
+               -tag $tag \
+               -ptag $ptag \
+               -entry_label "News Articles" \
+               -exclude_item_ids $exclude_item_ids \
+               -entry_renderer $entry_renderer \
+               -entry_flag __no_form_page_footer \
+               -entries_of $entries_of \
+              ]
+    $w set __page $page
+    $w mixin add $renderer
+    return [$w render]
+  }
+  
+}
+
+
+
