@@ -313,6 +313,22 @@ xowiki.repeat.delItem = function(e, json) {
                     }
                 }
             }
+            //
+            // TinyMCE logics, similar to those for CKEditor above:
+            // for all fields we are going to delete/move, persist
+            // their value in the form field and remove the richtext
+            // editor from them. Will be added again by the logics in
+            // render_input.
+            //
+            if (typeof window.tinyMCE != "undefined") {
+                for (const el of document.querySelectorAll(`[id^='${oldid}'], [id^='${newid}']`)) {
+                    const editor = window.tinyMCE.get(el.id);
+                    // console.log(el.id, editor);
+                    if (!editor) {continue;}
+                    el.innerHTML = editor.getContent();
+                    editor.remove();
+                }
+            }
             //console.log(j + ' becomes ' + k + ': ' + divs[k].innerHTML);
             divs[j].innerHTML = divs[k].innerHTML;
 
