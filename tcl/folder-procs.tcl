@@ -591,13 +591,15 @@ namespace eval ::xowiki::includelet {
 
     set t [$tableWidgetClass new -volatile -skin $skin \
                -columns {
-                 BulkAction create objects -id ID -hide $::hidden(objects) -actions {
-                   if {$::__xowiki_folder_link ne ""} {
-                     Action bulk-delete \
-                         -label [_ xowiki.delete] \
-                         -tooltip [_ xowiki.Delete_selected] \
-                         -url $::__xowiki_folder_link \
-                         -confirm_message [_ xowiki.delete_confirm]
+                 if {!$::hidden(objects)} {
+                   BulkAction create objects -id ID -actions {
+                     if {$::__xowiki_folder_link ne ""} {
+                       Action bulk-delete \
+                           -label [_ xowiki.delete] \
+                           -tooltip [_ xowiki.Delete_selected] \
+                           -url $::__xowiki_folder_link \
+                           -confirm_message [_ xowiki.delete_confirm]
+                     }
                    }
                  }
 
