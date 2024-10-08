@@ -135,7 +135,7 @@ namespace eval ::xowiki::includelet {
     }
   }
   ::xowiki::Includelet proc available_includelets {} {
-    if {[array exists :html]} {array unset :html}
+    unset -nocomplain :html
     :describe_includelets [::xowiki::Includelet info subclass]
     set result "<ul>"
     foreach d [lsort [array names :html]] {

@@ -177,8 +177,7 @@ namespace eval ::xowiki::notification {
 
     foreach cat_id [category::get_mapped_categories [$page set item_id] ] {
       set tree_id [category::get_tree $cat_id]
-      array unset cat
-      array unset label
+      unset -nocomplain cat label
       foreach category_info [::xowiki::Category get_category_infos \
                                  -tree_id $tree_id] {
         lassign $category_info category_id category_label deprecated_p level

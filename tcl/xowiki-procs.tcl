@@ -3323,7 +3323,7 @@ namespace eval ::xowiki {
     #
     # Flush all cached form_field_names.
     #
-    array unset ::_form_field_names
+    unset -nocomplain ::_form_field_names
   }
 
   Page instproc form_field_exists {name} {
