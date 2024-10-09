@@ -174,9 +174,10 @@ aa_register_case \
             aa_log $msg
         }
         test proc reset {} {
-            array unset ::xotcl_cleanup
-            array unset ::af_parts
-            array unset ::af_key_name
+          unset -nocomplain \
+              ::xotcl_cleanup \
+              ::af_parts \
+              ::af_key_name
         }
         test proc without_ns_form {cmd} {
             rename ::ns_queryget ::ns_queryget.orig
@@ -1324,7 +1325,7 @@ aa_register_case \
 
         set l ":de:parentpage"
         set test [label "link" "existing language link" $l]
-        p array unset lang_links
+        p unset -nocomplain lang_links
         set link [p create_link $l]
         ? {$link render} {} "\n$test\n "
         ? {p array get lang_links} [subst -nocommands {found {{<a href='/$instance_name/de/parentpage' ><img class='found'  src='/resources/xowiki/flags/de.png' alt='de'></a>}}}] "\n$test links\n "
