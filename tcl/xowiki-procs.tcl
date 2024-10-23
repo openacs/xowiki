@@ -656,7 +656,15 @@ namespace eval ::xowiki {
         -package_key xowiki \
         -parameter Cache \
         -default_size 600000 \
-        -partitions 2
+        -partitions 2 {
+          #
+          # Xowiki cache. This partitioned cache is used for various
+          # caching purposes for xowiki. It is used for example for
+          # caching includlets (when requested), or for full file
+          # names of xowiki::File objects.  In case of bottlenecks,
+          # increase the number of partitions and the cache size.
+          #          
+        }
   }
 
   #############################

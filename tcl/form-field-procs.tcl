@@ -2118,7 +2118,7 @@ namespace eval ::xowiki::formfield {
     }
 
     #
-    # Make sure that we do not mis-interprete spaces in paths or file
+    # Make sure that we do not mis-interpret spaces in paths or file
     # names in the foreach loop.
     #
     if {[llength ${:content-type}] == 1} {
@@ -3501,7 +3501,7 @@ namespace eval ::xowiki::formfield {
     #
     # The default for the :preset variable is set to "standard", but
     # may be overridden by subclasses. This provides a hook for
-    # site-wide customization via a tcl proc, which enables to inject
+    # site-wide customization via a Tcl proc, which enables to inject
     # e.g. information coming from the connection context or other tcl
     # commands, not possible via parameter alone.
     #

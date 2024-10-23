@@ -10,7 +10,6 @@
 namespace eval ::xowiki {
 
   nx::Class create ::xowiki::Mode {
-
     #
     # Mode handler to set for the current session some application
     # specific mode (like e.g. admin-mode, developer-mode,
@@ -63,6 +62,10 @@ namespace eval ::xowiki {
   # Create a sample "admin" mode handler.
   #
   ::xowiki::Mode create ::xowiki::mode::admin {
+    #
+    # Sample admin mode handler object to toggle "admin" mode on and
+    # off.
+    #
     :public object method default {} {
       # Admins are per default in admin-mode
       return [::xo::cc permission \

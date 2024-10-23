@@ -10,6 +10,11 @@
 
 namespace eval ::xowiki {
   nx::Object create ::xowiki::CSS {
+    #
+    # CSS property manager. This class is used for agnostic handling
+    # of icons, CSS class names, or styling preferences of a
+    # subsite/instance.
+    #
     :public object method clear {} {
       #
       # Clear the cached toolkit name, such that it is reloads the

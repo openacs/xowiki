@@ -1463,7 +1463,7 @@ namespace eval ::xowiki::test {
 
                 #
                 # On a standard installation, the page title is set to
-                # the (potentially unvalidated) FormPage title. Here
+                # the (potentially no yet validated) FormPage title. Here
                 # we make sure that our injection attempt has not been
                 # rendered "raw" to the client.
                 #
