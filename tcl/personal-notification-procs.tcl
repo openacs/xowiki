@@ -105,7 +105,7 @@ namespace eval ::xowiki::includelet {
   } {
     Create a bootstrap3/5-compatible modal dialog
   } {
-    if {[::xowiki::CSS toolkit] eq "bootstrap5"} {
+    if {[::template::CSS toolkit] eq "bootstrap5"} {
       set data_attribute "data-bs"
       set close_button_label ""
       set before_close  "<h4 class='modal-title' id='configurationModalTitle'>$title</h4>"
@@ -129,7 +129,7 @@ namespace eval ::xowiki::includelet {
     foreach to_user_id $to_user_id {
       append input_fields [subst {<input type="hidden" name="to_user_id" value="$to_user_id">}]
     }
-    set btnDefault [::xowiki::CSS class btn-default]
+    set btnDefault [::template::CSS class btn-default]
     return [list link [subst {
       <a href="#$id" title="$title" role="button" $data_attribute-toggle="modal" $data_attribute-keyboard="false">
       <adp:icon name="$adpicon" aria-hidden="true"></span>
@@ -139,7 +139,7 @@ namespace eval ::xowiki::includelet {
 <form role="form" class="form-vertical" method="post" action="">
   <div class="modal-content">
     <div class="modal-header">
-      $before_close<button type="button" class="[xowiki::CSS class close]"
+      $before_close<button type="button" class="[template::CSS class close]"
       $data_attribute-dismiss="modal" aria-label="Close">$close_button_label
       </button>$after_close
     </div><!-- modal-header -->
@@ -211,7 +211,7 @@ namespace eval ::xowiki::includelet {
     #
 
     # Create Bootstrap3/5 compatible attributes
-    if {[::xowiki::CSS toolkit] eq "bootstrap5"} {
+    if {[::template::CSS toolkit] eq "bootstrap5"} {
       set data_attribute "data-bs"
       set close_button_label ""
     } else {
@@ -242,7 +242,7 @@ namespace eval ::xowiki::includelet {
                 if (inclass_exam_messages_ts.indexOf(data.ts) == -1) {
                   var alert = 'alert-' + data.urgency;
                   block = '<div class="alert ' + alert + ' alert-dismissible" style="width:50%">'
-                  + '<button id="ts' + data.ts + '" data-ts="' +  data.ts + '" href="#" class="[::xowiki::CSS class close]" '
+                  + '<button id="ts' + data.ts + '" data-ts="' +  data.ts + '" href="#" class="[::template::CSS class close]" '
                   + '$data_attribute-dismiss="alert" aria-label="close">$close_button_label</button>'
                   + '<strong>' + data.from +':</strong> <span>' + data.text + '</span>'
                   + '</div>';
@@ -253,7 +253,7 @@ namespace eval ::xowiki::includelet {
                 el.innerHTML += block;
               }
             });
-            document.querySelectorAll('button.[::xowiki::CSS class close]').forEach(function(e) {
+            document.querySelectorAll('button.[::template::CSS class close]').forEach(function(e) {
               //console.log('register dismiss handler ts '+ e.dataset.ts);
               e.removeEventListener('click', inclass_exam_dismiss_handler);
               e.addEventListener('click', inclass_exam_dismiss_handler);

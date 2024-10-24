@@ -641,7 +641,7 @@ namespace eval ::xowiki {
     if {$compare_id == 0} {
       return ""
     }
-    ::xo::Page requireCSS urn:ad:css:xowiki-[::xowiki::CSS toolkit]
+    ::xo::Page requireCSS urn:ad:css:xowiki-[::template::CSS toolkit]
 
     set my_page [::xowiki::Package instantiate_page_from_id -revision_id ${:revision_id}]
 
@@ -2169,7 +2169,7 @@ namespace eval ::xowiki {
       # requireCSS are typically loaded later than those from the theme.
 
       template::head::add_css \
-          -href urn:ad:css:xowiki-[::xowiki::CSS toolkit] \
+          -href urn:ad:css:xowiki-[::template::CSS toolkit] \
           -order 0
 
       #

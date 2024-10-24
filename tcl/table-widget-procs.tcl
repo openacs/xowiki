@@ -104,7 +104,7 @@ namespace eval ::xowiki {
     if {$renderer ne ""} {
       lappend cmd -renderer $renderer
     } else {
-      switch [::xowiki::CSS toolkit] {
+      switch [::template::CSS toolkit] {
         bootstrap -
         bootstrap5 {set renderer BootstrapTableRenderer}
         default    {set renderer YUIDataTableRenderer}

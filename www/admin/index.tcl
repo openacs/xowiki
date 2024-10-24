@@ -14,7 +14,7 @@ set context [list]
 set pretty_plural [$object_type set pretty_plural]
 set title [_ xowiki.admin_all_title]
 
-set CSSToolkit [::xowiki::CSS toolkit]
+set CSSToolkit [::template::CSS toolkit]
 if {$CSSToolkit eq "bootstrap"} {
   template::head::add_css -href urn:ad:css:bootstrap3
 }

@@ -3910,7 +3910,7 @@ namespace eval ::xowiki {
     #
     set name ""
     if {$margin_form} {
-      set css [::xowiki::CSS class margin-form]
+      set css [::template::CSS class margin-form]
       if {$css ne ""} {
         set name "$css "
       }
@@ -4291,7 +4291,7 @@ namespace eval ::xowiki {
     if {$root ne ""} {
       :dom_disable_input_fields -with_submit $with_submit $root
       set form [lindex [$root selectNodes //form] 0]
-      set marginForm [::xowiki::CSS class "margin-form"]
+      set marginForm [::template::CSS class "margin-form"]
       if {$marginForm ne ""} {
         Form add_dom_attribute_value $form class $marginForm
       }

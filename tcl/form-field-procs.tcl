@@ -600,7 +600,7 @@ namespace eval ::xowiki::formfield {
 
     if {[string match "*bootstrap*" [subsite::get_theme]]} {
       # TODO: we need a better solution for this
-      if {[::xowiki::CSS toolkit] eq "bootstrap5"
+      if {[::template::CSS toolkit] eq "bootstrap5"
           && ([:hasclass ::xowiki::formfield::radio] || [:hasclass ::xowiki::formfield::checkbox])
         } {
         array set :html {class "form-check-input"}
@@ -772,7 +772,7 @@ namespace eval ::xowiki::formfield {
       } else {
         set CSSclass form-label
       }
-      if {[::xowiki::CSS toolkit] eq "bootstrap5"} {
+      if {[::template::CSS toolkit] eq "bootstrap5"} {
         ::html::label -class "${:form_label_CSSclass} [lindex [split ${:name} .] end]" -for ${:id} {
           ::html::t ${:label}
         }
@@ -1351,7 +1351,7 @@ namespace eval ::xowiki::formfield {
               :$inner_method
             }
             ::html::div -class "modal-footer" {
-              ::html::button -type "button" -class "btn [::xowiki::CSS class btn-default]" -data-dismiss "modal" {
+              ::html::button -type "button" -class "btn [::template::CSS class btn-default]" -data-dismiss "modal" {
                 ::html::t Close
               }
             }
@@ -2228,7 +2228,7 @@ namespace eval ::xowiki::formfield {
     # and requires in non-bootstrap cases styling.
     #
     #if {[info exists :choose_file_label]} {
-    #  ::html::label -for ${:id} -class "btn [::xowiki::CSS class btn-default]" {
+    #  ::html::label -for ${:id} -class "btn [::template::CSS class btn-default]" {
     #    ::html::span -class upload-btn-label {
     #      ::html::t ${:choose_file_label}
     #    }
@@ -5040,7 +5040,7 @@ namespace eval ::xowiki::formfield {
       if {$value eq $rep} {
         lappend atts checked checked
       }
-      if {1 || ${:horizontal}} {lappend label_class [::xowiki::CSS class radio-inline]}
+      if {1 || ${:horizontal}} {lappend label_class [::template::CSS class radio-inline]}
       ::html::label -for $id -class $label_class {
         ::html::input $atts {}
         :render_label_text $label $label_class $description
@@ -5091,7 +5091,7 @@ namespace eval ::xowiki::formfield {
       if {[string is list -strict $value] && $rep in $value} {
         lappend atts checked checked
       }
-      if {1 || ${:horizontal}} {lappend label_class [::xowiki::CSS class checkbox-inline]}
+      if {1 || ${:horizontal}} {lappend label_class [::template::CSS class checkbox-inline]}
       ::html::label -for $id -class $label_class {
         ::html::input $atts {}
         :render_label_text $label $label_class $description
@@ -7041,7 +7041,7 @@ namespace eval ::xowiki::formfield {
 # Make sure, when we reload the form-fields to reset the
 # toolkit-specific form-field parameter as well.
 #
-::xowiki::CSS clear
+::template::CSS clear
 
 ::xo::library source_dependent
 

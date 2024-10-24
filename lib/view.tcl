@@ -38,7 +38,7 @@ if {[info exists url]} {
 }
 
 template::head::add_css \
-    -href urn:ad:css:xowiki-[::xowiki::CSS toolkit]
+    -href urn:ad:css:xowiki-[::template::CSS toolkit]
 
 set html [::$package_id invoke -method $m]
 

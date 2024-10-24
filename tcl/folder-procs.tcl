@@ -42,7 +42,7 @@ namespace eval ::xowiki::includelet {
       }
 
   folders instproc include_head_entries {} {
-    switch [::xowiki::CSS toolkit] {
+    switch [::template::CSS toolkit] {
       yui     {::xowiki::Tree include_head_entries -renderer yuitree -style folders}
       bootstrap -
       default { ::xowiki::Tree include_head_entries -renderer bootstrap3 }
@@ -53,7 +53,7 @@ namespace eval ::xowiki::includelet {
     :get_parameters
 
     set tree [:build_tree]
-    switch [::xowiki::CSS toolkit] {
+    switch [::template::CSS toolkit] {
       yui {
            set js "
            var [:js_name];
@@ -583,7 +583,7 @@ namespace eval ::xowiki::includelet {
     set ::__xowiki_folder_link [::$package_id make_link \
                                     -link $current_folder_pretty_link \
                                     $current_folder bulk-delete $csrf return_url]
-    switch [::xowiki::CSS toolkit] {
+    switch [::template::CSS toolkit] {
       bootstrap5 -
       bootstrap {set tableWidgetClass ::xowiki::BootstrapTable}
       default   {set tableWidgetClass ::xowiki::YUIDataTable}

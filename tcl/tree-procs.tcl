@@ -646,7 +646,7 @@ namespace eval ::xowiki {
     set id [$tree id]
     set options [list "enableLinks: true"]
     # see list of possible icons: https://github.com/jonmiles/bootstrap-treeview
-    if {[::xowiki::CSS toolkit] eq "bootstrap5"} {
+    if {[::template::CSS toolkit] eq "bootstrap5"} {
       lappend options \
           "expandIcon: 'glyphicon glyphicon-none'" \
           "collapseIcon: 'bi bi-folder2-open'"

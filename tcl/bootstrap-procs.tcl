@@ -34,7 +34,7 @@ namespace eval ::xowiki {
 
   BootstrapNavbar instproc init {} {
     ::xo::Page requireJS urn:ad:js:jquery
-    ::xowiki::CSS require_toolkit -css -js
+    ::template::CSS require_toolkit -css -js
     next
   }
 
@@ -43,7 +43,7 @@ namespace eval ::xowiki {
     http://getbootstrap.com/components/#navbar
   } {
     html::nav \
-        -class [xowiki::CSS classes ${:navbarClass}] \
+        -class [template::CSS classes ${:navbarClass}] \
         -role "navigation" \
         -style "background-color: #f8f9fa;" {
           #
@@ -61,7 +61,7 @@ namespace eval ::xowiki {
               }
             }
             if {[llength $rightMenuEntries] > 0} {
-              html::ul -class "nav navbar-nav [::xowiki::CSS class navbar-right]" {
+              html::ul -class "nav navbar-nav [::template::CSS class navbar-right]" {
                 foreach entry $rightMenuEntries {
                   $entry render
                 }
@@ -93,7 +93,7 @@ namespace eval ::xowiki {
       if {${:brand}} {
         lappend class "navbar-brand"
       }
-      set data_attribute [expr {[::xowiki::CSS toolkit] eq "bootstrap5" ? "data-bs" : "data"}]
+      set data_attribute [expr {[::template::CSS toolkit] eq "bootstrap5" ? "data-bs" : "data"}]
       html::a -href "\#" -class $class -$data_attribute-toggle "dropdown" {
         html::t ${:text}
       }
@@ -402,7 +402,7 @@ namespace eval ::xowiki {
       }
 
   BootstrapCollapseButton instproc render {} {
-    switch [::xowiki::CSS toolkit] {
+    switch [::template::CSS toolkit] {
       "bootstrap" {
         template::add_script -src urn:ad:js:bootstrap3
         ::html::button -type button -class "btn btn-xs" -data-toggle ${:toggle} -data-target "#${:id}" {
@@ -578,7 +578,7 @@ namespace eval ::xo::Table {
           foreach bulk_action $bulkactions {
             set id [::xowiki::Includelet html_id $bulk_action]
             html::li {
-              html::a -class [::xowiki::CSS class bulk-action] -rule button \
+              html::a -class [::template::CSS class bulk-action] -rule button \
                   -title [$bulk_action tooltip] -href # \
                   -id $id {
                     html::t [$bulk_action label]
@@ -605,7 +605,7 @@ namespace eval ::xo::Table {
   }
 
   BootstrapTableRenderer instproc render {} {
-    ::xowiki::CSS require_toolkit -css
+    ::template::CSS require_toolkit -css
 
     if {![nsf::is object [self]::__actions]} {:actions {}}
     if {![nsf::is object [self]::__bulkactions]} {:__bulkactions {}}
@@ -700,9 +700,9 @@ namespace eval ::xowiki::bootstrap {
     @return HTML
   } {
     return [ns_trim -delimiter | [subst {
-      |<div class="[xowiki::CSS class card] $CSSclass">
-      |  <div class="[xowiki::CSS class card-header]">$title</div>
-      |  <div class="[xowiki::CSS class card-body]">$body</div>
+      |<div class="[template::CSS class card] $CSSclass">
+      |  <div class="[template::CSS class card-header]">$title</div>
+      |  <div class="[template::CSS class card-body]">$body</div>
       |</div>
     }]]
   }
@@ -717,10 +717,10 @@ namespace eval ::xowiki::bootstrap {
     @return HTML
   } {
     #<span class="glyphicon glyphicon-cog" aria-hidden="true" style="float: right;"></span>
-    set name [xowiki::CSS class $name]
+    set name [template::CSS class $name]
     set styleAtt [expr {[info exists style] ? "style='$style'" : ""}]
     set CSSclass [expr {[info exists CSSclass] ? " $CSSclass" : ""}]
-    switch [::xowiki::CSS toolkit] {
+    switch [::template::CSS toolkit] {
       "bootstrap" {
         return [subst {<span class="glyphicon glyphicon-$name$CSSclass" aria-hidden="true" $styleAtt></span>}]
       }
@@ -748,7 +748,7 @@ namespace eval ::xowiki::bootstrap {
     if {$subtitle ne ""} {
       set subtitle [subst {<p class="modal-subtitle">$subtitle</p>}]
     }
-    if {[::xowiki::CSS toolkit] eq "bootstrap5"} {
+    if {[::template::CSS toolkit] eq "bootstrap5"} {
       set data_attribute "data-bs"
       ::security::csp::require img-src data:
       set close_button_label ""
@@ -767,7 +767,7 @@ namespace eval ::xowiki::bootstrap {
       |  <div class="modal-dialog" role="document">
       |    <div class="modal-content">
       |      <div class="modal-header">
-      |        $before_close<button type="button" class="[xowiki::CSS class close]"
+      |        $before_close<button type="button" class="[template::CSS class close]"
       |           $data_attribute-dismiss="modal" aria-label="Close">$close_button_label
       |        </button>$after_close
       |      </div>
@@ -777,7 +777,7 @@ namespace eval ::xowiki::bootstrap {
       |        </form>
       |      </div>
       |      <div class="modal-footer">
-      |        <button type="button" class="btn [::xowiki::CSS class btn-default]"
+      |        <button type="button" class="btn [::template::CSS class btn-default]"
       |                $data_attribute-dismiss="modal">#acs-kernel.common_Cancel#
       |        </button>
       |        <button id="$id-confirm" type="button" class="btn btn-primary confirm"
@@ -805,7 +805,7 @@ namespace eval ::xowiki::bootstrap {
 
     @return HTML markup
   } {
-    if {[::xowiki::CSS toolkit] eq "bootstrap5"} {
+    if {[::template::CSS toolkit] eq "bootstrap5"} {
       set data_attribute "data-bs"
     } else {
       set data_attribute "data"

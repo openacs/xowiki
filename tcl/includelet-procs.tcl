@@ -36,7 +36,7 @@ namespace eval ::xowiki::includelet {
       }
 
   ::xowiki::Includelet instproc tableWidget {} {
-    return [expr {[::xowiki::CSS toolkit] in {bootstrap5 bootstrap}
+    return [expr {[::template::CSS toolkit] in {bootstrap5 bootstrap}
                   ? "::xowiki::BootstrapTable"
                   : "TableWidget" }]
   }
@@ -602,19 +602,19 @@ namespace eval ::xowiki::includelet {
                     : $localized_title}]
     ::xo::render_localizer
 
-    switch [::xowiki::CSS toolkit] {
+    switch [::template::CSS toolkit] {
       bootstrap -
       bootstrap5 {
         if {$link ne ""} {
           set template [ns_trim -delimiter | {
-            |<div class="[xowiki::CSS class card]">
-            |  <div class="[xowiki::CSS class card-header]">$link</div>
-            |  <div $id class="[xowiki::CSS class card-body]">$html</div>
+            |<div class="[template::CSS class card]">
+            |  <div class="[template::CSS class card-header]">$link</div>
+            |  <div $id class="[template::CSS class card-body]">$html</div>
             |</div>}]
         } else {
           set template [ns_trim -delimiter | {
-            |<div class="[xowiki::CSS class card]">
-            |  <div $id class="[xowiki::CSS class card-body]">$html</div>
+            |<div class="[template::CSS class card]">
+            |  <div $id class="[template::CSS class card-body]">$html</div>
             |</div>}]
         }
       }

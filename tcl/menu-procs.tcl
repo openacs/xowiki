@@ -609,7 +609,7 @@ namespace eval ::xowiki {
   }
 
   ::xowiki::MenuBar instproc render-preferred {} {
-    switch [::xowiki::CSS toolkit] {
+    switch [::template::CSS toolkit] {
       bootstrap -
       bootstrap5 {set menuBarRenderer render-bootstrap}
       default    {set menuBarRenderer render-yui}
