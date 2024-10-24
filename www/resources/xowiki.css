@@ -37,6 +37,7 @@ div.portlet #wikicmds {float: inherit ! important; top: 0px ! important; height:
 
 div.xowiki-content {
     font: 10pt Verdana, Arial, Helvetica, sans-serif;
+    margin-top: 24px;
 }
 
 /* appearance of link types */
