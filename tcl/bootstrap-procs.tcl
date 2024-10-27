@@ -767,9 +767,9 @@ namespace eval ::xowiki::bootstrap {
       |  <div class="modal-dialog" role="document">
       |    <div class="modal-content">
       |      <div class="modal-header">
-      |        $before_close<button type="button" class="[template::CSS class close]"
-      |           $data_attribute-dismiss="modal" aria-label="Close">$close_button_label
-      |        </button>$after_close
+      |        $before_close<adp:button type="button" class="close"
+      |           data-dismiss="modal" aria-label="Close">$close_button_label
+      |        </adp:button>$after_close
       |      </div>
       |      <div class="modal-body">$subtitle
       |        <form class="form-horizontal" id="configuration-form" role="form" action="#" method="post">
@@ -777,12 +777,12 @@ namespace eval ::xowiki::bootstrap {
       |        </form>
       |      </div>
       |      <div class="modal-footer">
-      |        <button type="button" class="btn [::template::CSS class btn-default]"
-      |                $data_attribute-dismiss="modal">#acs-kernel.common_Cancel#
-      |        </button>
-      |        <button id="$id-confirm" type="button" class="btn btn-primary confirm"
-      |                $data_attribute-dismiss="modal">#acs-subsite.Confirm#
-      |        </button>
+      |        <adp:button type="button" class="btn btn-default"
+      |                data-dismiss="modal">#acs-kernel.common_Cancel#
+      |        </adp:button>
+      |        <adp:button id="$id-confirm" type="button" class="btn btn-primary confirm"
+      |                data-dismiss="modal">#acs-subsite.Confirm#
+      |        </adp:button>
       |      </div>
       |    </div>
       |  </div>

@@ -139,9 +139,8 @@ namespace eval ::xowiki::includelet {
 <form role="form" class="form-vertical" method="post" action="">
   <div class="modal-content">
     <div class="modal-header">
-      $before_close<button type="button" class="[template::CSS class close]"
-      $data_attribute-dismiss="modal" aria-label="Close">$close_button_label
-      </button>$after_close
+      $before_close<adp:button type="button" class="close" data-dismiss="modal" aria-label="Close">$close_button_label
+      </adp:button>$after_close
     </div><!-- modal-header -->
 
     <div class="modal-body">
@@ -162,8 +161,8 @@ namespace eval ::xowiki::includelet {
       $input_fields
     </div><!--modal-body-->
     <div class="modal-footer">
-    <button type="button" class="btn $btnDefault" $data_attribute-dismiss="modal">#acs-kernel.common_Close#</button>
-    <button type="submit" class="btn $btnDefault submit" data-id="$id" $data_attribute-dismiss="modal">#xowiki.Send#</button>
+    <adp:button type="button" class="btn btn-default" data-dismiss="modal">#acs-kernel.common_Close#</adp:button>
+    <adp:button type="submit" class="btn btn-default submit" data-id="$id" data-dismiss="modal">#xowiki.Send#</adp:button>
     </div>
   </div>
 </form>
