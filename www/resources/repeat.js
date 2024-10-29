@@ -217,6 +217,25 @@ xowiki.repeat.renameItem = function(top, e, from, to) {
     }
 }
 
+if (typeof window.tinyMCE !== 'undefined') {
+    //
+    // TinyMCE logics for editor deletion: for all fields we are going
+    // to delete/move, persist their value in the form field and
+    // remove the richtext editor from them. Will be added again by
+    // the logics in render_input.
+    //
+    xowiki.tinyMCE = {};
+    xowiki.tinyMCE.removeEditor = function (selector) {
+        for (const el of document.querySelectorAll(selector)) {
+            const editor = window.tinyMCE.get(el.id);
+            // console.log(el, editor);
+            if (!editor) {continue;}
+            el.innerHTML = editor.getContent();
+            editor.remove();
+        }
+    };
+}
+
 /*
  * delItem
  *
@@ -252,6 +271,7 @@ xowiki.repeat.delItem = function(e, json) {
 
     if (current == last) {
         //console.log('delete the last item');
+        xowiki.tinyMCE?.removeEditor(`[id^='${item.parentNode.id}.${current}']`);
     } else {
         for (var j = current; j < last; j++) {
             var k = j + 1;
@@ -313,22 +333,9 @@ xowiki.repeat.delItem = function(e, json) {
                     }
                 }
             }
-            //
-            // TinyMCE logics, similar to those for CKEditor above:
-            // for all fields we are going to delete/move, persist
-            // their value in the form field and remove the richtext
-            // editor from them. Will be added again by the logics in
-            // render_input.
-            //
-            if (typeof window.tinyMCE != "undefined") {
-                for (const el of document.querySelectorAll(`[id^='${oldid}'], [id^='${newid}']`)) {
-                    const editor = window.tinyMCE.get(el.id);
-                    // console.log(el.id, editor);
-                    if (!editor) {continue;}
-                    el.innerHTML = editor.getContent();
-                    editor.remove();
-                }
-            }
+
+            xowiki.tinyMCE?.removeEditor(`[id^='${oldid}'], [id^='${newid}']`);
+
             //console.log(j + ' becomes ' + k + ': ' + divs[k].innerHTML);
             divs[j].innerHTML = divs[k].innerHTML;
 
