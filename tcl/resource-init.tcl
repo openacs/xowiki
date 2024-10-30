@@ -16,33 +16,43 @@ if {![apm_package_enabled_p "highcharts"]} {
 }
 #template::register_urn -urn urn:ad:js:highcharts-theme   -resource /resources/xowiki/highcharts/js/themes/gray.js
 
-#
-# Produce the xowiki.css variants that can be included based on preferred CSS toolkit:
-#
-#    xowiki.css + xowiki-yui-specific.css        -> xowiki-yui.css
-#    xowiki.css + xowiki-bootstrap3-specific.css -> xowiki-bootstrap3.css
-#
 set resDir $::acs::rootdir/packages/xowiki/www/resources
-foreach variant {yui bootstrap3 bootstrap5} {
-  if {![ad_file exists $resDir/xowiki-$variant.css]
-      || [ad_file mtime $resDir/xowiki-$variant.css] < [ad_file mtime $resDir/xowiki.css]
-      || [ad_file mtime $resDir/xowiki-$variant.css] < [ad_file mtime $resDir/xowiki-$variant-specific.css]
-    } {
-    set content ""
-    set F [open $resDir/xowiki.css]; append content [read $F] \n; close $F
-    set F [open $resDir/xowiki-$variant-specific.css]; append content [read $F] \n; close $F
-    set F [open $resDir/xowiki-$variant.css w]; puts -nonewline $F $content; close $F
-    unset content
+foreach variant [::template::CSS toolkits] {
+  if {[file exists $resDir/xowiki-$variant-specific.css]} {
+    #
+    # Toolkit-specific styling.
+    #
+    # Produce the xowiki.css variants that can be included based on
+    # preferred CSS toolkit:
+    #
+    #    xowiki.css + xowiki-yui-specific.css        -> xowiki-yui.css
+    #    xowiki.css + xowiki-bootstrap3-specific.css -> xowiki-bootstrap3.css
+    #
+    if {![ad_file exists $resDir/xowiki-$variant.css]
+        || [ad_file mtime $resDir/xowiki-$variant.css] < [ad_file mtime $resDir/xowiki.css]
+        || [ad_file mtime $resDir/xowiki-$variant.css] < [ad_file mtime $resDir/xowiki-$variant-specific.css]
+      } {
+      set F [open $resDir/xowiki-$variant.css w]
+      set R [open $resDir/xowiki.css]; fcopy $R $F; close $R
+      set R [open $resDir/xowiki-$variant-specific.css]; fcopy $R $F; close $R
+      close $F
+    }
+    template::register_urn \
+        -urn urn:ad:css:xowiki-$variant \
+        -resource /resources/xowiki/xowiki-$variant.css
+  } else {
+    #
+    # No toolkit-specific style. Use the base css directly.
+    #
+    template::register_urn \
+        -urn urn:ad:css:xowiki-$variant \
+        -resource /resources/xowiki/xowiki.css
   }
 }
 
 template::register_urn -urn urn:ad:css:bootstrap3 \
     -resource //maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css \
     -csp_list {font-src maxcdn.bootstrapcdn.com style-src maxcdn.bootstrapcdn.com}
-
-template::register_urn -urn urn:ad:css:xowiki-yui -resource /resources/xowiki/xowiki-yui.css
-template::register_urn -urn urn:ad:css:xowiki-bootstrap -resource /resources/xowiki/xowiki-bootstrap3.css
-template::register_urn -urn urn:ad:css:xowiki-bootstrap5 -resource /resources/xowiki/xowiki-bootstrap5.css
 
 ::util::resources::register_urns -prefix xowiki
 
