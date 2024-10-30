@@ -602,30 +602,25 @@ namespace eval ::xowiki::includelet {
                     : $localized_title}]
     ::xo::render_localizer
 
-    switch [::template::CSS toolkit] {
-      bootstrap -
-      bootstrap5 {
-        if {$link ne ""} {
-          set template [ns_trim -delimiter | {
-            |<div class="[template::CSS class card]">
-            |  <div class="[template::CSS class card-header]">$link</div>
-            |  <div $id class="[template::CSS class card-body]">$html</div>
-            |</div>}]
-        } else {
-          set template [ns_trim -delimiter | {
-            |<div class="[template::CSS class card]">
-            |  <div $id class="[template::CSS class card-body]">$html</div>
-            |</div>}]
-        }
-      }
-      yui {
-        set template [ns_trim -delimiter | {
-          |<div class='portlet-header'>
-          |  <div class='portlet-title-no-controls'>$link</div>
-          |</div>
-          |<div $id class='portlet'>$html</div>}]
-      }
+    set card_class [template::CSS class card]
+    set card_header_class [template::CSS class card-header]
+    set card_body_class [template::CSS class card-body]
+
+    if {$link ne ""} {
+       set template {
+          <div class="$card_class">
+            <div class="$card_header_class">$link</div>
+            <div class="$card_body_class">$html</div>
+          </div>
+       }
+    } else {
+       set template {
+          <div class="$card_class">
+            <div class="$card_body_class">$html</div>
+          </div>
+       }
     }
+
     return [subst [ns_trim -delimiter | {
       |<div class='$class'>
       |  <div class='portlet-wrapper'>
