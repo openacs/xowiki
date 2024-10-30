@@ -10,7 +10,7 @@
     <inherit-templates-p>t</inherit-templates-p>
     <auto-mount>xowiki</auto-mount>
 
-    <version name="6.0.0d3" url="http://openacs.org/repository/download/apm/xowiki-6.0.0d3.apm">
+    <version name="6.0.0d4" url="http://openacs.org/repository/download/apm/xowiki-6.0.0d4.apm">
 	<owner url="mailto:neumann@wu-wien.ac.at">Gustaf Neumann</owner>
 	<summary>A xotcl-based enterprise wiki system with multiple object types</summary>
 	<release-date>2024-09-02</release-date>
@@ -55,12 +55,12 @@ Some features:
 	<license>BSD-Style</license>
 	<maturity>2</maturity>
 
-	<provides url="xowiki" version="6.0.0d3"/>
+	<provides url="xowiki" version="6.0.0d4"/>
 	<requires url="xotcl-core" version="5.10.1"/>
 	<requires url="acs-datetime" version="5.9.1"/>
 	<requires url="acs-kernel" version="5.10.1"/>
 	<requires url="acs-tcl" version="5.10.1"/>
-        <requires url="acs-templating" version="6.0.0d5"/>
+        <requires url="acs-templating" version="6.0.0d7"/>
 	<requires url="acs-subsite" version="5.10.1"/>
 	<requires url="acs-lang" version="5.10.1"/>
         <requires url="richtext-ckeditor4" version="0.33"/>
