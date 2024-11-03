@@ -154,7 +154,7 @@ namespace eval ::xowiki::jqueryui {
     set parameter_info {
         package_key xowiki
         parameter_name JqueryuiVersion
-        default_value 1.14.0
+        default_value 1.14.1
     }
 
     if {$version eq ""} {
