@@ -241,7 +241,7 @@ namespace eval ::xowiki::jqueryui_touchpunch {
     set resourceDir [acs_package_root_dir xowiki/www/resources/jqueryui-touch-punch]
     set cdn         //cdnjs.cloudflare.com/ajax/libs/jqueryui-touch-punch
 
-    set path $resourceDir/$version/jqueryui-touch-punch.min.js
+    set path $resourceDir/$version/jquery.ui.touch-punch.min.js
     ns_log notice "jqueryui-touch-punch: check $path ->" [file exists $path]
 
     if {[file exists $path]} {
