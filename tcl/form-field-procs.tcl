@@ -284,7 +284,16 @@ namespace eval ::xowiki::formfield {
     }
     set :html(id) ${:id}
     #if {[info exists :default]} {set :value [:default]}
-    :config_from_spec ${:spec}
+
+    #
+    # An invalid spec could leave the broken formfield object behind.
+    #
+    try {
+      :config_from_spec ${:spec}
+    } on error {errmsg} {
+      :destroy
+      error $errmsg
+    }
   }
 
   #
