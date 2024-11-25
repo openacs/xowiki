@@ -13,8 +13,25 @@ ad_proc -private ::xowiki::datasource { -nocleanup:boolean revision_id } {
 
   returns a datasource for the search package
 } {
-  #ns_log notice "--sc ::xowiki::datasource called with revision_id = $revision_id"
-  set page [::xowiki::Package instantiate_page_from_id -revision_id $revision_id -user_id 0]
+  set d [list \
+             object_id $revision_id \
+             title "" \
+             content "" \
+             text "" \
+             html "" \
+             keywords "" \
+             storage_type text \
+             mime text/html \
+            ]
+
+  try {
+    #ns_log notice "--sc ::xowiki::datasource called with revision_id = $revision_id"
+    set page [::xowiki::Package instantiate_page_from_id -revision_id $revision_id -user_id 0]
+  } on error {errmsg} {
+    ns_log warning ::xowiki::datasource \
+        {Could not instantiate page} $revision_id $errmsg
+    return $d
+  }
 
   #ns_log notice "--sc ::xowiki::datasource $page [$page set publish_status]"
 
@@ -23,16 +40,18 @@ ad_proc -private ::xowiki::datasource { -nocleanup:boolean revision_id } {
     # No data source result for pages under construction
     #
     #ns_log notice "--sc page under construction, no datasource"
-    return [list object_id $revision_id title "" \
-                content "" keywords "" \
-                storage_type text mime text/html]
+    return $d
   }
 
   #ns_log notice "--sc setting absolute links for page = $page [$page set name]"
 
-  set d [dict merge \
-             {mime text/html text "" html "" keywords ""} \
-             [$page search_render]]
+  try {
+    set d [dict merge $d [$page search_render]]
+  } on error {errmsg} {
+    ns_log warning ::xowiki::datasource \
+        {Could not render page} $revision_id $errmsg
+    return $d
+  }
 
   if {![dict exists $d title]} {
     dict set d title [$page title]
