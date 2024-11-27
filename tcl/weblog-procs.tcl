@@ -115,7 +115,7 @@ namespace eval ::xowiki {
     }
     #:msg filter_msg=${:filter_msg}
     if {${:name_filter} ne ""} {
-      append extra_where_clause "and ci.name ~ E'${:name_filter}' "
+      append extra_where_clause "and ci.name ~ E[ns_dbquotevalue ${:name_filter}] "
     }
     set base_type ::xowiki::Page
     set base_table xowiki_pagei
