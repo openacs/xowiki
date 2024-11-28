@@ -3436,6 +3436,7 @@ namespace eval ::xowiki::formfield {
   Class create richtext -superclass textarea \
       -extend_slot_default validator safe_html \
       -parameter {
+        toolbar
         plugins
         folder_id
         script_dir
