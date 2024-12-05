@@ -53,7 +53,7 @@ ad_proc -private ::xowiki::datasource { -nocleanup:boolean revision_id } {
     return $d
   }
 
-  if {![dict exists $d title]} {
+  if {[dict get $d title] eq ""} {
     dict set d title [$page title]
   }
   switch [dict get $d mime] {
