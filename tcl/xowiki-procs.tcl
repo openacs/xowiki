@@ -357,6 +357,7 @@ namespace eval ::xowiki {
 
     set hkey_in_view ""
   }
+  unset populate
 
   ::xo::db::require index -table xowiki_form_instance_item_index -col item_id -unique true
   ::xo::db::require index -table xowiki_form_instance_item_index -col parent_id,name -unique true
@@ -454,6 +455,7 @@ namespace eval ::xowiki {
     }]
   }
   ::xo::db::require view xowiki_form_instance_item_view $sql
+  unset sql hkey_in_view
 
   # xowiki_form_instance_children:
   #
