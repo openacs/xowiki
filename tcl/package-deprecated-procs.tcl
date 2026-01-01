@@ -8,6 +8,13 @@
 
 ::xo::library require package-procs
 
+if {![ad_with_deprecated_code_p]} {
+    ns_log notice "deprecated-procs: skip deprecated xowiki package procs"
+    return
+}
+ns_log notice "deprecated-procs: include deprecated xowiki package procs"
+
+
 namespace eval ::xowiki {
 
   #
