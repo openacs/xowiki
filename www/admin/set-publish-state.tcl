@@ -8,12 +8,18 @@
   @param object_type
   @param query
 } -parameter {
-  {-state:required}
+  {-state:wordchar,required}
   {-revision_id:integer,required}
-  {-return_url "."}
+  {-return_url:localurl "."}
 }
 
 set page [::xo::db::CrClass get_instance_from_db -revision_id $revision_id]
+# ensure page is from the current package
+if {$package_id != [$page package_id] || $state ni {production ready live expired}} {
+  ad_return_forbidden
+  ad_script_abort
+}
+
 $page update_publish_status $state
 
 ad_returnredirect $return_url

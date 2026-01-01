@@ -1,3 +1,9 @@
+::xo::library doc {
+  XoWiki - weblog procs
+
+  @author Gustaf Neumann
+}
+
 namespace eval ::xowiki {
   #
   # ::xowiki::Weblog
@@ -52,7 +58,7 @@ namespace eval ::xowiki {
     set extra_where_clause ""
 
     if {${:date} ne ""} {
-      if {![regexp {^\d\d\d\d[-]\d\d[-]\d\d$} ${:date}]} {
+      if {![regexp {^\d\d\d\d[-]\d?\d[-]\d?\d$} ${:date}]} {
         ns_log Warning "invalid date '${:date}'"
         ad_return_complaint 1 "invalid date"
         ad_script_abort
@@ -271,7 +277,7 @@ namespace eval ::xowiki {
 
       if {${:filter_msg} ne ""} {
         set package ::${:package_id}
-        set all_href  [$package package_url][$package get_parameter weblog_page weblog-portlet]
+        set all_href  [$package package_url][$package get_parameter weblog_page:graph weblog-portlet]
         append :filter_msg ", $range of ${:nr_items} ${:entry_label} (<a href='[ns_quotehtml $all_href]'>all</a>, $flink)"
       } else {
         append :filter_msg "Showing $range of ${:nr_items} ${:entry_label} ($flink)"

@@ -35,7 +35,7 @@ namespace eval ::xowiki {
     :public method store_file {} {
       #
       # Store the file provided via instance variables by using the
-      # formfield::file implementation.
+      # formfield::file implementation (uses xowiki::File).
       #
       set f [::xowiki::formfield::file new -name upload -object ${:parent_object}]
       set file_object [$f store_file \
@@ -48,7 +48,25 @@ namespace eval ::xowiki {
                            -publish_date_cmd {;} \
                            -save_flag ""]
       $f destroy
-      return {status_code 201 message created}
+      return [list status_code 201 message created file_object $file_object file_name ${:file_name}]
+    }
+  }
+
+  nx::Class create ::xowiki::UploadFileIconified -superclass ::xowiki::UploadFile {
+    #
+    # Refinement of ::xowiki::UploadFile but returning content rended
+    # by a special renderer. There is e.g. such a renderer defined in
+    # xowf for the online exam.
+    #
+    :public method store_file {} {
+      #
+      # Store files and return a thumbnail rendering when successful.
+      #
+      set d [next]
+      if {[dict get $d status_code] in {200 201}} {
+        return [list status_code 201 message [${:parent_object} render_thumbnails $d]]
+      }
+      return {status_code 500 message "something wrong"}
     }
   }
 
