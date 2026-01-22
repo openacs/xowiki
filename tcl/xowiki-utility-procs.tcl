@@ -339,12 +339,12 @@ namespace eval ::xowiki {
   proc copy_parameter {parameter_old parameter_new} {
     foreach package_id [::xowiki::Package instances] {
       set value [parameter::get -package_id $package_id -parameter $parameter_old]
-      parameter::set_value -package_id $package_id -parameter parameter $parameter_new -value $value
+      parameter::set_value -package_id $package_id -parameter $parameter_new -value $value
     }
   }
 
   proc delete_parameter {parameter} {
-    apm_parameter_unregister -package_key xowiki $parameter
+    apm_parameter_unregister -package_key xowiki -parameter $parameter
   }
 
   ad_proc -private fix_all_package_ids {} {
