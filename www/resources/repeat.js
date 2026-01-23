@@ -1,65 +1,6 @@
 var xowiki = xowiki || {};
 xowiki.repeat = {};
 var data_repeat = new Array();
-/*
- * addItem
- *
- * Add an item to the container if nrItems is below maximum. Actually,
- * this function just invisible items visible.
- */
-xowiki.repeat.addItem = function(e, json) {
-    //var data = eval("(" + json + ')');
-    var data = JSON.parse(json);
-    var items = $(e.parentNode).children(".repeatable:hidden");
-    var currentItem = '';
-    // the loop starts with 1 because items[0] is the template
-    for (var j = 1; j < items.length; j++) {
-        currentItem = items[j];
-        if (currentItem.nodeName != 'DIV') { continue; }
-        if (currentItem.style.display == 'none') {
-            if (j == (items.length)-1) {
-                // this is the final item: hide add item button
-                $(e.parentNode).children(".repeat-add-link").hide();
-            }
-            // Make an existing but invisible item visible.
-            currentItem.style.display = 'block';
-
-            /*
-            // IPAD HACK START
-            // for ipad we have to set the contenteditiable to true for the ckeditor inline if it is false
-            var ck_editors = $(currentItem).find('.xowiki-ckeditor.cke_editable.cke_editable_inline.cke_contents_ltr');
-            for (var k = 0; k < ck_editors.length; k++) {
-                if ($(ck_editors[k]).attr('contenteditable') == 'false') {
-                    console.log('we have to set the contenteditable to true');
-                    $(ck_editors[k]).attr('contenteditable','true');
-                }
-            }
-            // IPAD HACK END
-            */
-            break;
-        }
-    }
-    
-    $(".xowiki-ckeditor, .datetimepicker", currentItem).each(function (i,e) {
-      //console.debug('load ckeditor' +e.id);
-      if ($(e).is(':visible')) {
-        var functionname = 'load_' + e.id;
-         try {
-            window[functionname]();
-         } catch(err) {
-            //console.log('function: ' + functionname + ' not found');
-         }
-      }
-    });
-
-    // We could add another item here by adding a copy of the template
-    // and renaming the field like in delItems. We have to care as
-    // well in RepeatContainer.initialize() to check, how many
-    // subcomponents must be generated in advance (not max as now).
-    //console.log('could add one more, j ' + j);
-    //console.info(data);
-    return false;
-};
 
 /*
  * newItem

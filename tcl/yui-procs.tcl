@@ -534,8 +534,8 @@ namespace eval ::xo::Table {
     html::thead {
       html::tr -class list-header {
         foreach o [[self]::__columns children] {
-          ns_log notice "YUIDataTableRenderer $o [$o set name] HIDE [$o hide] RENDER [$o procsearch render]"
-          if {[$o hide]} continue          
+          #ns_log notice "YUIDataTableRenderer $o [$o set name] HIDE [$o hide] RENDER [$o procsearch render]"
+          if {[$o hide]} continue
           $o render
         }
       }
@@ -600,6 +600,12 @@ namespace eval ::xo::Table {
             [set href [$line set $__name.href]] ne ""} {
           # use the CSS class rather from the Field than not the line
           set CSSclass ${:CSSclass}
+          if {[$line exists $__name.CSSclass]} {
+            set lineCSSclass [$line set $__name.CSSclass]
+            if {$lineCSSclass ne ""} {
+              append CSSclass " " $lineCSSclass
+            }
+          }
           $line instvar   [list $__name.title title] \
               [list $__name.target target] \
               [list $__name.onclick onclick]

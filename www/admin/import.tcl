@@ -1,13 +1,18 @@
 ::xowiki::Package initialize -ad_doc {
-  
+
   Import objects in XOTcl serializer format
 
   @author Gustaf Neumann (gustaf.neumann@wu-wien.ac.at)
   @creation-date Aug 11, 2006
   @cvs-id $Id$
 } -parameter {
-  {create_user_ids 0}
-  {replace 0}
+  {-create_user_ids:integer 0}
+  {-replace:integer 0}
+  {-return_url:localurl ../}
+  {-parent_id:integer 0}
+}
+if {$parent_id ne 0} {
+  set parent_id [::xo::cc query_parameter parent_id:cr_item_of_package,arg=$package_id]
 }
 
 set msg ""
@@ -38,9 +43,19 @@ ad_form \
       }
 
       set upload_tmpfile [template::util::file::get_property tmp_filename $upload_file]
-      set f [open $upload_tmpfile];
-      # if we do not set translation binary,
+
+      set file_looks_ok [util::file_content_check -type export -file ${upload_tmpfile}]
+      if {!$file_looks_ok} {
+        template::form::set_error upload_form upload_file \
+            "The provided file is not in the export file format"
+        break
+      }
+
+      set f [open $upload_tmpfile]
+      #
+      # If we do not set translation binary,
       # backslashes at the end of the lines might be lost
+      #
       fconfigure $f -translation binary -encoding utf-8
       set content [read $f]; close $f
 
@@ -63,7 +78,6 @@ ad_form \
           if {![info exists preexists($o)]} {lappend objects $o}
         }
         ns_log notice "objects to import: $objects"
-        set parent_id [ns_queryget parent_id 0]
         #::xotcl::Object msg parent_id=$parent_id
         ad_try {
           set msg [::$package_id import -replace $replace -create_user_ids $create_user_ids \
@@ -85,7 +99,6 @@ ad_form \
     }
 
 
-set return_url [ns_queryget return_url ../]
 set title [_ xowiki.import_title]
 set context .
 ad_return_template

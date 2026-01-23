@@ -42,7 +42,7 @@ namespace eval ::xowiki::includelet {
       }
 
   folders instproc include_head_entries {} {
-    switch [::${:package_id} get_parameter PreferredCSSToolkit bootstrap] {
+    switch [::xowiki::CSS toolkit] {
       yui     {::xowiki::Tree include_head_entries -renderer yuitree -style folders}
       bootstrap -
       default { ::xowiki::Tree include_head_entries -renderer bootstrap3 }
@@ -53,7 +53,7 @@ namespace eval ::xowiki::includelet {
     :get_parameters
 
     set tree [:build_tree]
-    switch [::${:package_id} get_parameter PreferredCSSToolkit bootstrap] {
+    switch [::xowiki::CSS toolkit] {
       yui {
            set js "
            var [:js_name];
@@ -72,6 +72,7 @@ namespace eval ::xowiki::includelet {
       default   {
         #:msg "render tree $tree // [$tree procsearch render ]"
         set HTML [$tree render -style bootstrap3-folders]
+        #set HTML [$tree render -style list -properties {CSSclass_top_ul xowiki-tree}]
       }
     }
     #:log HTML=$HTML
@@ -79,9 +80,9 @@ namespace eval ::xowiki::includelet {
   }
 
   folders instproc folder_query {
-    -form_id:required
-    -package_id:required
-    {-parent_id ""}
+    -form_id:integer,required
+    -package_id:integer,required
+    {-parent_id:integer,0..1 ""}
   } {
     if {$parent_id eq ""} {
       return [subst {
@@ -90,13 +91,6 @@ namespace eval ::xowiki::includelet {
         and publish_status = 'ready'
       }]
     }
-    #return [subst {
-    #  select * from xowiki_form_instance_children ch
-    #  left join xowiki_form_instance_attributes xa on (ch.item_id = xa.item_id)
-    #  where page_template = '$form_id' and ch.package_id = '$package_id'
-    #  and root_item_id = '$parent_id'
-    #  and publish_status = 'ready'
-    #}]
 
     #
     # Oracle query missing
@@ -108,7 +102,6 @@ namespace eval ::xowiki::includelet {
          o.object_id, o.object_type, o.title AS object_title, o.context_id,
          o.security_inherit_p, o.creation_user, o.creation_date, o.creation_ip,
          o.last_modified, o.modifying_user, o.modifying_ip,
-         --o.tree_sortkey, o.max_child_sortkey,
          cr.revision_id, cr.title, content_revision__get_content(cr.revision_id) AS text,
          cr.description, cr.publish_date, cr.mime_type, cr.nls_language,
          xowiki_form_page.xowiki_form_page_id,
@@ -121,9 +114,9 @@ namespace eval ::xowiki::includelet {
          WITH RECURSIVE child_items AS (
            select * from xowiki_form_instance_item_index
            where item_id = '$parent_id'
-      UNION ALL
-        select xi.* from xowiki_form_instance_item_index xi, child_items
-        where xi.parent_id = child_items.item_id
+         UNION ALL
+           select xi.* from xowiki_form_instance_item_index xi, child_items
+           where xi.parent_id = child_items.item_id
       )
       select * from child_items
          where page_template = '$form_id' and package_id = '$package_id' and publish_status = 'ready') xi
@@ -138,13 +131,27 @@ namespace eval ::xowiki::includelet {
 
   folders instproc collect_folders {
     -package_id:required
-    -folder_form_id:required
-    -link_form_id:required
+    -folder_form_id
+    -link_form_id
     {-parent_id ""}
     {-subtree_query ""}
     {-depth 3}
   } {
     set folders [list]
+
+    #
+    # In case no "folder_form_id" or "link_form_id" were provided,
+    # fetch it here.
+    #
+    foreach {var form} {
+      folder_form en:folder.form
+      link_form en:link.form
+    } {
+      if {![info exists ${var}_id]} {
+        set $var [::$package_id instantiate_forms -forms $form]
+        set ${var}_id [[set $var] item_id]
+      }
+    }
 
     # safety belt, for recursive structures
     if {$depth < 1} {
@@ -262,7 +269,7 @@ namespace eval ::xowiki::includelet {
 
     #:msg "FOLDERS [$page name] package_id $package_id current_folder ${:current_folder} [${:current_folder} name]"
 
-    if {[::$package_id get_parameter "MenuBar" 0]} {
+    if {[::$package_id get_parameter MenuBar:boolean 0]} {
 
       #
       # We want a menubar. Create a menubar object, which might be
@@ -272,9 +279,14 @@ namespace eval ::xowiki::includelet {
       set menu_entries [list \
                             {*}[::$package_id get_parameter ExtraMenuEntries {}] \
                             {*}[${:current_folder} property extra_menu_entries]]
-      set have_config [lsearch -index 0 $menu_entries config]
+      set have_config [lsearch -all -index 0 $menu_entries config]
 
-      if {$have_config > -1} {
+      if {$have_config != -1} {
+        #
+        # In case, we have multiple entries, use the last one.
+        #
+        set have_config [lrange $have_config end end]
+
         #
         # We have a special configuration for the menubar, probably
         # consisting of a default setup and/or a menubar class. The
@@ -340,6 +352,7 @@ namespace eval ::xowiki::includelet {
       $mb current_folder ${:current_folder}
       $mb parent_id $opt_parent_id
       #:log "folders: call update_items with config '$config' bind_vars=$bind_vars"
+
       $mb update_items \
           -bind_vars $bind_vars \
           -config $config \
@@ -357,7 +370,7 @@ namespace eval ::xowiki::includelet {
     # Check, if the optional context tree view is activated
     #
     set top_folder_of_tree $root_folder
-    if {$context_tree_view || [::$package_id get_parameter FolderContextTreeView false]} {
+    if {$context_tree_view || [::$package_id get_parameter FolderContextTreeView:boolean false]} {
       set parent_id [${:current_folder} parent_id]
       if {$parent_id ne -100} {
         set top_folder_of_tree $parent_id
@@ -570,7 +583,8 @@ namespace eval ::xowiki::includelet {
     set ::__xowiki_folder_link [::$package_id make_link \
                                     -link $current_folder_pretty_link \
                                     $current_folder bulk-delete $csrf return_url]
-    switch [::$package_id get_parameter PreferredCSSToolkit bootstrap] {
+    switch [::xowiki::CSS toolkit] {
+      bootstrap5 -
       bootstrap {set tableWidgetClass ::xowiki::BootstrapTable}
       default   {set tableWidgetClass ::xowiki::YUIDataTable}
     }
@@ -597,10 +611,9 @@ namespace eval ::xowiki::includelet {
                      -hide $::hidden(duplicate) \
                      -label ""
                  if {$::__xowiki_with_publish_status} {
-                   ImageAnchorField create publish_status -orderby publish_status.src -src "" \
-                       -width 8 -height 8 -border 0 -title "Toggle Publish Status" \
-                       -CSSclass publish-status-item-button \
-                       -alt "publish status" -label "" ;#[_ xowiki.publish_status] 
+                   AnchorField create publish_status -CSSclass publish-status-item-button \
+                       -orderby publish_status.CSSclass \
+                       -label "" -richtext 1
                  }
                  Field create object_type -label [_ xowiki.page_kind] -orderby object_type -richtext false \
                      -hide $::hidden(object_type)
@@ -616,7 +629,7 @@ namespace eval ::xowiki::includelet {
                      -label ""
                }]
 
-    set extra_where_clause "true"
+    set extra_where_clause "1=1"
     # TODO: why filter on title and name?
     if {[info exists regexp]} {
       set extra_where_clause "(bt.title ~ '$regexp' OR ci.name ~ '$regexp' )"
@@ -637,7 +650,7 @@ namespace eval ::xowiki::includelet {
       $current_folder update_langstring_property _title $lang
       #:msg "$current_folder update_langstring_property _title $lang -> [$current_folder title]"
     }
-    #:log "child-resources of folder_id ${:current_folder_id}"
+    #:log "child-resources of folder_id ${:current_folder_id} with publish_status '$publish_status'"
     set items [::xowiki::FormPage get_all_children \
                    -folder_id ${:current_folder_id} \
                    -publish_status $publish_status \
@@ -669,7 +682,7 @@ namespace eval ::xowiki::includelet {
       ad_try {
         set prettyName [$c pretty_name]
       } on error {errorMsg} {
-        :msg "can't obtain pretty name of [$c item_id] [$c name]: $errorMsg"
+        :msg "can't obtain pretty name of [$c name] (item_id [$c item_id]): $errorMsg"
         set prettyName $name
       }
 
@@ -694,28 +707,36 @@ namespace eval ::xowiki::includelet {
           -delete "" \
           -delete.href [export_vars -base $page_link {{m:token delete} return_url}] \
           -delete.title #xowiki.delete#
-     
+
       if {$::__xowiki_with_publish_status} {
         # TODO: this should get some architectural support
-        if {[$c set publish_status] eq "ready"} {
-          set image active.png
+
+        set publish_status [$c set publish_status]
+        if {$publish_status eq "ready"} {
+          set CSSclass green
+          set state "production"
+        } elseif {$publish_status eq "expired"} {
+          set CSSclass black
           set state "production"
         } else {
-          set image inactive.png
+          set CSSclass red
           set state "ready"
         }
-        set revision_id [$c set revision_id]
-        [$t last_child] set publish_status.src /resources/xowiki/$image
-        [$t last_child] set publish_status.href \
-            [export_vars -base $page_link {{m toggle-publish-status} return_url}]
+        set line [$t last_child]
+        $line set publish_status "&#9632;"
+        $line set publish_status.CSSclass $CSSclass
+        $line set publish_status.title #xowiki.publish_status_make_$state#
+        $line set publish_status.href [export_vars -base $page_link {{m toggle-publish-status} return_url}]
       }
     }
 
+    set sort_names [$t column_names]
+    lappend sort_names {*}[lmap n $sort_names {set _ $n.CSSclass}]
     lassign [split $orderby ,] att order
-    if {$att in [$t column_names]} {
+    if {$att in $sort_names} {
       $t orderby -order [expr {$order eq "asc" ? "increasing" : "decreasing"}] $att
     } else {
-      ad_log warning "Ignore invalid sorting criterion '$att'"
+      ad_log warning "Ignore invalid sorting criterion '$att' (valid: $sort_names)"
       util_user_message -message "Ignore invalid sorting criterion '$att'"
     }
 
@@ -741,7 +762,7 @@ namespace eval ::xowiki::includelet {
     #       -nls_language [$current_folder get_nls_language_from_lang [::xo::cc lang]]
     #   set menubar [$mb render-preferred]
     # }
-    ns_log notice "sub-menubar: 2nd update_items needed? menubar <$menubar>"
+    #ns_log notice "sub-menubar: 2nd update_items needed? menubar <$menubar>"
     set viewers [util_coalesce \
                      [$current_folder property viewers] \
                      [$current_folder get_parameter viewers]]

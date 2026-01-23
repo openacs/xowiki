@@ -15,8 +15,9 @@ aa_register_case \
         "::xo::Context instproc original_url_and_query"
         "::xowiki::Package instproc normalize_path"
         "::xo::PackageMgr proc get_package_class_from_package_key"
-    } \
-    package_normalize_path {
+        "::xo::PackageMgr instproc require"
+        "::xowiki::Package instproc require_root_folder"
+    } package_normalize_path {
 
         Checks various forms of the xowiki::Package API method
         "normalize_path".
@@ -122,6 +123,130 @@ aa_register_case \
             [::xowiki::hstore::dict_as_hkey $dict] \
             {key1=>value1,key2=>"a''b","k''y"=>value3,key4=>"1,2",c=>"before	after",d=>"hello world"}
     }
+
+
+aa_register_case \
+    -cats {api smoke production_safe} \
+    -procs {
+        "::xowiki::formfield::dict_to_spec"
+        "::xowiki::formfield::dict_value"
+        "::xowiki::formfield::fc_to_dict"
+
+        "::xowiki::formfield::dict_to_fc"
+        "::xowiki::formfield::FormField proc fc_encode"
+        "::xowiki::formfield::FormField proc fc_decode"
+    } \
+    dict_to_xx {
+
+        Checks conversion from dict to specs and form constraints.
+        dict_to_spec is based on dict_to_fc.
+
+    } {
+        set dict {_name myname _type text label "Hello, world!" enabled 1}
+
+        aa_equals "convert to spec" \
+            [::xowiki::formfield::dict_to_spec $dict] \
+            {myname:text,label=Hello__COMMA__ world!,enabled=1}
+        aa_equals "convert to spec -aspair" \
+            [::xowiki::formfield::dict_to_spec -aspair $dict] \
+            {myname {text,label=Hello__COMMA__ world!,enabled=1}}
+
+        #
+        # Common idiom constructing form constraints
+        #
+        set fc ""; lappend fc \
+            @categories:off @cr_fields:hidden \
+            [::xowiki::formfield::dict_to_spec $dict]
+
+        aa_equals "lappend + dict_to_spec fc idiom" \
+            [concat $fc] \
+            {@categories:off @cr_fields:hidden {myname:text,label=Hello__COMMA__ world!,enabled=1}}
+
+        #
+        # Common idiom to create component structure
+        #
+
+        set struct [subst {
+            [list [::xowiki::formfield::dict_to_spec -aspair $dict]]
+            {pattern {text,default=*,label=pool_question_pattern}}
+        }]
+        aa_equals "lappend + dict_to_spec component structure idiom" \
+            [concat $struct] \
+            {{myname {text,label=Hello__COMMA__ world!,enabled=1}}
+            {pattern {text,default=*,label=pool_question_pattern}}}
+
+        #
+        # fc_to_dct
+        #
+        set fc ""; lappend fc \
+            @categories:off @cr_fields:hidden \
+            [::xowiki::formfield::dict_to_spec $dict]
+
+        aa_equals "fc_to_dict (show results of reverse operation)" \
+            [::xowiki::formfield::fc_to_dict $fc] \
+            {myname {_name myname _type text label {Hello, world!} enabled 1 _definition {text,label=Hello__COMMA__ world!,enabled=1}}}
+
+        #
+        # dict_value
+        #
+        aa_equals "dict_value exists" \
+            [::xowiki::formfield::dict_value $dict label] \
+            {Hello, world!}
+        aa_equals "dict_value not exists, no default" \
+            [::xowiki::formfield::dict_value $dict title] \
+            {}
+        aa_equals "dict_value not exists, default" \
+            [::xowiki::formfield::dict_value $dict title xxx] \
+            {xxx}
+    }
+
+aa_register_case \
+    -cats {api smoke production_safe} \
+    -procs {
+        "::xowiki::Page instproc create_form_fields_from_form_constraints"
+    } \
+    form_fields_from_form_constraints {
+
+        Create (different) types of form-field with minimal interface.
+
+    } {
+        ::xo::require_html_procs
+        set p1 [xowiki::Page new \
+                    -name en:foo \
+                    -package_id [ad_conn package_id] \
+                    -destroy_on_cleanup]
+        aa_log "p1 = $p1"
+        foreach fc {
+            {t:textarea,value=foo}
+            {show_ip:boolean,horizontal=true,default=t,label=Show_IP}
+            {date:date,default=2022-02-01 22:03:00}
+        } props {
+            {name t rows 2 cols 80}
+            {name show_ip value t horizontal true required false label Show_IP}
+            {name date value "2022-02-01 22:03:00"}
+        } {
+            set ff [$p1 create_form_fields_from_form_constraints \
+                        [list $fc]]
+
+            aa_log "<pre>[$ff serialize]</pre>"
+            #aa_log "[$ff name] [$ff info class] [$ff value]"
+            foreach {k v} $props {
+                aa_true "$k has value '$v' == '[$ff $k]'" {[$ff $k] eq $v}
+            }
+            dom createDocument html doc
+            set root [$doc documentElement]
+            $root appendFromScript {
+                $ff render_input
+            }
+            #
+            # Here we could check with xpath the content of the rended
+            # form field.
+            #
+            set HTML [lmap n [$root childNode] {$n asHTML}]
+            aa_log "<pre>[ns_quotehtml $HTML]</pre>"
+        }
+    }
+
 #
 # Local variables:
 #    mode: tcl

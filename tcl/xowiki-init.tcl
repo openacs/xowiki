@@ -3,7 +3,7 @@
 # form_instance_item_index.
 #
 # We do this in a *-init file, since at that time, all library files
-# are usable. If we would do thisduring loading, we would have
+# are usable. If we would do this during loading, we would have
 # problems with not-yet loaded library files from other packages.
 #
 if {[nsv_exists xowiki must_update_hkeys]
@@ -23,7 +23,7 @@ if {[nsv_exists xowiki must_update_hkeys]
 }
 
 set ::xowiki::search_mounted_p 1
-set search_driver [parameter::get -package_id [apm_package_id_from_key search] \
+set search_driver [parameter::get_from_package_key -package_key search \
                        -parameter FtsEngineDriver]
 
 #
@@ -36,7 +36,7 @@ set search_driver [parameter::get -package_id [apm_package_id_from_key search] \
 # is subsite aware).
 #
 if { [site_node::get_package_url -package_key search] eq "" } {
-  ns_log Warning "xowiki: Search package is not mounted."
+  ns_log notice "xowiki: Search package is not mounted."
   set ::xowiki::search_mounted_p 0
 } elseif { $search_driver eq ""} {
   ns_log Warning "xowiki: FtsEngineDriver parameter in package search is empty."
