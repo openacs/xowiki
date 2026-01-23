@@ -602,7 +602,11 @@ namespace eval ::xowiki::includelet {
                     : $localized_title}]
     ::xo::render_localizer
 
-    switch [::xowiki::CSS toolkit] {
+    set toolkit [::xowiki::CSS toolkit]
+    if {$toolkit ne "yui"} {
+      set toolkit "bootstrap"
+    }
+    switch $toolkit {
       bootstrap -
       bootstrap5 {
         if {$link ne ""} {
