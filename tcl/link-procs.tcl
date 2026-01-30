@@ -50,7 +50,7 @@ namespace eval ::xowiki {
   Class create ExternalLink -superclass BaseLink
   ExternalLink instproc render {} {
     set css_atts [:mk_css_class_and_id -additional external]
-    return "<a [:anchor_atts] href='[ns_quotehtml ${:href}]' class='external'>[ns_quotehtml ${:label}]</a>"
+    return "<a [:anchor_atts] href='[ns_quotehtml ${:href}]' class='external'>${:label}</a>"
   }
 
   #
@@ -142,7 +142,7 @@ namespace eval ::xowiki {
     if {$href eq ""} {
       return \[$label\]
     } else {
-      return "<a [:mk_css_class_and_id -additional missing] href='[ns_quotehtml $href]'> $label</a>"
+      return "<a [:mk_css_class_and_id -additional missing] href='[ns_quotehtml $href]'>$label</a>"
     }
   }
   Link instproc pretty_link {item_id} {
@@ -155,31 +155,39 @@ namespace eval ::xowiki {
        }
       set pageArg [list -page $obj]
     }
-    return [::${:package_id} pretty_link -parent_id ${:parent_id} -lang ${:lang} \
-                -anchor ${:anchor} -query ${:query} \
+    return [::${:package_id} pretty_link \
+                -parent_id ${:parent_id} \
+                -lang ${:lang} \
+                -anchor ${:anchor} \
+                -query ${:query} \
                 {*}$pageArg \
                 ${:name}]
   }
   Link instproc new_link {} {
     set nls_language [${:page} get_nls_language_from_lang ${:lang}]
     if {${:form} ne ""} {
-      return [::${:package_id} make_form_link -form ${:form} \
+      return [::${:package_id} make_form_link \
+                  -form ${:form} \
                   -parent_id ${:parent_id} \
                   -name ${:name} \
                   -nls_language $nls_language]
     }
 
     if {[${:page} exists __unresolved_object_type]} {
+      #
       # get the desired object_type for unresolved entries
+      #
       set object_type [${:page} set __unresolved_object_type]
     } else {
       set object_type [[${:page} info class] set object_type]
       if {$object_type ne "::xowiki::Page" && $object_type ne "::xowiki::PlainPage"} {
+        #
         # TODO: this is a temporary solution. We should find a way to
         # pass similar to file or image entries the type of this
         # entry. Maybe we can get the type as well from a kind of
         # blackboard, where the type of the "edit" wiki-menu-entry is
         # stored as well.
+        #
         set object_type ::xowiki::Page
       }
     }
@@ -245,105 +253,105 @@ namespace eval ::xowiki {
     return $result
   }
 
-  #
-  # Small bootstrap modal
-  #
-  ::xowiki::LinkTemplate create ::xowiki::template::modal-sm -link_template {
-    <a href="#[ns_quotehtml $id]" role="button" data-toggle="modal">$label</a>
-  } -body_template {
-<div class="modal fade" id="$id" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog modal-sm">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">#acs-kernel.common_Close#</span></button>
-        <h4 class="modal-title">$title</h4>
-      </div>
-      <div class="modal-body">
-        $content
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn [::xowiki::CSS class btn-default]" data-dismiss="modal">#acs-kernel.common_Close#</button>
-      </div>
-    </div><!-- /.modal-content -->
-  </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
-  }
+#   #
+#   # Small bootstrap modal
+#   #
+#   ::xowiki::LinkTemplate create ::xowiki::template::modal-sm -link_template {
+#     <a href="#[ns_quotehtml $id]" role="button" data-toggle="modal">$label</a>
+#   } -body_template {
+# <div class="modal fade" id="$id" tabindex="-1" role="dialog" aria-hidden="true">
+#   <div class="modal-dialog modal-sm">
+#     <div class="modal-content">
+#       <div class="modal-header">
+#         <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">#acs-kernel.common_Close#</span></button>
+#         <h4 class="modal-title">$title</h4>
+#       </div>
+#       <div class="modal-body">
+#         $content
+#       </div>
+#       <div class="modal-footer">
+#         <button type="button" class="btn [::xowiki::CSS class btn-default]" data-dismiss="modal">#acs-kernel.common_Close#</button>
+#       </div>
+#     </div><!-- /.modal-content -->
+#   </div><!-- /.modal-dialog -->
+# </div><!-- /.modal -->
+#   }
 
-  #
-  # Large bootstrap modal
-  #
-  ::xowiki::LinkTemplate create ::xowiki::template::modal-lg -link_template {
-    <a href="#[ns_quotehtml $id]" role="button" data-toggle="modal">$label</a>
-  } -body_template {
-    <div class="modal fade" id="[ns_quotehtml $id]" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">#acs-kernel.common_Close#</span></button>
-        <h4 class="modal-title">$title</h4>
-      </div>
-      <div class="modal-body">
-        $content
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn [::xowiki::CSS class btn-default]" data-dismiss="modal">#acs-kernel.common_Close#</button>
-      </div>
-    </div><!-- /.modal-content -->
-  </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
-  }
+#   #
+#   # Large bootstrap modal
+#   #
+#   ::xowiki::LinkTemplate create ::xowiki::template::modal-lg -link_template {
+#     <a href="#[ns_quotehtml $id]" role="button" data-toggle="modal">$label</a>
+#   } -body_template {
+#     <div class="modal fade" id="[ns_quotehtml $id]" tabindex="-1" role="dialog" aria-hidden="true">
+#   <div class="modal-dialog modal-lg">
+#     <div class="modal-content">
+#       <div class="modal-header">
+#         <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">#acs-kernel.common_Close#</span></button>
+#         <h4 class="modal-title">$title</h4>
+#       </div>
+#       <div class="modal-body">
+#         $content
+#       </div>
+#       <div class="modal-footer">
+#         <button type="button" class="btn [::xowiki::CSS class btn-default]" data-dismiss="modal">#acs-kernel.common_Close#</button>
+#       </div>
+#     </div><!-- /.modal-content -->
+#   </div><!-- /.modal-dialog -->
+# </div><!-- /.modal -->
+#   }
 
-  #
-  # Small bootstrap modal using ajax
-  #
-  ::xowiki::LinkTemplate create ::xowiki::template::modal-sm-ajax -render_content false -link_template {
-    <a href="[ns_quotehtml $href]?template_file=view-modal-content" id='[ns_quotehtml $id]-button' role="button" data-target='#$id' data-toggle="modal">$label</a>
-  } -body_template {
-<div class="modal fade" id="$id" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-sm">
-    <div class="modal-content">
-       This will be replaced
-    </div>
-  </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
-    <script type='text/javascript' nonce='[security::csp::nonce]'>
-\$('.modal').on('show.bs.modal', function(event) {
-    var idx = \$('.modal:visible').length;
-    \$(this).css('z-index', 1040 + (10 * idx));
-});
-\$('.modal').on('shown.bs.modal', function(event) {
-    var idx = (\$('.modal:visible').length) -1; // raise backdrop after animation.
-    \$('.modal-backdrop').not('.stacked').css('z-index', 1039 + (10 * idx));
-    \$('.modal-backdrop').not('.stacked').addClass('stacked');
-});
-</script>
-  }
+#   #
+#   # Small bootstrap modal using ajax
+#   #
+#   ::xowiki::LinkTemplate create ::xowiki::template::modal-sm-ajax -render_content false -link_template {
+#     <a href="[ns_quotehtml $href]?template_file=view-modal-content" id='[ns_quotehtml $id]-button' role="button" data-target='#$id' data-toggle="modal">$label</a>
+#   } -body_template {
+# <div class="modal fade" id="$id" tabindex="-1" role="dialog" aria-hidden="true">
+#     <div class="modal-dialog modal-sm">
+#     <div class="modal-content">
+#        This will be replaced
+#     </div>
+#   </div><!-- /.modal-dialog -->
+# </div><!-- /.modal -->
+#     <script type='text/javascript' nonce='[security::csp::nonce]'>
+# \$('.modal').on('show.bs.modal', function(event) {
+#     var idx = \$('.modal:visible').length;
+#     \$(this).css('z-index', 1040 + (10 * idx));
+# });
+# \$('.modal').on('shown.bs.modal', function(event) {
+#     var idx = (\$('.modal:visible').length) -1; // raise backdrop after animation.
+#     \$('.modal-backdrop').not('.stacked').css('z-index', 1039 + (10 * idx));
+#     \$('.modal-backdrop').not('.stacked').addClass('stacked');
+# });
+# </script>
+#   }
 
-  #
-  # Large bootstrap modal using ajax
-  #
-  ::xowiki::LinkTemplate create ::xowiki::template::modal-lg-ajax -render_content false -link_template {
-<a href="[ns_quotehtml $href]?template_file=view-modal-content" id='$id-button' role="button" data-target='#$id' data-toggle="modal">$label</a>
-  } -body_template {
-<div class="modal fade" id="$id" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-       This will be replaced
-    </div>
-  </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
-<script type='text/javascript' nonce='[security::csp::nonce]'>
-\$('.modal').on('show.bs.modal', function(event) {
-    var idx = \$('.modal:visible').length;
-    \$(this).css('z-index', 1040 + (10 * idx));
-});
-\$('.modal').on('shown.bs.modal', function(event) {
-    var idx = (\$('.modal:visible').length) -1; // raise backdrop after animation.
-    \$('.modal-backdrop').not('.stacked').css('z-index', 1039 + (10 * idx));
-    \$('.modal-backdrop').not('.stacked').addClass('stacked');
-});
-</script>
-}
+#   #
+#   # Large bootstrap modal using ajax
+#   #
+#   ::xowiki::LinkTemplate create ::xowiki::template::modal-lg-ajax -render_content false -link_template {
+# <a href="[ns_quotehtml $href]?template_file=view-modal-content" id='$id-button' role="button" data-target='#$id' data-toggle="modal">$label</a>
+#   } -body_template {
+# <div class="modal fade" id="$id" tabindex="-1" role="dialog" aria-hidden="true">
+#     <div class="modal-dialog modal-lg">
+#     <div class="modal-content">
+#        This will be replaced
+#     </div>
+#   </div><!-- /.modal-dialog -->
+# </div><!-- /.modal -->
+# <script type='text/javascript' nonce='[security::csp::nonce]'>
+# \$('.modal').on('show.bs.modal', function(event) {
+#     var idx = \$('.modal:visible').length;
+#     \$(this).css('z-index', 1040 + (10 * idx));
+# });
+# \$('.modal').on('shown.bs.modal', function(event) {
+#     var idx = (\$('.modal:visible').length) -1; // raise backdrop after animation.
+#     \$('.modal-backdrop').not('.stacked').css('z-index', 1039 + (10 * idx));
+#     \$('.modal-backdrop').not('.stacked').addClass('stacked');
+# });
+# </script>
+# }
 
   #
   # folder links
@@ -418,9 +426,12 @@ namespace eval ::xowiki {
   ::xowiki::Link::image instproc render {} {
     set item_id [:resolve]
     #:log "-- image resolve for ${:page} returned $item_id (name=${:name}, label=${:label})"
-    if {$item_id} {
-      set link [::${:package_id} pretty_link -download true -query ${:query} \
-                    -absolute [${:page} absolute_links] -parent_id ${:parent_id} \
+    if {$item_id != 0} {
+      set link [::${:package_id} pretty_link \
+                    -download true \
+                    -query ${:query} \
+                    -absolute [expr {[${:page} exists absolute_links] ? [${:page} absolute_links] : 0}] \
+                    -parent_id ${:parent_id} \
                     -page $item_id \
                     ${:name}]
       #:log "--l fully quali [${:page} absolute_links], link=$link [info commands ::$item_id]"
@@ -454,19 +465,27 @@ namespace eval ::xowiki {
         append style "$a: [set :$a];"
       }
     }
-    if {$style ne ""} {set style "style='$style'"}
-    if {[info exists :geometry]} {append link "?geometry=${:geometry}"}
-    set label [string map [list ' "&#39;"] $label]
-    if {[info exists :href]} {set href ${:href}} {set href ""}
+    if {$style ne ""} {
+      set style "style='$style'"
+    }
+    if {[info exists :geometry]} {
+      append link "?geometry=${:geometry}"
+    }
+    #set label [string map [list ' "&#39;"] $label]
+    set href [expr {[info exists :href] ? ${:href} : ""}]
     set cls [:mk_css_class_and_id -default [expr {$link ne "" ? "image" : "refused-link"}]]
     if {$href ne ""} {
       set href [:resolve_href $href]
-      if {[string match "java*" $href]} {set href .}
-      if {[info exists :revision_id]} {append href ?revision_id=${:revision_id}}
-      return "$pre<a $cls href='[ns_quotehtml $href]'><img $cls src='[ns_quotehtml $link]' alt='[ns_quotehtml $label]' title='[ns_quotehtml $label]' $style></a>$post"
+      if {[string match "java*" $href]} {
+        set href .
+      }
+      if {[info exists :revision_id]} {
+        append href ?revision_id=${:revision_id}
+      }
+      return [subst {$pre<a $cls href='[ns_quotehtml $href]'><img $cls src='[ns_quotehtml $link]' alt='$label' title='$label' $style></a>$post}]
     } else {
       if {[info exists :revision_id]} {append link ?revision_id=${:revision_id}}
-      return "$pre<img $cls src='[ns_quotehtml $link]' alt='[ns_quotehtml $label]' title='[ns_quotehtml $label]' $style>$post"
+      return [subst {$pre<img $cls src='[ns_quotehtml $link]' alt='$label' title='$label' $style>$post}]
     }
   }
 
@@ -585,13 +604,14 @@ namespace eval ::xowiki {
       if {[info exists :$a]} {append addParams "so.addParam('$a', '[set :$a]');\n"}
     }
 
-    return "<div id='[ns_quotehtml $id]'>$label</div>
-    <script type='text/javascript' nonce='[security::csp::nonce]'>
-    var so = new SWFObject('[ns_quotehtml $href]', '[ns_quotehtml ${:name}]', '[ns_quotehtml $width]', '[ns_quotehtml $height]', '[ns_quotehtml $version]');
-    $addParams so.write('$id');
-    </script>
-    "
-   }
+    return [ns_trim [subst {<div id='[ns_quotehtml $id]'>$label</div>
+      <script type='text/javascript' nonce='[security::csp::nonce]'>
+      var so = new SWFObject('[ns_quotehtml $href]', '[ns_quotehtml ${:name}]',
+                             '[ns_quotehtml $width]', '[ns_quotehtml $height]', '[ns_quotehtml $version]');
+      $addParams so.write('$id');
+      </script>
+    }]]
+  }
 
   #
   # glossary links
@@ -622,7 +642,7 @@ namespace eval ::xowiki {
     if {![info exists :cssid]} {:cssid [::xowiki::Includelet html_id [self]]}
     template::add_event_listener \
     -id ${:cssid} \
-        -script [subst {showInfo('[ns_quotehtml $href?master=0]','[ns_quotehtml $label]')}]
+        -script [subst {showInfo('[ns_quotehtml $href?master=0]','$label')}]
     return "<a href='[ns_quotehtml $href]' [:mk_css_class_and_id -additional glossary]>$label</a>"
   }
 
@@ -633,7 +653,7 @@ namespace eval ::xowiki {
   #   Class create LinkCache
   #   LinkCache proc flush {parent_id {item_id ""}} {
   #     if {$item_id eq ""} {
-  #       :acs::clusterwide acs::cache_flush_all xowiki_cache link-*-$name-$parent_id
+  #       :acs::clusterwide acs::cache_flush_pattern xowiki_cache link-*-$name-$parent_id
   #     } else {
   #       foreach entry [ns_cache names xowiki_cache link-*-$parent_id] {
   #         array set tmp [ns_cache get xowiki_cache $entry]

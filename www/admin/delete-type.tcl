@@ -8,8 +8,13 @@
   @param object_type
   @param query
 } -parameter {
-  {-object_type ::xowiki::Page}
-  {-return_url "."}
+  {-object_type:token ::xowiki::Page}
+  {-return_url:localurl "."}
+}
+
+if {![nsf::is object $object_type] || ![$object_type isclass ::xowiki::Page]} {
+  ad_return_forbidden
+  ad_script_abort
 }
 
 set sql [$object_type instance_select_query \

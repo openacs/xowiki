@@ -32,7 +32,7 @@ if {$page eq ""} {
   # for the time being, we add the portlet on the first page (page 0)
   set portal_page_id [portal::get_page_id -portal_id $portal_id -sort_key 0]
 
-  if {[xo::dc get_value check_unique_name_on_page {
+  if {[::xo::dc get_value -prepare integer,text check_unique_name_on_page {
     select 1 from portal_element_map
     where page_id     = :portal_page_id
     and   pretty_name = :page_title
@@ -48,7 +48,7 @@ if {$page eq ""} {
     #
     # everything ok, add the portal element
     #
-    db_transaction {
+    ::xo::dc transaction {
       set element_id [portal::add_element \
                           -portal_id $portal_id \
                           -portlet_name [xowiki_portlet name] \

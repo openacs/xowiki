@@ -27,7 +27,6 @@ function changePreview(url,name,mime) {
 <multiple name="sub_files">
 <div style="border: 1px solid black;background-color: #cfcfcf;padding-top: 5px;">
     <center>
-    <!-- <a href="preview?revision=@sub_files.revision_id@" target="preview"> -->
     @sub_files.title@
     @sub_files.mime_type@
     <if @sub_files.mime_type@ in "image/jpeg" "image/png" "image/gif">
@@ -39,10 +38,11 @@ function changePreview(url,name,mime) {
           });
         </script>
       </if>
-    <!-- </a> -->
     </if>
-<small><br>@sub_files.date@ </small><a href="@sub_files.delete_url@"><img src="/resources/acs-subsite/Delete16.gif" width="16" height="16" border="0" alt="delete" title="Delete" ></a>
-</center>
+    <!-- </a> -->
+  <small><br>@sub_files.date@ </small>
+  <a href="@sub_files.delete_url@"><adp:icon name="trash" title="#acs-subsite.Delete#"></a>
+  </center>
 </div>
 <br/>
 </multiple>

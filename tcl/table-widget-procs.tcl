@@ -19,6 +19,7 @@ namespace eval ::xowiki {
     {-bulk_actions ""}
     {-renderer ""}
     {-orderby ""}
+    {-type_map ""}
     {-with_checkboxes:boolean false}
   } {
 
@@ -44,14 +45,6 @@ namespace eval ::xowiki {
       append cols [subst {BulkAction create objects -id ID -actions {$actions}}] \n
       append cols {HiddenField create ID} \n
     }
-    if {"publish_status" in $buttons} {
-      append cols {ImageAnchorField create _publish_status \
-                       -orderby _publish_status.src -src "" \
-                       -width 8 -height 8 -title "Toggle Publish Status" \
-                       -alt "publish status" -label [_ xowiki.publish_status] \
-                       -CSSclass publish-status-item-button \
-                     } \n
-    }
     if {"edit" in $buttons} {
       append cols {AnchorField create _edit -CSSclass edit-item-button -label "" \
                        -no_csv 1 -richtext 1} \n
@@ -68,11 +61,9 @@ namespace eval ::xowiki {
       append cols {AnchorField create _revisions -CSSclass revisions-item-button -label "" \
                        -no_csv 1 -richtext 1} \n
     }
-    if {"slim_publish_status" in $buttons} {
-      append cols {ImageAnchorField create _publish_status \
-                       -orderby _publish_status.src -src "" \
-                       -width 8 -height 8 -title "Toggle Publish Status" \
-                       -alt "publish status" -label "" \
+    if {"slim_publish_status" in $buttons || "publish_status" in $buttons} {
+      append cols {AnchorField create _publish_status \
+                       -richtext 1 -label "" \
                        -CSSclass publish-status-item-button \
                      } \n
     }
@@ -93,8 +84,14 @@ namespace eval ::xowiki {
                         ] \n
       }
     }
+    if {"archive" in $buttons} {
+      append cols [list AnchorField create _archive \
+                       -CSSclass archive-item-button \
+                       -label "" \
+                       -no_csv 1 \
+                       -richtext 1] \n
+    }
     if {"delete" in $buttons} {
-      #append cols [list ImageField_DeleteIcon _delete -label "" -no_csv 1] \n
       append cols [list AnchorField create _delete \
                        -CSSclass delete-item-button \
                        -label "" \
@@ -107,13 +104,11 @@ namespace eval ::xowiki {
     if {$renderer ne ""} {
       lappend cmd -renderer $renderer
     } else {
-      switch [parameter::get_global_value \
-                  -package_key xowiki \
-                  -parameter PreferredCSSToolkit \
-                  -default bootstrap] {
-                    bootstrap {set renderer BootstrapTableRenderer}
-                    default   {set renderer YUIDataTableRenderer}
-                  }
+      switch [::xowiki::CSS toolkit] {
+        bootstrap -
+        bootstrap5 {set renderer BootstrapTableRenderer}
+        default    {set renderer YUIDataTableRenderer}
+      }
       lappend cmd -renderer $renderer
     }
     set table_widget [{*}$cmd]
@@ -131,11 +126,11 @@ namespace eval ::xowiki {
       set sortable 0
     }
     if {$sortable} {
-      if {$att eq "_page_order"} {
-        $table_widget mixin add ::xo::OrderedComposite::IndexCompare
-      }
       #:msg "order=[expr {$order eq {asc} ? {increasing} : {decreasing}}] $att"
-      $table_widget orderby -order [expr {$order eq "asc" ? "increasing" : "decreasing"}] $att
+      $table_widget orderby \
+          -order [expr {$order eq "asc" ? "increasing" : "decreasing"}] \
+          -type [ad_decode $att _page_order index {*}$type_map dictionary] \
+          $att
     }
     return $table_widget
   }
@@ -199,19 +194,14 @@ namespace eval ::xowiki {
         $__c set ID [$p item_id]
       }
       if {"publish_status" in $buttons || "slim_publish_status" in $buttons} {
-        $__c set _publish_status "&nbsp;"
-        $__c set _publish_status.title #xowiki.publish_status#
-        if {[$p set publish_status] eq "ready"} {
-          set image active.png
-          set state "production"
-        } else {
-          set image inactive.png
-          set state "ready"
-        }
-        set url [export_vars -base [::$package_id package_url]admin/set-publish-state \
-                     {state {revision_id "[$p set revision_id]"} return_url}]
-        $__c set _publish_status.src /resources/xowiki/$image
-        $__c set _publish_status.href $url
+        $__c set _publish_status "&#9632;"
+        set d [::xowiki::utility publish_status_next_state [$p set publish_status]]
+        set state [dict get $d state]
+        $__c set _publish_status.CSSclass [dict get $d CSSclass]
+        $__c set _publish_status.title #xowiki.publish_status_make_$state#
+        $__c set _publish_status.href [export_vars -base [::$package_id package_url]admin/set-publish-state {
+          state {revision_id "[$p set revision_id]"} return_url
+        }]
       }
       if {"edit" in $buttons} {
         $__c set _edit "&nbsp;"
@@ -227,6 +217,14 @@ namespace eval ::xowiki {
         $__c set _delete "&nbsp;"
         $__c set _delete.title #xowiki.delete#
         $__c set _delete.href [::$package_id make_link -link $page_link $p delete return_url]
+      }
+      if {"archive" in $buttons} {
+        # $__c set _archive "<adp:icon name='download'>; #content: "\e025";
+        $__c set _archive "&nbsp;"
+        $__c set _archive.title #xowiki.Archive_title#
+        set url [export_vars -base [::$package_id package_url]admin/set-publish-state \
+                     {{state expired} {revision_id "[$p set revision_id]"} return_url}]
+        $__c set _archive.href $url
       }
       if {"revisions" in $buttons} {
         $__c set _revisions ""
@@ -253,6 +251,10 @@ namespace eval ::xowiki {
       # set always last_modified for default sorting
       $__c set _last_modified [$p set last_modified]
       $__c set _raw_last_modified [$p set last_modified]
+
+      # just necessary, when object_type is requested
+      #set icon [$__c render_icon]
+      #ns_log notice "... render icon? [$__c procsearch render_icon] // [$__c info precedence]"
 
       #ns_log notice "field_names <$field_names> [llength $field_names] [llength $form_field_objs]"
       foreach __fn $field_names form_field_obj $form_field_objs {
@@ -335,7 +337,7 @@ namespace eval ::xowiki {
     if {$csv} {
       set encoded_includelet_key [ns_urlencode [ns_base64urlencode $includelet_key]]
       set csv_href "[::xo::cc url]?[::xo::cc actual_query]&includelet_key=$encoded_includelet_key&generate=csv"
-      lappend links "<a href='[ns_quotehtml $csv_href]'>csv</a>"
+      lappend links "<a href='[ns_quotehtml $csv_href]'><adp:icon name='filetype-csv' alt='CSV' title='Dowload CSV'></a>"
     }
     if {[llength $voting_dict] != 0} {
       set voting_form [dict get $voting_dict voting_form]

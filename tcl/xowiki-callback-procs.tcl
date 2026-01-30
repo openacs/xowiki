@@ -41,6 +41,7 @@ namespace eval ::xowiki {
     general_comments_delete_messages -package_id $package_id
     set root_folder_id [::xo::db::CrClass lookup -name "xowiki: $package_id" -parent_id -100]
     if {$root_folder_id ne "0"} {
+
       # we deal with a correctly installed package
       if {[::xo::dc 0or1row is_transformed_folder {
         select 1 from cr_folders where folder_id = :root_folder_id}
@@ -76,7 +77,7 @@ namespace eval ::xowiki {
   } {
     ns_log notice "-- UPGRADE $from_version_name -> $to_version_name"
 
-    set upgrade_file [acs_root_dir]/packages/xowiki/tcl/upgrade/upgrade.tcl
+    set upgrade_file $::acs::rootdir/packages/xowiki/tcl/upgrade/upgrade.tcl
     #
     # The upgrade file contains the upgrade proc of the following form:
     #

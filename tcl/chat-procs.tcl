@@ -41,25 +41,65 @@ namespace eval ::xo {
 
     set :now [clock clicks -milliseconds]
     if {![info exists :user_id]} {
+      #
+      # Chat may be instantiated outside xowiki, where ::xo::cc is
+      # assumed to exist.
+      #
+      ::xo::ConnectionContext require
+
       set :user_id [ad_conn user_id]
+      set :requester [::xo::cc requester]
+      if {${:user_id} == 0} {
+        #
+        # Maybe the user_id was timed out, so fall potentially back to
+        # the untrusted_user_id (which might be as well 0).
+        #
+        set :user_id [::xo::cc get_user_id]
+      }
+      #
+      # Keep always the original user_id
+      #
+      set :original_user_id ${:user_id}
+      if {${:user_id} == 0} {
+        #
+        # Overwrite the user_id with the requester. This increases
+        # backward compatibility and eases handling of the identifier
+        # for the user.
+        #
+        set :user_id ${:requester}
+      }
     }
     if {![info exists :session_id]} {
       set :session_id [ad_conn session_id]
     }
     set cls [:info class]
     set :array $cls-${:chat_id}
-    if {![nsv_exists $cls initialized]} {
-      :log "-- initialize $cls"
-      $cls initialize_nsvs
-      ::acs::clusterwide nsv_set $cls initialized \
-          [ad_schedule_proc \
-               -thread "t" [:sweepinterval] $cls sweep_all_chats]
+
+    #
+    # The basic nsv (typically ::chat::Chat) is hit quite frequently
+    # on busy sites. So reduce these these hits.
+
+    # Something to consider: We could/should do this actually in an
+    # init-script. The only advantage by this construct is to start
+    # the scheduled proc only when a chat is started.
+    #
+    acs::per_thread_cache eval -key chat-initialized-$cls {
+      if {![nsv_exists $cls initialized]} {
+        :log "-- initialize $cls"
+        $cls initialize_nsvs
+        ::acs::clusterwide nsv_set $cls initialized \
+            [ad_schedule_proc \
+                 -thread "t" ${:sweepinterval} $cls sweep_all_chats]
+      }
     }
     if {![nsv_exists ${:array}-seen newest]} {
       ::acs::clusterwide nsv_set ${:array}-seen newest 0
     }
     if {![nsv_exists ${:array}-color idx]} {
       ::acs::clusterwide nsv_set ${:array}-color idx 0
+    }
+    if {![nsv_array exists ${:array}-anonymous_ids]} {
+      ::acs::clusterwide nsv_set ${:array}-anonymous_ids . .
     }
     if {${:user_id} != 0 || [:session_id] != 0} {
       :init_user_color
@@ -68,10 +108,13 @@ namespace eval ::xo {
   }
 
   Chat instproc set_options {} {
-    dict for {key value} ${:conf} {
-      ::acs::clusterwide nsv_set ${:array}-options $key $value
+    # Any supplied conf we are going to save and apply to any other
+    # instance of this chat created in the future.
+    if {[llength ${:conf}] > 0} {
+      ::acs::clusterwide nsv_array set ${:array}-conf ${:conf}
     }
-    foreach {key value} [nsv_array get ${:array}-options] {
+    dict for {key value} [nsv_array get ${:array}-conf] {
+      ::acs::clusterwide nsv_set ${:array}-options $key $value
       set :$key $value
     }
   }
@@ -210,7 +253,7 @@ namespace eval ::xo {
     set user_id [expr {$user_id ne "" ? $user_id : ${:user_id}}]
     ns_log notice "--core-chat User $user_id logging out of chat"
     if {${:logout_messages_p}} {
-      if {$msg eq ""} {set msg [_ chat.has_left_the_room].}
+      if {$msg eq ""} {set msg [_ xowiki.chat_has_left_the_room].}
       :add_msg -uid $user_id -get_new false $msg
     }
 
@@ -231,7 +274,7 @@ namespace eval ::xo {
     if { [nsv_exists ${:array}-color ${:user_id}] } {
       return
     } else {
-      set colors [::xo::parameter get -parameter UserColors -default [[:info class] set colors]]
+      set colors [::parameter::get -parameter UserColors -default [[:info class] set colors]]
       # ns_log notice "getting colors of [:info class] = [info exists colors]"
       set color [lindex $colors [expr { [nsv_get ${:array}-color idx] % [llength $colors] }]]
       ::acs::clusterwide nsv_set ${:array}-color ${:user_id} $color
@@ -252,7 +295,7 @@ namespace eval ::xo {
   Chat instproc login {} {
     :log "--chat login mode=${:mode}"
     if {${:login_messages_p} && ![:user_active ${:user_id}]} {
-      :add_msg -uid ${:user_id} -get_new false [_ xotcl-core.has_entered_the_room]
+      :add_msg -uid ${:user_id} -get_new false [_ xowiki.chat_has_entered_the_room]
     } elseif {${:user_id} > 0 && ![nsv_exists ${:array}-login ${:user_id}]} {
       # give some proof of our presence to the chat system when we
       # don't issue the login message
@@ -272,8 +315,61 @@ namespace eval ::xo {
     return $color
   }
 
+  Chat instproc usable_screen_name { screen_name requester } {
+    if {[nsv_get ${:array}-anonymous_ids $screen_name seenRequester]} {
+      if {$seenRequester eq $requester} {
+        #
+        # We have this screen name already assigned to this requester.
+        #
+        #ns_log notice "check screen name for $requester in ${:array}-anonymous_ids -> later time"
+        return 1
+      } else {
+        #ns_log notice "check screen name for $requester in ${:array}-anonymous_ids -> not usable <$seenRequester != $requester>"
+        return 0
+      }
+    }
+    #
+    # We saw this screen name the first time.
+    #
+    #ns_log notice "check screen name for $requester in ${:array}-anonymous_ids -> first time"
+    nsv_set ${:array}-anonymous_ids $screen_name $requester
+    return 1
+  }
+
   Chat instproc user_name { user_id } {
-    if {$user_id > 0} {
+    #
+    # Map the provided user_id (which might be numeric or an IP
+    # address) to a screen name, which might be the configured screen
+    # name, the username, or of the form userXXX.
+    #
+    #:log "user_name for $user_id"
+    if {![nsf::is int32 $user_id]} {
+      #
+      # The user_id is a requester (e.g. IPv4 or IPv6 address)
+      #
+      set requester $user_id
+      if {[::acs::icanuse "ns_hash"]} {
+        set hash [ns_hash $requester]
+        set screen_name user[expr {$hash % 1000}]
+        if {![:usable_screen_name $screen_name $requester]} {
+          #
+          # Collision: we have this screen_name already for a
+          # different requester.
+          #
+          for {set i 1} {$i < 200} {incr i} {
+            set screen_name user[expr {$hash % 1000}]$i
+            if {[:usable_screen_name $screen_name $requester]} {
+              break
+            }
+          }
+        }
+      } else {
+        set screen_name $requester
+      }
+    } elseif {$user_id > 0} {
+      #
+      # True user_id
+      #
       set screen_name [acs_user::get_user_info -user_id $user_id -element screen_name]
       if {$screen_name eq ""} {
         set screen_name [person::name -person_id $user_id]
@@ -281,8 +377,12 @@ namespace eval ::xo {
     } elseif { $user_id == 0 } {
       set screen_name "Nobody"
     } else {
+      #
+      # This might be triggered during background processing.
+      #
       set screen_name "System"
     }
+    #:log "user_name for $user_id -> $screen_name"
     return $screen_name
   }
 
@@ -322,20 +422,6 @@ namespace eval ::xo {
         set message "\[[join $message ,]\]"
         return [subst {{"type": "$type", "chat_id": "${:chat_id}", "message": $message}\n}]
       }
-    }
-  }
-
-  Chat instproc js_encode_msg {msg} {
-    set json [string trim [:json_encode_msg $msg]]
-    if {$json ne ""} {
-      return [subst {
-        <script nonce='[security::csp::nonce]'>
-           var data = $json;
-           parent.getData(data);
-        </script>\n
-      }]
-    } else {
-      return
     }
   }
 
@@ -405,74 +491,27 @@ namespace eval ::xowiki {
     return [expr {[nsf::is object $class] && [$class class] eq [self]}]
   }
 
-  ::xo::ChatClass instproc get_mode {} {
-    # The most conservative mode is
-    # - "polling" (which requires for every connected client polling
-    #    requests), followed by
-    # - "scripted-streaming" (which opens and "infinitely long" HTML
-    #   files with embedded script tags; very portable, but this
-    #   causes the loading indicator to spin), followed by
-    # - "streaming" (true streaming, but this requires
-    #   an HTTP stack supporting partial reads).
-    #
-    # NOTICE 1: The guessing is based on current versions of the
-    # browsers. Older versions of the browser might behave
-    # differently.
-    #
-    # NOTICE 2: "streaming" (and to a lesser extend
-    # "scripted-streaming" - which used chunked encoding) might be
-    # influenced by the buffering behavior of a reverse proxy, which
-    # might have to be configured appropriately.
-    #
-    # To be independent of the guessing mode, instantiate the chat
-    # object with "mode" specified.
-    #
-    set mode polling
-    #
-    # Check, whether we have the tcllibthread and a sufficiently new
-    # AOLserver/NaviServer supporting bgdelivery transfers.
-    #
-    if {[info commands ::thread::mutex] ne "" &&
-        ![catch {ns_conn contentsentlength}]} {
-      #
-      # scripted streaming should work everywhere
-      #
-      set mode scripted-streaming
-      if {![regexp msie|opera [string tolower [ns_set iget [ns_conn headers] User-Agent]]]} {
-        #
-        # Explorer doesn't expose partial response until request state
-        # != 4, while Opera fires onreadystateevent only once. For
-        # this reason, for every browser except them, we could use the
-        # nice mode without the spinning load indicator.
-        #
-        set mode streaming
-      }
-    }
-
-    return $mode
-  }
-
   ::xo::ChatClass ad_instproc login {
     -chat_id:required
     {-skin "classic"}
     {-package_id ""}
     {-mode ""}
     {-path ""}
-    {-avatar_p true}
-    -login_messages_p
-    -logout_messages_p
+    {-avatar_p:boolean true}
+    {-force_login_p:boolean false}
+    -login_messages_p:boolean
+    -logout_messages_p:boolean
     -timewindow
   } {
     Logs into a chat
   } {
     #:log "--chat"
-    if {![ns_conn isconnected]} return
-    auth::require_login
-
-    set session_id [ad_conn session_id].[clock seconds]
-    set base_url [export_vars -base /shared/ajax/chat -no_empty {
-      {id $chat_id} {s $session_id} {class "[self]"}
-    }]
+    if {![ns_conn isconnected]} {
+      return
+    }
+    if {$force_login_p} {
+      auth::require_login
+    }
 
     # This might come in handy to get resources from the chat package
     # if we want to have e.g. a separate css.
@@ -480,35 +519,23 @@ namespace eval ::xowiki {
     # set resources_path /resources/${package_key}
     template::head::add_css -href /resources/xowiki/chat-skins/chat-$skin.css
 
-    if {$mode eq ""} {
-      #
-      # The parameter "mode" was not specified, we try to guess the
-      # "best" mode known to work for the currently used browser.
-      #
-      set mode [:get_mode]
-      :log "--chat mode $mode"
+    #
+    # Check, whether we have the tcllibthread and a sufficiently new
+    # AOLserver/NaviServer supporting bgdelivery transfers. When this
+    # is missing, we must force the mode to polling.
+    #
+    if {[info commands ::thread::mutex] eq "" ||
+        [catch {ns_conn contentsentlength}]} {
+      set mode polling
     }
 
-    switch -- $mode {
-      polling {
-        set jspath /resources/xowiki/chat.js
-        set subscribe_url ${base_url}&m=get_new&mode=polling
-      }
-      streaming {
-        set jspath /resources/xowiki/streaming-chat.js
-        set subscribe_url ${base_url}&m=subscribe&mode=streaming
-      }
-      scripted-streaming {
-        set jspath /resources/xowiki/scripted-streaming-chat.js
-        set subscribe_url ${base_url}&m=subscribe&mode=scripted
-      }
-      default {
-        error "mode $mode unknown, valid are: polling, streaming and scripted-streaming"
-      }
-    }
+    set session_id [ad_conn session_id].[clock seconds]
+    set base_url [export_vars -base /shared/ajax/chat -no_empty {
+      {id $chat_id} {s $session_id} {class "[self]"} mode
+    }]
 
     # get LinkRegex parameter from the chat package
-    set link_regex [parameter::get_global_value \
+    set link_regex [::parameter::get_global_value \
                         -package_key "chat" \
                         -parameter "LinkRegex"]
 
@@ -522,27 +549,18 @@ namespace eval ::xowiki {
         set show_avatar false
     }
 
-    # small JavaScript library to obtain a portable ajax request object
-    template::head::add_javascript -src urn:ad:js:get-http-object -order 10
     template::head::add_javascript -script "const linkRegex = \"${link_regex}\";" -order 19
     template::head::add_javascript -script "const show_avatar = $show_avatar;" -order 20
-    template::head::add_javascript -src /resources/xowiki/chat-common.js -order 21
     template::head::add_javascript -src /resources/xowiki/chat-skins/chat-$skin.js -order 22
-    template::head::add_javascript -src $jspath -order 30
+    template::head::add_javascript -src /resources/xowiki/chat.js -order 30
 
-    set send_url ${base_url}&m=add_msg&msg=
-
-    :log "--CHAT mode=$mode"
-
-    template::add_body_script -script {
-      document.getElementById('xowiki-chat-send').focus();
-    }
+    #:log "--CHAT mode=$mode"
 
     set html ""
 
     if {[apm_package_installed_p chat]} {
-      set message_label [_ chat.message]
-      set send_label [_ chat.Send_Refresh]
+      set message_label [_ xowiki.chat_message]
+      set send_label [_ xowiki.chat_Send_Refresh]
     } else {
       set message_label "Message"
       set send_label "Send"
@@ -563,31 +581,34 @@ namespace eval ::xowiki {
          </div>
          <div id='xowiki-chat-users'></div>
       </div>
-      <span id="xowiki-my-user-id" hidden>[ad_conn user_id]</span>
     }]
 
     set conf [dict create]
-    foreach var [list login_messages_p logout_messages_p timewindow] {
+    foreach var {force_login_p login_messages_p logout_messages_p timewindow} {
       if {[info exists $var]} {
         dict set conf $var [set $var]
       }
     }
 
     :create c1 \
-        -destroy_on_cleanup \
         -chat_id    $chat_id \
         -session_id $session_id \
         -mode       $mode \
-        -conf       $conf
+        -conf       $conf \
+        -destroy_on_cleanup
     #:log "--CHAT created c1 with mode=$mode"
+
+    append html [subst {
+      <span id="xowiki-my-user-id" style="display:none;">[c1 set user_id]</span>
+    }]
 
     set js ""
     set data [c1 login]
     if {$data ne ""} {
-      append js [subst {
-        var data = $data;
+      append js [subst -nocommands {
+        let data = $data;
         for (var i = 0; i < data.length; i++) {
-          renderData(data\[i\]);
+          renderData(data[i]);
         }
       }]
     }
@@ -600,41 +621,22 @@ namespace eval ::xowiki {
 
     #:log "--CHAT create HTML for mode=$mode"
 
-    switch -- $mode {
-      "polling" {
-        append js [subst {
-          chatSubscribe('$subscribe_url');
-        }]
-        set send_msg_handler pollingSendMsgHandler
-      }
+    append js [subst {
+      chatSubscribe('$base_url');
+    }]
 
-      "streaming" {
-        append js [subst {
-          chatSubscribe('$subscribe_url');
-        }]
-        set send_msg_handler streamingSendMsgHandler
-      }
-
-      "scripted-streaming" {
-        append html [subst {
-          <iframe name='ichat' id='ichat' src='[ns_quotehtml $subscribe_url]'
-             style='width:0px; height:0px; border: 0px'>
-          </iframe>
-        }]
-        set send_msg_handler scriptedStreamingSendMsgHandler
-      }
-    }
+    #
+    # A chat may be embedded later in the page's lifecycle, e.g. when
+    # it is extracted from a template. The javascript to subscribe
+    # should trigger when the markup becomes part of the DOM.
+    #
     append html [subst {
-      <script nonce='[security::csp::nonce]'>
-      $js
+      <script nonce="[security::csp::nonce]">
+        $js
       </script>
     }]
 
     template::add_refresh_on_history_handler
-
-    template::add_event_listener \
-        -id "xowiki-chat-messages-form" -event "submit" \
-        -script [subst {chatSendMsg('${send_url}', ${send_msg_handler});}]
 
     return $html
   }

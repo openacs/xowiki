@@ -131,7 +131,7 @@ namespace eval ::xowiki {
     id
     {dropzone:boolean true}
     {current_folder:object}
-    {parent_id ""}
+    {parent_id:integer,0..1 ""}
   }
 
   ::xowiki::MenuBar instproc get_prop {dict key {default ""}} {
@@ -259,7 +259,7 @@ namespace eval ::xowiki {
     :add_menu_item -name Package.Startpage -item [list url $folder_link]
     :add_menu_item -name Package.Toc -item [list url $index_link]
 
-    if {[::$package_id get_parameter "with_notifications" 1]} {
+    if {[::$package_id get_parameter with_notifications:boolean 1]} {
       if {[::xo::cc user_id] != 0} {
         #
         # notifications require login
@@ -311,18 +311,16 @@ namespace eval ::xowiki {
                {object_type ::xowiki::File} \
                parent_id return_url autoname template_file]
 
-      set new_form_link \
-          [::$package_id make_link \
-               ::$package_id edit-new \
-               {object_type ::xowiki::Form} \
-               parent_id return_url autoname template_file]
+      set new_form_link [::$package_id make_form_link -form en:form.form \
+                             -parent_id ${:parent_id} \
+                             -nls_language $nls_language -return_url $return_url]
     }
 
     :add_menu_item -name New.Page   -item [list url $new_page_link]
     :add_menu_item -name New.File   -item [list url $new_file_link]
     :add_menu_item -name New.Folder -item [list url $new_folder_link]
 
-    if {[::$package_id get_parameter "MenuBarSymLinks" 0]} {
+    if {[::$package_id get_parameter MenuBarSymLinks:boolean 0]} {
       #
       # Symlinks are configured
       #
@@ -438,9 +436,9 @@ namespace eval ::xowiki {
         -current_page $current_page
 
 
-    set uploader_link [::$package_id make_link ${:current_folder} file-upload]
+    set upload_link [::$package_id make_link ${:current_folder} file-upload]
     :add_extra_item -name dropzone1 -type DropZone \
-        -item [list url $uploader_link label DropZone uploader File]
+        -item [list url $upload_link label DropZone disposition File]
 
     #set modestate [::xowiki::mode::admin get]
     #set modebutton_link [::$package_id make_link ${:current_folder} toggle-modebutton]
@@ -466,7 +464,7 @@ namespace eval ::xowiki {
     #   {clear_menu -menu New}
     #   {entry -name New.Page -label #xowiki.new# -form en:page.form}
     #   {entry -name New.File -label File -object_type ::xowiki::File}
-    #   {dropzone -name DropZone -label DropZone -uploader File}
+    #   {dropzone -name DropZone -label DropZone -disposition File}
     #   {modebutton -name Admin -label admin -button admin}
 
     set config_items [:config=$config \
@@ -499,9 +497,11 @@ namespace eval ::xowiki {
         entry {
           # sample entry: entry -name New.YouTubeLink -label YouTube -form en:YouTube.form
           if {$kind eq "form_link"} {
-            ad_log warning "$me, name 'form_link' is deprecated, use 'entry' instead"
+            ad_log_deprecated menu-entry $link entry
           }
-          if {[dict exists $properties -form]} {
+          if {[dict exists $properties -link]} {
+            set link [dict get $properties -link]
+          } elseif {[dict exists $properties -form]} {
             set q [expr {[dict exists $properties -query] ? "-query [dict get $properties -query]" : ""}]
             dict with bind_vars {
               set link [::$package_id make_form_link \
@@ -548,6 +548,7 @@ namespace eval ::xowiki {
           foreach {var default} {
             name dropzone
             uploader File
+            disposition File
             label DropZone
           } {
             set $var $default
@@ -555,10 +556,14 @@ namespace eval ::xowiki {
               set $var [dict get $properties -$var]
             }
           }
+          if {![info exists disposition] && [info exists uploader]} {
+            # use the legacy name
+            set disposition $uploader
+          }
 
           set link [::$package_id make_link ${:parent_id} file-upload]
           :add_extra_item -name $name -type DropZone \
-              -item [list url $link uploader $uploader label $label]
+              -item [list url $link disposition $disposition label $label]
         }
 
         modebutton {
@@ -604,12 +609,10 @@ namespace eval ::xowiki {
   }
 
   ::xowiki::MenuBar instproc render-preferred {} {
-    switch [parameter::get_global_value \
-                -package_key xowiki \
-                -parameter PreferredCSSToolkit \
-                -default bootstrap] {
-      bootstrap {set menuBarRenderer render-bootstrap}
-      default   {set menuBarRenderer render-yui}
+    switch [::xowiki::CSS toolkit] {
+      bootstrap -
+      bootstrap5 {set menuBarRenderer render-bootstrap}
+      default    {set menuBarRenderer render-yui}
     }
     :$menuBarRenderer
   }

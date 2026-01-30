@@ -71,14 +71,7 @@ function renderMessage(msg) {
     user_block.className = 'xowiki-chat-user-block';
 
     // User link
-    a = document.createElement('a');
-    if (user_id != my_user_id) {
-        a.href = '/shared/community-member?user%5fid=' + user_id;
-    } else {
-        a.href = '/pvt/home';
-    }
-    a.target = '_blank';
-    a.className = 'xowiki-chat-user-link';
+    a = userLinkElement(user_id, my_user_id);
 
     // User name
     span = document.createElement('span');
@@ -118,9 +111,7 @@ function renderMessage(msg) {
         span.className = 'xowiki-chat-timestamp-me';
     }
     message_block.appendChild(span);
-
     messages.appendChild(message_block);
-
     messages.scrollTop = messages.scrollHeight;
 
     // IE will lose focus on message send
@@ -138,16 +129,7 @@ function renderUsers(msg) {
         var user = msg.message[i].user.replace(/\\'/g, "\"");
         var user_id = msg.message[i].user_id;
         var color = msg.message[i].color;
-
-        // User link
-        a = document.createElement('a');
-        if (user_id != my_user_id) {
-            a.href = '/shared/community-member?user%5fid=' + user_id;
-        } else {
-            a.href = '/pvt/home';
-        }
-        a.target = '_blank';
-        a.className = 'xowiki-chat-user-link';
+        let a = userLinkElement(user_id, my_user_id);
 
         // User block
         user_block = document.createElement('div');
@@ -159,7 +141,13 @@ function renderUsers(msg) {
             wrapper = document.createElement('div');
             wrapper.className = 'xowiki-chat-user-pic-wrap';
             img = document.createElement('img');
-            img.setAttribute("src", "/shared/portrait-bits.tcl?user_id=" + user_id);
+            // We do not have an image for an anonymous user, the
+            // anonymous user cannot access the portrait bits.
+            let imgHref = ((user_id == 0 || my_user_id == 0
+                            || !Number.isInteger(user_id) )
+                           ? '/shared/avatar-x50.png'
+                           : "/shared/portrait-bits.tcl?user_id=" + user_id);
+            img.setAttribute("src", imgHref);
             img.setAttribute("class", "xowiki-chat-user-pic");
             img.setAttribute("style", "border-color:" + color);
             wrapper.appendChild(img);

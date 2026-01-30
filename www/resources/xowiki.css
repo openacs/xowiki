@@ -311,8 +311,8 @@ div.candidate-selection textarea {
     display: none;
 }
 
-/* 
- * (Vertical) Reorder box 
+/*
+ * (Vertical) Reorder box
  */
 
 div.reorder_box {
@@ -322,18 +322,8 @@ div.reorder_box textarea {
     display: none;
 }
 
-div.reorder_box li::before {
-    /* glyphicon-move */
-    font-family: 'Glyphicons Halflings';
-    content: "\e068 ";
-    float: left;
-    position: relative;
-    font-size: 12px;
-    margin-right: 10px;
-    color: #aaa;
-}
 
-/* 
+/*
  * Book styling
  */
 div.xowiki-content div.book ul.page_order_region {
@@ -381,6 +371,61 @@ div.xowiki-content ul.page_order_region li.mark-above {
 }
 div.xowiki-content ul.page_order_region li.mark-below {
     border-bottom:  solid 4px #428bca;
+}
+
+div.xowiki-content .xowiki-tree,
+div.xowiki-content .xowiki-tree ul {
+  margin:0 0 0 1em; /* indentation */
+  padding:0;
+  list-style:none;
+  color:#369;
+  position:relative;
+}
+div.xowiki-content div.toc ul.xowiki-tree {
+    padding: 0px;
+}
+
+div.xowiki-content .xowiki-tree ul {
+    margin-left:.5em; /* (indentation/2) */
+}
+
+div.xowiki-content .xowiki-tree:before,
+div.xowiki-content .xowiki-tree ul:before {
+  content:"";
+  display:block;
+  width:0;
+  position:absolute;
+  top:0;
+  bottom:0;
+  left:0;
+  border-left:1px solid;
+}
+
+div.xowiki-content .xowiki-tree li {
+  margin:0;
+  padding:0 1.5em;   /* indentation + .5em */
+  line-height:1.5em; /* default list item's `line-height` */
+  /*font-size: smaller;*/
+  position:relative;
+}
+
+div.xowiki-content .xowiki-tree li:before {
+  content:"";
+  display:block;
+  width:10px; /* same with indentation */
+  height:0;
+  border-top:1px solid;
+  margin-top:-1px; /* border top width */
+  position:absolute;
+  top:0.75em; /* (line-height/2) */
+  left:0;
+}
+
+div.xowiki-content .xowiki-tree li:last-child:before {
+  background:white; /* same with body background */
+  height:auto;
+  top:0.75em; /* (line-height/2) */
+  bottom:0;
 }
 
 
@@ -564,6 +609,40 @@ div.xowiki-content div.autosave div.saved
 .xowiki-content div.repeatable input[type=file] {
     width: 95%
 }
+
+
+.xowiki-content table > thead .sort-active {
+    margin: 0px 4px 0px 4px;
+    opacity: 1;
+    font-weight: 900;
+    color: #000;
+}
+.xowiki-content table > thead .sort-inactive {
+    margin: 0px 4px 0px 4px;
+    opacity: 0.5;
+    font-weight: 900;
+}
+.xowiki-content table > thead .sort-up {
+    margin: 0px 0px 0px 4px;
+}
+.xowiki-content table > thead .sort-down {
+    margin: 0px 4px 0px 0px;
+}
+
+.xowiki-content .portlet-wrapper .panel-heading,
+.xowiki-content .portlet-wrapper .card-header
+{
+    color: #FFFFFF;
+    background-color: #428bca;
+}
+
+.xowiki-content .xowiki-nav-inactive {
+    color: grey;
+}
+.xowiki-content .xowiki-nav-active {
+    color: black;
+}
+
 /*
  * Local Variables:
  * mode: css

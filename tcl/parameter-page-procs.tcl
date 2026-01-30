@@ -54,7 +54,7 @@ namespace eval ::xowiki {
                              package_id $package_id \
                              instance_attributes $instance_attributes]
       ad_try {
-        ns_log notice "form $form: try to create form page $name"
+        #ns_log notice "form $form: try to create form page $name"
         ::$page create_form_page_instance \
             -name $name \
             -package_id $package_id \
@@ -64,9 +64,7 @@ namespace eval ::xowiki {
       } on error {errorMsg} {
         error "cannot create instance named '$name' of form $form: $errorMsg\n$::errorInfo"
       } on ok {p} {
-        ns_log notice "form $form: try to create form page $name DONE, do a save_new"
         $p save_new
-        ns_log notice "form $form: try to create form page $name DONE, do a save_new DONE"
       }
     } else {
       #

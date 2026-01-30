@@ -87,7 +87,7 @@ namespace eval ::xowiki::includelet {
       # we have no community_id, get all :community ids, case (4)
       #
       set user_id [::xo::cc user_id]
-      set community_ids [db_list get_memberships {
+      set community_ids [::xo::dc list -prepare integer get_memberships {
         select community_id
         from dotlrn_member_rels_approved
         where user_id = :user_id

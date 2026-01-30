@@ -14,12 +14,16 @@
   <msg key="attached_images">Imágenes adjuntas</msg>
   <msg key="attached_media">Multimedia adjunto</msg>
   <msg key="autosave_pending">modificado</msg>
-  <msg key="autosave_saved">modificación salvada</msg>
   <msg key="autosave_rejected">modificación rechazada</msg>
+  <msg key="autosave_saved">modificación salvada</msg>
   <msg key="back">Volver</msg>
   <msg key="By_user">Por usuario</msg>
   <msg key="Candidates">Candidatos</msg>
   <msg key="categories">Categorías</msg>
+  <msg key="chat_has_entered_the_room">ha entrado en la sala</msg>
+  <msg key="chat_has_left_the_room">ha abandonado la sala</msg>
+  <msg key="chat_message">Mensaje</msg>
+  <msg key="chat_Send_Refresh">Enviar/Actualizar</msg>
   <msg key="choiceInteraction_maxChoices">Respuesta única</msg>
   <msg key="choiceInteraction_maxChoices_help_text">Respuesta única significa que sólo una respuesta es correcta.</msg>
   <msg key="choiceInteraction_simpleChoice">Introduce algunas respuestas.</msg>
@@ -92,6 +96,9 @@
   <msg key="form-menu-button-wf-instances">Instancias de %form_name%</msg>
   <msg key="form-menu-new_link">Rellenar</msg>
   <msg key="form-repeatable-add">[añadir otro]</msg>
+  <msg key="form-repeatable-add-another-file">[añadir otro archivo]</msg>
+  <msg key="form-repeatable-add-condition">[añadir condición]</msg>
+  <msg key="form-repeatable-add-file">[añadir archivo]</msg>
   <msg key="form-repeatable-delete">[x]</msg>
   <msg key="Form-submit_button">OK </msg>
   <msg key="Form-template">Plantilla</msg>
@@ -106,14 +113,11 @@
   <msg key="formfield-correct_when-help_text">Condicion, cuando
   la respuesta es correcta, especificada como un predicado seguido
   de argumentos (palabras Tcl). Los predicados predefinidos son
-  "eq", "gt", "ge", "lt", "le", "btwn", "in", "contains", "match",
-  "answer_words"</msg>
+  &#34;eq&#34;, &#34;gt&#34;, &#34;ge&#34;, &#34;lt&#34;, &#34;le&#34;, &#34;btwn&#34;, &#34;in&#34;, &#34;contains&#34;, &#34;match&#34;,
+  &#34;answer_words&#34;</msg>
   <msg key="formfield-image_url-help_text">URL HTTP de la imagen (puede arrastrar una imagen mostrada por un navegador web aquí)</msg>
   <msg key="formfield-import_archive-help_text">Seleccione el nombre del archivo .zip o .tar.gz </msg>
   <msg key="formfield-import_archive-label">Importar archivo</msg>
-  <msg key="form-repeatable-add-file">[añadir archivo]</msg>
-  <msg key="form-repeatable-add-condition">[añadir condición]</msg>
-  <msg key="form-repeatable-add-another-file">[añadir otro archivo]</msg>
   <msg key="formfield-youtube_url-help_text">Copiar&amp;Pegar URL de vídeo de YouTube (http://www.youtube.com/....)</msg>
   <msg key="FormPage-assignee">Asignado</msg>
   <msg key="FormPage-state">Estado</msg>
@@ -149,11 +153,9 @@
   <msg key="listing_title">Índice de %pretty_plural%</msg>
   <msg key="listing_title_all">Lista de todos los tipos de %pretty_plural%</msg>
   <msg key="Manage_categories">Administrar categorías</msg>
-  <msg key="Message">Mensaje</msg>
   <msg key="menu-Clipboard-Add">Añadir</msg>
   <msg key="menu-Clipboard-Clear">Limpiar</msg>
   <msg key="menu-Clipboard-Content">Contenido</msg>
-  <msg key="menu-Clipboard-Copy">Copiar</msg>
   <msg key="menu-Clipboard-Use-Copy">Copiar</msg>
   <msg key="menu-Clipboard-Use-Export">Exportar</msg>
   <msg key="menu-New">Nuevo</msg>
@@ -175,6 +177,7 @@
   <msg key="menu-Page-Revisions">Revisiones</msg>
   <msg key="menu-Page-Show">Mostrar página</msg>
   <msg key="menu-Page-View">Ver</msg>
+  <msg key="Message">Mensaje</msg>
   <msg key="minute">minuto</msg>
   <msg key="minutes">minutos</msg>
   <msg key="modified_page">página modificada</msg>
@@ -182,8 +185,8 @@
   <msg key="months">meses</msg>
   <msg key="most_frequent_visitors">Visitantes más frecuentes</msg>
   <msg key="most_popular_pages">Páginas más populares</msg>
-  <msg key="multiple_words">Palabras múltiples</msg>
   <msg key="multiple_lines">Líneas múltiples</msg>
+  <msg key="multiple_words">Palabras múltiples</msg>
   <msg key="name">Nombre</msg>
   <msg key="new">Nueva página</msg>
   <msg key="new_page">Nueva Página</msg>
@@ -214,7 +217,8 @@
   <msg key="Page-text">Contenido</msg>
   <msg key="Page-title">Título de la Página</msg>
   <msg key="Page-validate_form_constraints"> %errorMsg% </msg>
-  <msg key="Page-validate_name">Otro elemento con el valor &#39;%value%&#39; ya existe en ésta carpeta</msg>
+  <msg key="Page-validate_name">%errorMsg%</msg>
+  <msg key="Page-validate_name-duplicate_item">Otro elemento con el valor &#39;%value%&#39; ya existe en ésta carpeta</msg>
   <msg key="Page-validate_page_order">Orden de página no válido: sólo puede contener letras, guión bajo, dígitos y puntos</msg>
   <msg key="page_kind">Tipo</msg>
   <msg key="Page_pretty_name">Página XoWiki</msg>
@@ -228,6 +232,7 @@
   <msg key="PageTemplate-anon_instances">Entradas innomadas</msg>
   <msg key="PageTemplate_pretty_name">Plantilla de página Wiki</msg>
   <msg key="PageTemplate_pretty_plural">Plantillas de página Wiki</msg>
+  <msg key="Participants">Participantes</msg>
   <msg key="party_id-validate_party_id_check">El valor no es un party_id válido</msg>
   <msg key="permissions_manage_package">Administrar permisos de Wiki: %package_name%</msg>
   <msg key="permissions_manage_page">Administrar permisos de Page: %page_name%</msg>
@@ -265,8 +270,6 @@
   <msg key="revisions_title">Mostrar revisiones de esta página</msg>
   <msg key="richtext-validate_safe_html">%errorMsg% </msg>
   <msg key="rss_client">Cliente de RSS</msg>
-  <msg key="Send">Enviar</msg>
-  <msg key="Send_message_to">Enviar mensaje a</msg>
   <msg key="scoring">Puntuación</msg>
   <msg key="scoring_help_text">Algoritmo para el esquema de evaluación.</msg>
   <msg key="search">Buscar</msg>
@@ -275,6 +278,8 @@
   <msg key="seconds">segundos</msg>
   <msg key="select_link_target">Para crear un enlace, haga click en el nombre de una página </msg>
   <msg key="Selection">Selección</msg>
+  <msg key="Send">Enviar</msg>
+  <msg key="Send_message_to">Enviar mensaje a</msg>
   <msg key="shuffle">Mezclar las respuestas aleatoriamente</msg>
   <msg key="shuffle_help_text">¿Mostrar las respuestas en orden aleatorio?</msg>
   <msg key="single_word">Palabra única</msg>
@@ -287,9 +292,9 @@
   <msg key="updated">actualizado</msg>
   <msg key="upload_file">Subir archivo</msg>
   <msg key="Urgency">Urgencia</msg>
+  <msg key="urgency_high">alta</msg>
   <msg key="urgency_low">baja</msg>
   <msg key="urgency_normal">media</msg>
-  <msg key="urgency_high">alta</msg>
   <msg key="User">Usuario</msg>
   <msg key="view">Vista</msg>
   <msg key="view_in_context">Ver página en el contexto original %context%</msg>

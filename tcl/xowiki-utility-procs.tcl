@@ -37,7 +37,7 @@ namespace eval ::xowiki {
   #
   ::xotcl::Object create tidy
   tidy proc clean {text} {
-    if {[[::xo::cc package_id] get_parameter tidy 0]
+    if {[[::xo::cc package_id] get_parameter tidy:boolean 0]
         && [info commands ::util::which] ne ""} {
       set tidycmd [::util::which tidy]
       if {$tidycmd ne ""} {
@@ -139,7 +139,7 @@ namespace eval ::xowiki {
   #
   ::xotcl::Object create virus
   virus proc check {fns} {
-    if {[[::xo::cc package_id] get_parameter clamav 1]
+    if {[[::xo::cc package_id] get_parameter clamav:boolean 1]
         && [info commands ::util::which] ne ""} {
       set clamscanCmd [::util::which clamdscan]
       foreach fn $fns {
@@ -220,7 +220,7 @@ namespace eval ::xowiki::hstore {
        ::xo::Package initialize -url /xowiki
        ::xowiki::hstore::update_hstore $package_id
   } {
-    if {![::xo::dc has_hstore] && [::$package_id get_parameter use_hstore 0] } {
+    if {![::xo::dc has_hstore] && [::$package_id get_parameter use_hstore:boolean 0] } {
       return 0
     }
 
@@ -228,7 +228,7 @@ namespace eval ::xowiki::hstore {
     #
     #    select hkey from xowiki_page_instance where hkey is not null;
     #
-    ::xowf::Package initialize -package_id $package_id
+    ::xo::Package require $package_id
     #
     # We get all revisions, so use the lower level interface
     #
@@ -270,13 +270,13 @@ namespace eval ::xowiki::hstore {
     set t0 [clock clicks -milliseconds]
     ns_log notice "start to work on -package_id $package_id"
 
-    ::xo::Package initialize -package_id $package_id -init_url false -user_id 0
+    ::xo::Package require $package_id
 
     set t1 [clock clicks -milliseconds]
-    ns_log notice "$package_id: ::xo::Package initialize took [expr {$t1-$t0}]ms"
+    ns_log notice "$package_id: ::xo::Package require took [expr {$t1-$t0}]ms"
     set t0 $t1
 
-    if {![::xo::dc has_hstore] && [::$package_id get_parameter use_hstore 0] } {
+    if {![::xo::dc has_hstore] && [::$package_id get_parameter use_hstore:boolean 0] } {
       return 0
     }
 
@@ -317,8 +317,8 @@ namespace eval ::xowiki::hstore {
   proc ::xowiki::hstore::update_update_all_form_instances {} {
     #::xo::db::select_driver DB
     foreach package_id [lsort [::xowiki::Package instances -closure true]] {
-      ::xo::Package initialize -package_id $package_id -init_url false -user_id 0
-      if {[::$package_id get_parameter use_hstore 0] == 0} {
+      ::xo::Package require $package_id
+      if {[::$package_id get_parameter use_hstore:boolean 0] == 0} {
         continue
       }
       ad_try {
@@ -336,22 +336,15 @@ namespace eval ::xowiki {
   #
   # Functions used by upgrade procs.
   #
-  proc copy_parameter {from to} {
-    set parameter_obj [::xo::parameter get_parameter_object \
-                           -parameter_name $from -package_key xowiki]
-    if {$parameter_obj eq ""} {error "no such parameter $from"}
+  proc copy_parameter {parameter_old parameter_new} {
     foreach package_id [::xowiki::Package instances] {
-      set value [$parameter_obj get -package_id $package_id]
-      parameter::set_value -package_id $package_id -parameter $to -value $value
+      set value [parameter::get -package_id $package_id -parameter $parameter_old]
+      parameter::set_value -package_id $package_id -parameter $parameter_new -value $value
     }
   }
 
-  proc delete_parameter {from} {
-    set parameter_obj [::xo::parameter get_parameter_object \
-                           -parameter_name $from -package_key xowiki]
-    if {$parameter_obj eq ""} {error "no such parameter $from"}
-    apm_parameter_unregister -package_key [$parameter_obj package_key] [string trimleft $parameter_obj :]
-    $parameter_obj destroy
+  proc delete_parameter {parameter} {
+    apm_parameter_unregister -package_key xowiki -parameter $parameter
   }
 
   ad_proc -private fix_all_package_ids {} {
@@ -534,17 +527,17 @@ namespace eval ::xowiki {
   }
 
   proc read_file {fn} {
-    ns_log warning "::xowiki::write_file deprecated. Use ::xo::write_file instead"
+    ad_log_deprecated proc xowiki::read_file xo::read_file
     return [::xo::read_file $fn]
   }
 
   proc write_file {fn content} {
-    ns_log warning "::xowiki::write_file deprecated. Use ::xo::write_file instead"
+    ad_log_deprecated proc xowiki::write_file xo::write_file
     return [::xo::write_file $fn $content]
   }
 
   nsf::proc ::xowiki::get_raw_request_body {-as_string:switch -as_file:switch} {
-    ns_log warning "::xowiki::get_raw_request_body deprecated. Use ::xo::get_raw_request_body instead"
+    ad_log_deprecated proc xowiki::get_raw_request_body xo::get_raw_request_body
     return [::xo::get_raw_request_body -as_string $as_string_p -as_file $as_file_p]
   }
 
@@ -563,7 +556,7 @@ namespace eval ::xowiki {
 
 
   proc ::xowiki::transform_root_folder {package_id} {
-    ::xo::Package initialize -package_id $package_id
+    ::xo::Package require $package_id
     set item_id [::$package_id folder_id]
 
     if {$item_id == 0} {
@@ -610,7 +603,7 @@ namespace eval ::xowiki {
     ::xo::xotcl_object_cache flush $package_id
     ::xo::xotcl_object_cache flush $item_id
     ::xo::xotcl_object_cache flush $revision_id
-    ::xo::xotcl_object_type_cache flush
+    ::xo::xotcl_object_type_cache flush_all
     ::xo::xotcl_package_cache flush root-folder-$package_id
     ::xo::xotcl_object_type_cache flush -partition_key $item_id $item_id
     ::xo::xotcl_object_type_cache flush -partition_key $revision_id $revision_id
@@ -637,7 +630,7 @@ namespace eval ::xowiki {
     return the page_url for an object of type tasks_task
   } {
     ns_log notice "got package_id=$package_id, object_id=$object_id, type=$type"
-    ::xowiki::Package initialize -package_id $package_id
+    ::xowiki::Package require $package_id
     if {[nsf::is object ::$package_id]} {
       return [::$package_id package_url]
     } else {
@@ -857,6 +850,25 @@ namespace eval ::xowiki {
     return $renames
   }
 
+  ::xowiki::utility ad_proc -private publish_status_next_state {publish_status} {
+
+    Determine next publish status and return dict containing
+    CSSclass and next state.
+
+  } {
+    if {$publish_status eq "ready"} {
+      set CSSclass green
+      set state "production"
+    } elseif {$publish_status eq "expired"} {
+      set CSSclass black
+      set state "production"
+    } else {
+      set CSSclass red
+      set state "ready"
+    }
+    return [list CSSclass $CSSclass state $state]
+  }
+
   ::xowiki::utility ad_proc formCSSclass {form_name} {
     Obtain CSS class name for a form from its name
   } {
@@ -1018,7 +1030,17 @@ namespace eval ::xowiki {
   }
 
 
-  :ad_proc user_is_active {{-asHTML:boolean false} uid} {
+  :ad_proc user_is_active {
+    {-asHTML:boolean false}
+    uid
+  } {
+    Tell whether a user is active according to the Request Monitor.
+
+    @param asHTML when true, the proc will return an HTML rendering of
+                  the user information.
+    @param uid the user id
+
+    @return boolean or HTML according to the 'asHTML' flag.
   } {
     if {[info commands ::throttle] ne "" &&
         [::throttle info methods user_is_active] ne ""} {

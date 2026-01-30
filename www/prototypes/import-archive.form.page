@@ -1,0 +1,14 @@
+# -*- tcl-*-
+::xowiki::Form new \
+    -set name en:import-archive.form \
+    -title "Import Archive Form" \
+    -set anon_instances t \
+    -set text {@archive@} \
+    -set form {<form>@archive@</form>} \
+    -set form_constraints {
+      archive:import_archive,cleanup=true,label=#xowiki.formfield-import_archive-label#
+      _name:hidden _nls_language:hidden _page_order:omit _title:omit _creator:omit _description:omit
+    }
+
+
+

@@ -3,10 +3,11 @@ ad_page_contract {
 
     @creation-date Jan 04, 2017
 } {
+    {lib:token,notnull ""}
     {version:token,notnull ""}
 }
 
-set resource_info [::xowiki::bootstrap_treeview::resource_info -version $version]
+set resource_info [::xowiki::${lib}::resource_info -version $version]
 set resourceDir [dict get $resource_info resourceDir]
 file mkdir $resourceDir/$version
 
@@ -14,9 +15,7 @@ if {![file writable $resourceDir/$version]} {
     error "directory $resourceDir/$version is not writable"
 }
 
-::util::resources::download \
-    -resource_info $resource_info \
-    -version_dir $version
+::util::resources::download -resource_info $resource_info
 
 # foreach url [dict get $resource_info downloadURLs] {
 #     set fn [file tail $url]
@@ -28,12 +27,8 @@ if {![file writable $resourceDir/$version]} {
 
 ad_returnredirect .
 
-#https://cdnjs.cloudflare.com/ajax/libs/bootstrap-treeview/1.2.0//bootstrap-treeview.min.css
-#      //cdnjs.cloudflare.com/ajax/libs/bootstrap-treeview/1.2.0/bootstrap-treeview.min.css
-
 # Local variables:
 #    mode: tcl
 #    tcl-indent-level: 4
 #    indent-tabs-mode: nil
 # End:
-

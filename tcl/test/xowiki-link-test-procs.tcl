@@ -9,7 +9,6 @@ namespace eval ::xowiki::test {
         "::lang::system::set_locale"
         "::xo::PackageMgr instproc initialize"
         "::xo::db::CrClass proc get_instance_from_db"
-        "::xo::parameter proc set_value"
         "::xowiki::test::require_folder"
         "::xowiki::test::require_link"
         "::xowiki::test::require_page"
@@ -20,22 +19,22 @@ namespace eval ::xowiki::test {
         "::api_page_documentation_mode_p"
         "::auth::require_login"
         "::export_vars"
-        "::parameter::set_value"
+        "::general_comments_delete_messages"
         "::site_node::get_url_from_object_id"
         "::xo::ConnectionContext instproc get_parameter"
         "::xo::ConnectionContext instproc user_id"
         "::xo::Context instproc export_vars"
         "::xo::Context instproc original_url_and_query"
         "::xo::Context instproc package_id"
+        "::xo::PackageMgr proc get_package_class_from_package_key"
         "::xo::db::Class proc object_type_to_class"
+        "::xo::db::CrClass proc ensure_item_ids_instantiated"
         "::xowiki::FormPage instproc update_item_index"
+        "::xowiki::FormPage proc fetch_object"
         "::xowiki::Package instproc folder_path"
         "::xowiki::Package instproc pretty_link"
         "::xowiki::Page instproc render"
-        "::xowiki::FormPage proc fetch_object"
-        "::xo::PackageMgr proc get_package_class_from_package_key"
         "::xowiki::utility proc formCSSclass"
-        general_comments_delete_messages
       } \
       link_tests {
         Test links pointing to folders in different instances
@@ -59,12 +58,8 @@ namespace eval ::xowiki::test {
         aa_log linked_package_id=$linked_package_id
 
         foreach parameter {MenuBar MenuBarSymLinks} {
-          #
-          # Use directly the xo* interface to avoid surprises with
-          # cached parameter values when creating new instances.
-          #
-          xo::parameter set_value -package_id $main_package_id   -parameter $parameter -value 1
-          xo::parameter set_value -package_id $linked_package_id -parameter $parameter -value 1
+          ::parameter::set_value -package_id $main_package_id   -parameter $parameter -value 1
+          ::parameter::set_value -package_id $linked_package_id -parameter $parameter -value 1
         }
 
         set testfolder .testfolder
@@ -80,9 +75,12 @@ namespace eval ::xowiki::test {
         set locale [lang::system::locale]
         set lang [string range $locale 0 1]
 
+        #
+        # Perform a full initialize on both packages to get ::xo::cc
+        # also set.
+        #
         ::xowiki::Package initialize -package_id $main_package_id
         ::xowiki::Package initialize -package_id $linked_package_id
-
 
         set main_root_folder_id   [::$main_package_id folder_id]
         set linked_root_folder_id [::$linked_package_id folder_id]
@@ -112,7 +110,7 @@ namespace eval ::xowiki::test {
         # (b) that the page link points to the target instance (no resolve_local provided)
         #
         aa_log "check content of /$linked_xowiki_instance_name/$linked_folder_name"
-        ns_log notice "search for link with title en:p1: link_content $link_content"
+        #ns_log notice "search for link with title en:p1: link_content $link_content"
         acs::test::dom_html root $link_content {
           set node [$root selectNodes //td\[@class='list'\]/a\[@title='en:p1'\]]
           aa_true "one page found" {[llength $node] == 1}
