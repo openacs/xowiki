@@ -603,7 +603,7 @@ namespace eval ::xowiki {
     ::xo::xotcl_object_cache flush $package_id
     ::xo::xotcl_object_cache flush $item_id
     ::xo::xotcl_object_cache flush $revision_id
-    ::xo::xotcl_object_type_cache flush
+    ::xo::xotcl_object_type_cache flush_all
     ::xo::xotcl_package_cache flush root-folder-$package_id
     ::xo::xotcl_object_type_cache flush -partition_key $item_id $item_id
     ::xo::xotcl_object_type_cache flush -partition_key $revision_id $revision_id
