@@ -607,26 +607,27 @@ namespace eval ::xowiki::includelet {
     set card_body_class [template::CSS class card-body]
 
     if {$link ne ""} {
-       set template {
-          <div class="$card_class">
-            <div class="$card_header_class">$link</div>
-            <div class="$card_body_class">$html</div>
-          </div>
-       }
+      set HTML [subst [ns_trim -delimiter | {
+        |<div class='$class'>
+        |  <div class='portlet-wrapper'>        
+        |    <div class="$card_class">
+        |      <div class="$card_header_class">$link</div>
+        |      <div class="$card_body_class">$html</div>
+        |    </div>
+        |  </div>
+        |</div>}]]
     } else {
-       set template {
-          <div class="$card_class">
-            <div class="$card_body_class">$html</div>
-          </div>
-       }
+      set HTML [subst [ns_trim -delimiter | {
+        |<div class='$class'>
+        |  <div class='portlet-wrapper'>      
+        |    <div class="$card_class">
+        |       <div class="$card_body_class">$html</div>
+        |    </div>
+        |  </div>
+        |</div>}]]
     }
 
-    return [subst [ns_trim -delimiter | {
-      |<div class='$class'>
-      |  <div class='portlet-wrapper'>
-      |    [subst $template]
-      |  </div>
-      |</div>}]]
+    return $HTML
   }
 
 
