@@ -1385,7 +1385,6 @@ namespace eval ::xowiki {
     #
     # Append some fields after the HTML contents of the form.
     #
-    set button_class(wym) ""
     set button_class(xinha) ""
     set has_file 0
     $rootNode appendFromScript {
@@ -1394,8 +1393,6 @@ namespace eval ::xowiki {
         #:msg "[$f name]: is wym? [$f has_instance_variable editor wym]"
         if {[string match "__category_*" [$f name]]} {
           $f render_item
-        } elseif {[$f has_instance_variable editor wym]} {
-          set button_class(wym) "wymupdate"
         } elseif {[$f has_instance_variable editor xinha]} {
           set button_class(xinha) "xinhaupdate"
         }
@@ -1407,7 +1404,7 @@ namespace eval ::xowiki {
       #
       # Add a submit field(s) at bottom.
       #
-      :render_form_action_buttons -CSSclass [string trim "$button_class(wym) $button_class(xinha)"]
+      :render_form_action_buttons -CSSclass [string trim "$button_class(xinha)"]
     }
 
     if {$formNode ne ""} {
