@@ -1374,7 +1374,7 @@ namespace eval ::xowiki {
       # package If the method is "view", allow it to be called on the
       # root folder object.
       set m [:query_parameter m]
-      if {$m in {list show-object file-upload}} {
+      if {$m in {list show-object json file-upload}} {
         array set "" [list \
                           name [::${:folder_id} name] \
                           stripped_name [::${:folder_id} name] \
@@ -3178,6 +3178,7 @@ namespace eval ::xowiki {
     }
 
     Class create Page -array set require_permission {
+      json               swa
       view               none
       revisions          {{package_id write}}
       diff               {{package_id write}}
@@ -3247,6 +3248,7 @@ namespace eval ::xowiki {
     }
 
     Class create Page -array set require_permission {
+      json               swa
       view               {{package_id read}}
       revisions          {{package_id write}}
       diff               {{package_id write}}
@@ -3311,6 +3313,7 @@ namespace eval ::xowiki {
     }
 
     Class create Page -array set require_permission {
+      json               swa
       view               {{item_id read}}
       revisions          {{item_id write}}
       diff               {{item_id write}}
@@ -3398,6 +3401,7 @@ namespace eval ::xowiki {
     }
 
     Class create Page -array set require_permission {
+      json               swa
       view               {{item_id read}}
       revisions          {{item_id write}}
       diff               {{item_id write}}
