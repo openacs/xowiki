@@ -8,7 +8,13 @@ aa_register_case -cats {smoke production_safe} xowiki_json_fields {
   ::xo::library require -package xowiki json-procs
   set objects {}
   try {
-    set page [::xowiki::Page new]
+    # Field specifications resolve package-dependent conditions through their
+    # owning page, even when the specification itself is just "text".
+    set package_id [::acs::test::require_package_instance -package_key xowiki]
+    ::xowiki::Package initialize -package_id $package_id
+    set page [::xowiki::Page new \
+                  -package_id $package_id \
+                  -parent_id [::$package_id folder_id]]
     lappend objects $page
     set text [::xowiki::formfield::FormField new -object $page -locale en_US -name text -spec text]
     lappend objects $text
@@ -38,10 +44,10 @@ aa_register_case -cats {smoke production_safe} xowiki_json_fields {
 
     set compound [::xowiki::formfield::CompoundField new -object $page -locale en_US -name person]
     lappend objects $compound
-    $compound create_components {{label text} {enabled boolean}}
+    $compound create_components {{caption text} {enabled boolean}}
     aa_equals "compound uses component names and types" \
-        [$compound json_value {person.label 00123 person.enabled t person.old retained}] \
-        {object {label string 00123 enabled boolean true old string retained}}
+        [$compound json_value {person.caption 00123 person.enabled t person.old retained}] \
+        {object {caption string 00123 enabled boolean true old string retained}}
     aa_equals "compound does not inject defaults" [$compound json_value {}] {object {}}
     aa_equals "retyped legacy value preserved" [$compound json_value invalid] {string invalid}
 
@@ -53,8 +59,10 @@ aa_register_case -cats {smoke production_safe} xowiki_json_fields {
     set compound_class ::xowiki::formfield::json_test_compound
     ::xotcl::Class create $compound_class -superclass ::xowiki::formfield::CompoundField
     lappend objects $compound_class
+    # A component called "label" would shadow the inherited label accessor:
+    # repeat occurrence specifications invoke it through "label=<index>".
     $compound_class instproc initialize {} {
-      :create_components {{label text} {enabled boolean}}
+      :create_components {{caption text} {enabled boolean}}
       next
     }
     set repeat [::xowiki::formfield::FormField new -object $page -locale en_US -name people \
@@ -63,10 +71,10 @@ aa_register_case -cats {smoke production_safe} xowiki_json_fields {
     aa_equals "repeat skips template, sorts numerically and recurses" \
         [$repeat json_value {
           people.0 template
-          people.10 {people.10.label ten people.10.enabled f}
-          people.2 {people.2.label two people.2.enabled t}
+          people.10 {people.10.caption ten people.10.enabled f}
+          people.2 {people.2.caption two people.2.enabled t}
         }] \
-        {array {0 object {label string two enabled boolean true} 1 object {label string ten enabled boolean false}}}
+        {array {0 object {caption string two enabled boolean true} 1 object {caption string ten enabled boolean false}}}
     aa_equals "empty repeat" [$repeat json_value {}] {array {}}
     aa_equals "template-only repeat" [$repeat json_value {people.0 template}] {array {}}
     set json [ns_json value -type object [list rows {*}[$repeat json_value {}]]]
@@ -78,7 +86,7 @@ aa_register_case -cats {smoke production_safe} xowiki_json_fields {
     }
 
     foreach name {package_id parent_id creation_user modifying_user} {
-      $page set $name 704
+      if {$name ne "package_id"} {$page set $name 704}
       aa_equals "$name uses numeric metadata" [$page json_attribute_type $name] number
     }
     $page set modifying_user ""
