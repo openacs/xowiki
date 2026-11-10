@@ -149,7 +149,8 @@ namespace eval ::xowiki::test {
                            -page_order $page_order \
                            -mime_type $mime_type]
 
-                ::xo::write_tmp_file import_file [::base64::decode $file_content]
+                ::xo::write_tmp_file import_file [ns_base64decode -binary -strict -- \
+                                                         [regsub -all {[^A-Za-z0-9+/]} $file_content ""]]
                 $f set import_file $import_file
             }
             $f publish_status ready

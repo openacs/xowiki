@@ -786,7 +786,7 @@ namespace eval ::xowiki {
   File instproc marshall {{-mode export}} {
     set fn [:full_file_name]
     if {$mode eq "export"} {
-      set :__file_content [::base64::encode [::xo::read_file $fn]]
+      set :__file_content [ns_base64encode -binary -- [::xo::read_file $fn]]
     } else {
       set :__file_name $fn
     }
@@ -1126,7 +1126,9 @@ namespace eval ::xowiki {
     # we have to care about saving the file content
 
     if {[info exists :__file_content]} {
-      ::xo::write_tmp_file :import_file [::base64::decode ${:__file_content}]
+      # Preserve Tcllib's filtering and incomplete-final-group error behavior.
+      ::xo::write_tmp_file :import_file [ns_base64decode -binary -strict -- \
+                                           [regsub -all {[^A-Za-z0-9+/]} ${:__file_content} ""]]
       unset :__file_content
 
     } elseif {[info exists :__file_name]} {
