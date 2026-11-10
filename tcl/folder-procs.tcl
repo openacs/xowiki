@@ -765,7 +765,7 @@ namespace eval ::xowiki::includelet {
     #   set menubar [$mb render-preferred]
     # }
     #ns_log notice "sub-menubar: 2nd update_items needed? menubar <$menubar>"
-    set viewers [util_coalesce \
+    set viewers [util::coalesce \
                      [$current_folder property viewers] \
                      [$current_folder get_parameter viewers]]
     set viewer_links ""

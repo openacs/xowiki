@@ -1066,13 +1066,6 @@ proc util_jsquotevalue {value} {
 
 
 
-proc util_coalesce {args} {
-  foreach value $args {
-    if { $value ne {} } {
-      return $value
-    }
-  }
-}
 
 
 ::xo::library source_dependent
