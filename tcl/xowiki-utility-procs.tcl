@@ -314,7 +314,10 @@ namespace eval ::xowiki::hstore {
     return $count
   }
 
-  proc ::xowiki::hstore::update_update_all_form_instances {} {
+  ad_proc -private ::xowiki::hstore::update_update_all_form_instances {} {
+    Refresh the form instance item index for each XoWiki package instance
+    that enables hstore. Log failures per instance and continue.
+  } {
     #::xo::db::select_driver DB
     foreach package_id [lsort [::xowiki::Package instances -closure true]] {
       ::xo::Package require $package_id
@@ -555,7 +558,11 @@ namespace eval ::xowiki {
   }
 
 
-  proc ::xowiki::transform_root_folder {package_id} {
+  ad_proc -private ::xowiki::transform_root_folder {package_id} {
+    Convert an existing XoWiki root folder to a FormPage backed by the
+    folder form, or update the template of an already converted folder.
+    @param package_id XoWiki package instance ID.
+  } {
     ::xo::Package require $package_id
     set item_id [::$package_id folder_id]
 

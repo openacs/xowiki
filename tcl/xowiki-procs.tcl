@@ -622,13 +622,21 @@ namespace eval ::xowiki {
     return $name$count
   }
 
-  autoname proc basename {name} {
+  autoname ad_proc basename {name} {
+    Return the name with its final file extension removed.
+    @param name Name to process.
+  } {
     # In case the provided name has an extension, return the name
     # without it.
     file rootname $name
   }
 
-  autoname proc new {-parent_id -name} {
+  autoname ad_proc new {-parent_id -name} {
+    Generate names until one is available under the given parent.
+    @param parent_id ID of the parent item.
+    @param name Base name for the generated name.
+    @return An unused name.
+  } {
     while {1} {
       set generated_name [:generate -parent_id $parent_id -name $name]
       if {[::xo::db::CrClass lookup -name $generated_name -parent_id $parent_id] eq "0"} {

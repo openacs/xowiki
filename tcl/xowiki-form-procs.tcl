@@ -187,7 +187,12 @@ namespace eval ::xowiki {
     return [$data exists import_file]
   }
 
-  proc ::xowiki::guesstype {fn} {
+  ad_proc -public ::xowiki::guesstype {fn} {
+    Determine a MIME type using ns_guesstype and fall back to extension
+    matching when it returns a generic type.
+    @param fn Filename or path.
+    @return The MIME type, defaulting to application/octet-stream.
+  } {
     set mime [ns_guesstype $fn]
     if {$mime eq "*/*"
         || $mime eq "application/octet-stream"
@@ -231,7 +236,12 @@ namespace eval ::xowiki {
   }
 
 
-  proc ::xowiki::validate_name {{data ""}} {
+  ad_proc -private ::xowiki::validate_name {{data ""}} {
+    Validate and normalize the name in the caller's name variable. Apply
+    language and file naming rules and resolve eligible autoname collisions.
+    @param data Page object, or empty to use the active WikiForm data.
+    @return 1 if the resulting name is valid, or 0 otherwise.
+  } {
     #
     # This proc is not only a validator of the "name" attribute, but
     # modifies "name" according to the value of the language settings,
@@ -358,7 +368,12 @@ namespace eval ::xowiki {
     return 1
   }
 
-  proc ::xowiki::validate_form_field {field_name} {
+  ad_proc -private ::xowiki::validate_form_field {field_name} {
+    Validate a caller's field value using the active WikiForm field object.
+    Report any validation error to the user.
+    @param field_name Name of the form field and its value variable.
+    @return 1 on success, or 0 on validation failure.
+  } {
     set form ::xowiki::f1 ;# form has to be named this way for the time being
     #set form [lindex [::xowiki::WikiForm info instances -closure] 0]
     #
