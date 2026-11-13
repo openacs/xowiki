@@ -727,7 +727,7 @@ namespace eval ::xowiki::formfield {
     # Can be overloaded, when e.g. no escaping of message keys or
     # other representations of message keys are desired.
     #
-    return [xo::escape_message_keys $value]
+    return [::lang::util::escape_message_keys $value]
   }
 
   FormField instproc render_input {} {

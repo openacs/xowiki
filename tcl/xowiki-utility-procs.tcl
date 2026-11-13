@@ -1059,15 +1059,6 @@ namespace eval ::xowiki {
   }
 }
 
-
-proc util_jsquotevalue {value} {
-  return '[::xowiki::Includelet js_encode $value]'
-}
-
-
-
-
-
 ::xo::library source_dependent
 #
 # Local variables:
