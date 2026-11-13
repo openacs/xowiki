@@ -33,7 +33,13 @@ if { [package vcompare [package provide Tcl] 8.4] < 0 } {
 # Side effects:
 #       None.
 
-proc list::longestCommonSubsequence { sequence1 sequence2 } {
+ad_proc -public ::list::longestCommonSubsequence {sequence1 sequence2} {
+    Find a longest common subsequence of two lists.
+    @param sequence1 First list to compare.
+    @param sequence2 Second list to compare.
+    @return Two lists of indices, one into each input. Corresponding
+    indices identify equal elements in the common subsequence.
+} {
 
   set seta [list]
   set setb [list]
