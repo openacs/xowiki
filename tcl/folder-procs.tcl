@@ -533,7 +533,9 @@ namespace eval ::xowiki::includelet {
     return [lsort -unique [split $show_types ,]]
   }
 
-  child-resources instproc render {} {
+  child-resources ad_instproc render {} {
+    Render the current folder's child resources or use its configured index.
+  } {
     :get_parameters
 
     set current_folder [:get_current_folder $parent]

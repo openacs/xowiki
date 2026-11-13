@@ -2050,7 +2050,13 @@ namespace eval ::xowiki {
     return $id
   }
 
-  Page instproc save_new args {
+  Page ad_instproc save_new args {
+    Check whether the page can be saved under its parent, flush the page
+    fragment cache, and delegate creation to the next method. Check unresolved
+    references after saving.
+    @param args Arguments passed to the next save_new method.
+    @return The identifier returned by the save operation.
+  } {
     if {![:can_save]} {error "can't save this page under this parent"}
     ${:package_id} flush_page_fragment_cache
     set id [next]
@@ -2507,7 +2513,12 @@ namespace eval ::xowiki {
     return [list package_id [:physical_package_id] parent_id $parent_id]
   }
 
-  Page instproc create_link {arg} {
+  Page ad_instproc create_link {arg} {
+    Resolve a wiki link specification and create its link object. Some local
+    assets are registered directly as page resources.
+    @param arg Link target, optionally followed by a label and options separated by bars.
+    @return The link object, or empty when no link object is needed.
+  } {
     #:msg [self args]
     set label $arg
     set link $arg
@@ -2725,7 +2736,11 @@ namespace eval ::xowiki {
     return ${:item_id}
   }
 
-  Page instproc anchor {arg} {
+  Page ad_instproc anchor {arg} {
+    Render a wiki link and release its temporary link object.
+    @param arg Wiki link specification passed to create_link.
+    @return Rendered HTML, an error fragment, or an empty string.
+  } {
     ad_try {
       set l [:create_link $arg]
     } on error {errorMsg} {
@@ -2753,7 +2768,12 @@ namespace eval ::xowiki {
   }
 
 
-  Page instproc substitute_markup {{-context_obj ""} content} {
+  Page ad_instproc substitute_markup {{-context_obj ""} content} {
+    Convert enhanced text to HTML and expand wiki markup when enabled.
+    @param context_obj Optional context object for substitutions.
+    @param content Page content to process.
+    @return Processed content.
+  } {
     if {${:mime_type} eq "text/enhanced"} {
       set content [ad_enhanced_text_to_html $content]
     }
@@ -4540,11 +4560,17 @@ namespace eval ::xowiki {
     return [string map {* %} $input]
   }
 
-  FormPage proc filter_expression {
+  FormPage ad_proc filter_expression {
                                    {-sql true}
                                    input_expr
                                    logical_op
                                  } {
+    Translate a filter expression into Tcl and, where applicable, database clauses.
+    @param sql Whether to generate SQL clauses.
+    @param input_expr Filter expression to parse.
+    @param logical_op Operator separating filter clauses.
+    @return A dictionary with tcl, h, vars, and sql entries.
+  } {
     #ns_log notice "filter_expression '$input_expr' $logical_op"
 
     #
@@ -4905,7 +4931,7 @@ namespace eval ::xowiki {
     return $aggregated_folder_refs
   }
 
-  FormPage proc get_all_children {
+  FormPage ad_proc get_all_children {
                                   -folder_id:required
                                   {-publish_status ready}
                                   {-object_types {::xowiki::Page ::xowiki::Form ::xowiki::FormPage}}
@@ -4913,6 +4939,15 @@ namespace eval ::xowiki {
                                   {-include_child_folders none}
                                   {-initialize true}
                                 } {
+    Collect matching children from a folder and its inherited folders.
+    @param folder_id Root folder item ID.
+    @param publish_status Publication status filter.
+    @param object_types Content types to include.
+    @param extra_where_clause Additional SQL condition.
+    @param include_child_folders Whether to include child folders in the search.
+    @param initialize Whether to initialize the returned objects.
+    @return An ordered composite of matching children.
+  } {
 
     set folder [::xo::db::CrClass get_instance_from_db -item_id $folder_id -revision_id 0]
     set package_id [$folder package_id]

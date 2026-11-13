@@ -1153,10 +1153,15 @@ namespace eval ::xowiki {
     csv-dump 1 download 1 list 1
   }
 
-  Package instproc invoke {
+  Package ad_instproc invoke {
     -method:token
     {-error_template error-template}
     {-batch_mode:boolean 0}
+  } {
+    Resolve the requested page or package and invoke the requested method.
+    @param method Requested method name.
+    @param error_template Template for reporting invocation errors.
+    @param batch_mode Whether invocation is in batch mode.
   } {
     #
     # Do we have a valid method?
@@ -1614,7 +1619,11 @@ namespace eval ::xowiki {
     return $packages
   }
 
-  Package instproc normalize_path {name} {
+  Package ad_instproc normalize_path {name} {
+    Normalize a path and remove the leading slash.
+    @param name Path to normalize.
+    @return Normalized relative path.
+  } {
     #
     # Don't allow any addressing outside of the jail.
     #
@@ -2112,7 +2121,13 @@ namespace eval ::xowiki {
     return [list link_type "link" prefix $prefix stripped_name $stripped_name parent_id $parent_id]
   }
 
-  Package instproc item_info_from_url {{-with_package_prefix true} {-default_lang ""} url} {
+  Package ad_instproc item_info_from_url {{-with_package_prefix true} {-default_lang ""} url} {
+    Resolve a URL from the package root and return item lookup details.
+    @param with_package_prefix Whether the URL includes the package mount path.
+    @param default_lang Fallback language, or empty for the package default.
+    @param url URL to resolve.
+    @return Name and value pairs describing the resolved item and context.
+  } {
     #
     # Obtain item info (item_id parent_id lang stripped_name) from the
     # specified url. Search starts always at the root.

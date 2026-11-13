@@ -1499,7 +1499,6 @@ namespace eval ::xowiki::test {
         "::xowiki::Page instproc create_link"
         "::xowiki::Page instproc anchor"
         "::xowiki::Page instproc substitute_markup"
-        "::xowiki::File instproc save_new"
 
         "::ad_returnfile_background"
     } nested_self_references {

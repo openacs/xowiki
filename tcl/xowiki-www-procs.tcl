@@ -2359,7 +2359,12 @@ namespace eval ::xowiki {
     return $form_fields
   }
 
-  Page proc find_slot {-start_class:required name} {
+  Page ad_proc find_slot {-start_class:required name} {
+    Find a named slot on a class or its ancestors.
+    @param start_class Class where lookup starts.
+    @param name Slot name.
+    @return The slot object or an empty string.
+  } {
     foreach cl [list $start_class {*}[$start_class info heritage]] {
       set slotobj ${cl}::slot::$name
       if {[nsf::is object $slotobj]} {
@@ -2370,7 +2375,12 @@ namespace eval ::xowiki {
     return ""
   }
 
-  Page instproc find_slot {-start_class name} {
+  Page ad_instproc find_slot {-start_class name} {
+    Find a named slot for this page.
+    @param start_class Optional starting class, defaulting to the page class.
+    @param name Slot name.
+    @return The slot object or an empty string.
+  } {
     if {![info exists start_class]} {
       set start_class [:info class]
     }

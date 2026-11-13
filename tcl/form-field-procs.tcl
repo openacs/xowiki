@@ -235,10 +235,18 @@ namespace eval ::xowiki::formfield {
   #
   FormField set abstract 1
 
-  FormField proc fc_encode {string} {
+  FormField ad_proc fc_encode {string} {
+    Replace commas with the form-constraint placeholder.
+    @param string Value to encode.
+    @return The encoded value.
+  } {
     return [string map [list , __COMMA__] $string]
   }
-  FormField proc fc_decode {string} {
+  FormField ad_proc fc_decode {string} {
+    Restore commas encoded in a form-constraint value.
+    @param string Value to decode.
+    @return The decoded value.
+  } {
     return [string map [list __COMMA__ ,] $string]
   }
 
@@ -267,7 +275,10 @@ namespace eval ::xowiki::formfield {
   # Convenience functions forwarding to procs
   #
   FormField instforward dict_to_spec ::xowiki::formfield::dict_to_spec
-  FormField instforward dict_to_fc   ::xowiki::formfield::dict_to_fc
+  FormField ad_instforward dict_to_fc {
+    Convert a dictionary of field settings to form-constraint syntax.
+    @see xowiki::formfield::dict_to_fc
+  } ::xowiki::formfield::dict_to_fc
   FormField instforward dict_value   ::xowiki::formfield::dict_value
 
   #FormField instproc destroy {} {

@@ -157,7 +157,11 @@ namespace eval ::xowiki::includelet {
     string map [list \n \\n \" {\"} ' {\'}] $string
   }
 
-  ::xowiki::Includelet proc html_encode {string} {
+  ::xowiki::Includelet ad_proc html_encode {string} {
+    Escape ampersands, angle brackets, and quotes for HTML.
+    @param string Text to escape.
+    @return HTML-escaped text.
+  } {
     # &apos; is not a known entity to some validators, so we use the
     # numerical entity here for encoding "'"
     return [string map [list & "&amp;" < "&lt;" > "&gt;" \" "&quot;" ' "&#39;"] $string]
@@ -2342,7 +2346,14 @@ namespace eval ::xowiki::includelet {
     return $anchor
   }
 
-  toc instproc build_toc {package_id locale source range} {
+  toc ad_instproc -private build_toc {package_id locale source range} {
+    Collect pages for the table of contents and initialize navigation state.
+    @param package_id Package instance to query.
+    @param locale Locale used to filter pages.
+    @param source Optional source defining page order.
+    @param range Page order range to include.
+    @return The selected pages.
+  } {
     :get_parameters
     array set :navigation {parent "" position 0 current ""}
 
@@ -2626,7 +2637,11 @@ namespace eval ::xowiki::includelet {
      "
   }
 
-  toc instproc render_yui_list {{-full false} pages} {
+  toc ad_instproc -private render_yui_list {{-full false} pages} {
+    Render the table of contents with the YUI tree widget.
+    @param full Whether to include the full tree.
+    @param pages Pages to render.
+  } {
     :get_parameters
 
     #
@@ -2684,7 +2699,11 @@ namespace eval ::xowiki::includelet {
     return $HTML
   }
 
-  toc instproc render_list {{-full false} pages} {
+  toc ad_instproc -private render_list {{-full false} pages} {
+    Render the table of contents as a plain HTML list.
+    @param full Whether to include the full tree.
+    @param pages Pages to render.
+  } {
     :get_parameters
 
     #
@@ -2738,7 +2757,9 @@ namespace eval ::xowiki::includelet {
     }
   }
 
-  toc instproc initialize {} {
+  toc ad_instproc initialize {} {
+    Initialize navigation and rendering settings for the table of contents.
+  } {
     :get_parameters
     array set :navigation {count 0 position 0 current ""}
     set list_mode 0
@@ -2779,7 +2800,9 @@ namespace eval ::xowiki::includelet {
     set :book_mode $book_mode
   }
 
-  toc instproc render {} {
+  toc ad_instproc render {} {
+    Build the table of contents and render it with the selected renderer.
+  } {
     :get_parameters
 
     if {![info exists :id]} {
