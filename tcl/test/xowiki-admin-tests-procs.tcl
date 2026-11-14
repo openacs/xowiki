@@ -118,7 +118,7 @@ aa_register_case \
       "::xo::db::sql::content_folder proc new"
       "::xo::tdom::AttributeManager instproc get_local_attributes"
       "::xotcl::Object instproc unset"
-      "::template::CSS toolkit"
+      "::template::CSS proc toolkit"
       "::xowiki::File instproc www-download"
       "::xowiki::FormPage instproc is_folder_page"
       "::xowiki::FormPage instproc property"
