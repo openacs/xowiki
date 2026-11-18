@@ -772,7 +772,7 @@ namespace eval ::xowiki {
       -parameter {
         {field_list_top    {item_id name page_order title creator}}
         {field_list_bottom {page_template description nls_language}}
-        {f.name            "= inform"}
+        {f.name            "= hidden"}
         {f.page_template   {page_template:text(hidden)}}
         {f.nls_language    {nls_language:text(hidden)}}
         {with_categories   true}
