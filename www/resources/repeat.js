@@ -112,6 +112,7 @@ xowiki.repeat.newItem = function(e, json) {
     }
 
     this.registerAddDeleteAction(divs[last]);
+    item.parentNode.dispatchEvent(new Event("xowiki:repeat-update", { bubbles: true }));
 };
 
 
@@ -267,6 +268,14 @@ xowiki.repeat.delItem = function(e, json) {
         display = 'block';
     }
 
+    var container = item.parentNode;
+    if (!container.dispatchEvent(new Event("xowiki:repeat-before-delete", {
+        bubbles: true, cancelable: true
+    }))) {
+        container.dispatchEvent(new Event("xowiki:repeat-update", { bubbles: true }));
+        return false;
+    }
+
     console.log('delete ' + current);
 
     if (current == last) {
@@ -304,7 +313,7 @@ xowiki.repeat.delItem = function(e, json) {
 
             // textarea
             $(divs[k]).find('textarea').each(function() {
-                $(this).html($(this).val());
+                this.defaultValue = this.value;
             });
 
             var oldid = item.parentNode.id + '.' + k;
@@ -443,6 +452,7 @@ xowiki.repeat.delItem = function(e, json) {
             }
         }
     }
+    container.dispatchEvent(new Event("xowiki:repeat-update", { bubbles: true }));
     //console.log('final html ' + item.parentNode.innerHTML);
     return false;
 };

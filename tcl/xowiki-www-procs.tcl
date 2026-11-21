@@ -1049,8 +1049,12 @@ namespace eval ::xowiki {
 
   FormPage instproc action_url {} {
     #
-    # Can be overloaded.
+    # Can be overloaded. Keep the root folder distinct from its index
+    # page when the edit form is posted (including validation failures).
     #
+    if {[:is_package_root_folder]} {
+      return [export_vars -base [:pretty_link] {{folder 1}}]
+    }
     return [:pretty_link]
   }
 

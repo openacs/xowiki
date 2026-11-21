@@ -20,7 +20,7 @@ namespace eval ::xowiki {
         {f.page_order "="}
         {f.title "="}
         {f.creator "="}
-        {f.text "= richtext,extraPlugins=xowikiimage"}
+        {f.text "= richtext"}
         {f.description "="}
         {f.nls_language "="}
         {validate {
@@ -102,6 +102,13 @@ namespace eval ::xowiki {
                    -spec [lindex $__spec 1] \
                   ]
         #:log SPEC=[lindex $__spec 1]
+
+        # The xowikiimage plugin belongs to CKEditor 4. Choose the
+        # editor before applying the plugin to the default page body.
+        if {$__field eq "text" && [lindex $__spec 1] eq "richtext"
+            && [$f istype ::xowiki::formfield::richtext] && [$f editor] eq "ckeditor4"} {
+          $f extraPlugins xowikiimage
+        }
 
         if {[$f istype ::xowiki::formfield::richtext] &&
             [:folderspec] ne ""} {

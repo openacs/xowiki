@@ -1379,7 +1379,10 @@ namespace eval ::xowiki {
       # package If the method is "view", allow it to be called on the
       # root folder object.
       set m [:query_parameter m]
-      if {$m in {list show-object json file-upload}} {
+      # Explicit folder editing must resolve the root FormPage, while
+      # ordinary ?m=edit continues to edit the configured index page.
+      if {$m in {list show-object json file-upload}
+          || ($m eq "edit" && [:query_parameter folder:boolean 0])} {
         array set "" [list \
                           name [::${:folder_id} name] \
                           stripped_name [::${:folder_id} name] \

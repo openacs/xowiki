@@ -2045,7 +2045,15 @@ namespace eval ::xowiki {
   Page instproc save args {
     if {![:can_save]} {error "can't save this page under this parent"}
     ${:package_id} flush_page_fragment_cache
-    set id [next]
+    set drafts [::xowiki::markdown_image::drafts [self]]
+    if {[dict size $drafts] == 0} {
+      set id [next]
+    } else {
+      ::xo::dc transaction {
+        set id [next]
+        ::xowiki::markdown_image::attach [self] $drafts
+      }
+    }
     :check_unresolved_references
     return $id
   }
@@ -2059,7 +2067,15 @@ namespace eval ::xowiki {
   } {
     if {![:can_save]} {error "can't save this page under this parent"}
     ${:package_id} flush_page_fragment_cache
-    set id [next]
+    set drafts [::xowiki::markdown_image::drafts [self]]
+    if {[dict size $drafts] == 0} {
+      set id [next]
+    } else {
+      ::xo::dc transaction {
+        set id [next]
+        ::xowiki::markdown_image::attach [self] $drafts
+      }
+    }
     :check_unresolved_references
     return $id
   }

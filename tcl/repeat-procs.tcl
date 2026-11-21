@@ -77,7 +77,7 @@ namespace eval ::xowiki::formfield {
     return [list $is_required [join $result ,]]
   }
   repeatContainer instproc initialize {} {
-    ::xo::Page requireJS "/resources/xowiki/repeat.js"
+    ::xo::Page requireJS "/resources/xowiki/repeat.js?v=2"
     ::xo::Page requireJS urn:ad:js:jquery
 
     if {[info exists :__initialized_repeat]} {return}

@@ -243,6 +243,12 @@ namespace eval ::xowiki {
                         -link $folder_link \
                         ${:current_folder} list]
 
+    # Check the ordinary edit policy on the folder, not its index page.
+    # The root selector is retained by the folder's form submission URL.
+    set edit_folder_link [::$package_id make_link \
+                              -link $folder_link \
+                              ${:current_folder} edit {folder 1}]
+
     set admin_link [::$package_id make_link -privilege admin \
                         -link admin/ ::$package_id]
     dict with bind_vars {
@@ -258,6 +264,7 @@ namespace eval ::xowiki {
 
     :add_menu_item -name Package.Startpage -item [list url $folder_link]
     :add_menu_item -name Package.Toc -item [list url $index_link]
+    :add_menu_item -name Package.EditFolder -item [list url $edit_folder_link]
 
     if {[::$package_id get_parameter with_notifications:boolean 1]} {
       if {[::xo::cc user_id] != 0} {
@@ -317,6 +324,15 @@ namespace eval ::xowiki {
     }
 
     :add_menu_item -name New.Page   -item [list url $new_page_link]
+    if {[apm_package_installed_p richtext-markdown]} {
+      # Use a dedicated form to select Markdown independently of the
+      # instance's PreferredRichtextEditor setting.
+      set new_markdown_page_link [::$package_id make_form_link \
+                                      -form en:markdown.form \
+                                      -parent_id ${:parent_id} \
+                                      -return_url $return_url]
+      :add_menu_item -name New.MarkdownPage -item [list url $new_markdown_page_link]
+    }
     :add_menu_item -name New.File   -item [list url $new_file_link]
     :add_menu_item -name New.Folder -item [list url $new_folder_link]
 

@@ -163,8 +163,10 @@
   <msg key="menu-New-Folder">Carpeta</msg>
   <msg key="menu-New-Form">Nuevo formulario</msg>
   <msg key="menu-New-Page">Página</msg>
+  <msg key="menu-New-MarkdownPage">Página Markdown</msg>
   <msg key="menu-New-SymLink">Enlace simbólico</msg>
   <msg key="menu-Package-Admin">Admin</msg>
+  <msg key="menu-Package-EditFolder">Editar carpeta</msg>
   <msg key="menu-Package-ImportArchive">Importar archivo</msg>
   <msg key="menu-Package-ImportDump">Importar &#34;dump&#34;</msg>
   <msg key="menu-Package-Notifications">Notificaciones</msg>

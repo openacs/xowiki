@@ -176,8 +176,10 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="menu-New-Folder">Folder</msg>
   <msg key="menu-New-Form">New Form</msg>
   <msg key="menu-New-Page">Page</msg>
+  <msg key="menu-New-MarkdownPage">Markdown Page</msg>
   <msg key="menu-New-SymLink">Symbolic Link</msg>
   <msg key="menu-Package-Admin">Admin</msg>
+  <msg key="menu-Package-EditFolder">Edit Folder</msg>
   <msg key="menu-Package-ImportArchive">Import Archive</msg>
   <msg key="menu-Package-ImportDump">Import Dump</msg>
   <msg key="menu-Package-Notifications">Manage Notifications</msg>

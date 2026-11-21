@@ -4307,6 +4307,77 @@ namespace eval ::xowiki::formfield {
 
   ###########################################################
   #
+  # ::xowiki::formfield::richtext::markdown
+  #
+  ###########################################################
+
+  Class create richtext::markdown -superclass richtext -parameter {
+    {rows 4}
+  } -ad_doc {
+    Markdown editor with Write and Preview modes. Stores HTML and uses
+    the richtext-markdown package for editing.
+  }
+
+  richtext::markdown set editor_mixin 1
+
+  richtext::markdown instproc image_upload_url {} {
+    if {![:paste] || [ad_conn user_id] == 0
+        || [namespace which ::attachments::richtext::file_attach] eq ""} {
+      return ""
+    }
+    set package_id [${:object} package_id]
+    set parent_id [expr {[${:object} exists parent_id] ? [${:object} parent_id] : 0}]
+    if {$parent_id <= 0} {
+      set parent_id [::$package_id folder_id]
+    }
+    if {![permission::permission_p -object_id $parent_id -privilege create]} {
+      return ""
+    }
+    return [export_vars -base [::$package_id package_url]markdown-image-upload {parent_id}]
+  }
+
+  richtext::markdown instproc asWidgetSpec {} {
+    # WikiForm renders through ad_form, independently of render_input.
+    if {[namespace which ::richtext::markdown::add_editor] eq ""} {
+      return [next]
+    }
+    set spec [next]
+    set image_upload_url [:image_upload_url]
+    if {$image_upload_url ne ""} {
+      set spec [lmap part $spec {
+        if {[lindex $part 0] eq "options"} continue
+        set part
+      }]
+      set options [expr {[info exists :options] ? ${:options} : {}}]
+      lappend spec [list options [dict merge $options [list editor markdown image_upload_url $image_upload_url]]]
+    }
+    lappend spec {htmlarea_p 1}
+    return $spec
+  }
+
+  richtext::markdown instproc render_input {} {
+    set is_repeat_template [:is_repeat_template_p]
+    if {[:is_disabled] && !$is_repeat_template} {
+      :render_as_div
+      return
+    }
+
+    if {[namespace which ::richtext::markdown::add_editor] ne ""} {
+      set :data-repeat-template-id ${:id}
+      if {$is_repeat_template} {
+        ::template::head::add_javascript -defer -order 10.5 -src /resources/xowiki/markdown-repeat.js
+      }
+      # The textarea autosave endpoint expects plain text in a named textarea.
+      set :autosave false
+      ::richtext::markdown::add_editor -text_id ${:id} -contents [:value] \
+          -format_field=false -repeat_template=$is_repeat_template \
+          -image_upload_url [:image_upload_url]
+    }
+    next
+  }
+
+  ###########################################################
+  #
   # ::xowiki::formfield::ShuffleField
   #
   ###########################################################

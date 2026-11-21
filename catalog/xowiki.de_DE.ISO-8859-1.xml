@@ -160,8 +160,10 @@
   <msg key="menu-New-Folder">Ordner</msg>
   <msg key="menu-New-Form">Neues Formular</msg>
   <msg key="menu-New-Page">Seite</msg>
+  <msg key="menu-New-MarkdownPage">Markdown-Seite</msg>
   <msg key="menu-New-SymLink">Symbolischer Link</msg>
   <msg key="menu-Package-Admin">Admin</msg>
+  <msg key="menu-Package-EditFolder">Ordner bearbeiten</msg>
   <msg key="menu-Package-ImportArchive">Archiv importieren</msg>
   <msg key="menu-Package-ImportDump">Dump importieren</msg>
   <msg key="menu-Package-Notifications">Benachrichtigungen</msg>

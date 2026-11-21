@@ -166,8 +166,10 @@
   <msg key="menu-New-Folder">Cartella</msg>
   <msg key="menu-New-Form">Nuova Form</msg>
   <msg key="menu-New-Page">Pagina</msg>
+  <msg key="menu-New-MarkdownPage">Pagina Markdown</msg>
   <msg key="menu-New-SymLink">Link Simbolico</msg>
   <msg key="menu-Package-Admin">Amministratore</msg>
+  <msg key="menu-Package-EditFolder">Modifica cartella</msg>
   <msg key="menu-Package-ImportArchive">Importa Archivio</msg>
   <msg key="menu-Package-ImportDump">Importa Dump</msg>
   <msg key="menu-Package-Notifications">Notifiche</msg>
