@@ -22,28 +22,12 @@ if {[nsv_exists xowiki must_update_hkeys]
   ns_log error "xowiki-init:  require_site_wide_pages lead to: $errmsg"
 }
 
-set ::xowiki::search_mounted_p 1
-set search_driver [parameter::get_from_package_key -package_key search \
-                       -parameter FtsEngineDriver]
-
-#
-# Check, if search is configured. If not, we do not want to offer
-# e.g. a search link.
-#
-# For the time being, the check is just for xowiki, but in general, we
-# might want to have more global option, which allows one to check for
-# example, if search is available for a certain subsite (when search
-# is subsite aware).
-#
-if { [site_node::get_package_url -package_key search] eq "" } {
+# Offer XoWiki search controls only when Search is mounted and has a usable driver.
+set ::xowiki::search_mounted_p 0
+if {[site_node::get_package_url -package_key search] eq ""} {
   ns_log notice "xowiki: Search package is not mounted."
-  set ::xowiki::search_mounted_p 0
-} elseif { $search_driver eq ""} {
-  ns_log Warning "xowiki: FtsEngineDriver parameter in package search is empty."
-  set ::xowiki::search_mounted_p 0
-} elseif { [apm_package_id_from_key $search_driver] == 0} {
-  ns_log Warning "xowiki Search driver $search_driver is not installed."
-  set ::xowiki::search_mounted_p 0
+} elseif {[info commands ::search::driver_name] eq "" || [::search::driver_name] eq ""} {
+  ns_log warning "xowiki: Search is mounted but has no usable driver."
 } else {
   set ::xowiki::search_mounted_p 1
 }
