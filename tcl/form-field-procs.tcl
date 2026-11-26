@@ -4312,7 +4312,7 @@ namespace eval ::xowiki::formfield {
   ###########################################################
 
   Class create richtext::markdown -superclass richtext -parameter {
-    {rows 4}
+    {rows 24}
   } -ad_doc {
     Markdown editor with Write and Preview modes. Stores HTML and uses
     the richtext-markdown package for editing.
