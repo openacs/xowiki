@@ -4321,8 +4321,7 @@ namespace eval ::xowiki::formfield {
   richtext::markdown set editor_mixin 1
 
   richtext::markdown instproc image_upload_url {} {
-    if {![:paste] || [ad_conn user_id] == 0
-        || [namespace which ::attachments::richtext::file_attach] eq ""} {
+    if {![:paste] || [ad_conn user_id] == 0} {
       return ""
     }
     set package_id [${:object} package_id]
@@ -4333,7 +4332,8 @@ namespace eval ::xowiki::formfield {
     if {![permission::permission_p -object_id $parent_id -privilege create]} {
       return ""
     }
-    return [export_vars -base [::$package_id package_url]markdown-image-upload {parent_id}]
+    set page_id [expr {[${:object} exists item_id] ? [${:object} item_id] : 0}]
+    return [export_vars -base [::$package_id package_url]markdown-image-upload {parent_id page_id}]
   }
 
   richtext::markdown instproc asWidgetSpec {} {

@@ -2049,9 +2049,15 @@ namespace eval ::xowiki {
     if {[dict size $drafts] == 0} {
       set id [next]
     } else {
-      ::xo::dc transaction {
-        set id [next]
-        ::xowiki::markdown_image::attach [self] $drafts
+      set originals [::xowiki::markdown_image::prepare [self] $drafts]
+      try {
+        ::xo::dc transaction {
+          set id [next]
+          ::xowiki::markdown_image::attach [self] $drafts
+        }
+      } on error {message options} {
+        dict for {slot value} $originals {:set $slot $value}
+        return -options $options $message
       }
     }
     :check_unresolved_references
@@ -2071,9 +2077,15 @@ namespace eval ::xowiki {
     if {[dict size $drafts] == 0} {
       set id [next]
     } else {
-      ::xo::dc transaction {
-        set id [next]
-        ::xowiki::markdown_image::attach [self] $drafts
+      set originals [::xowiki::markdown_image::prepare [self] $drafts]
+      try {
+        ::xo::dc transaction {
+          set id [next]
+          ::xowiki::markdown_image::attach [self] $drafts
+        }
+      } on error {message options} {
+        dict for {slot value} $originals {:set $slot $value}
+        return -options $options $message
       }
     }
     :check_unresolved_references
