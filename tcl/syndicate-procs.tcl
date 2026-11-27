@@ -265,6 +265,11 @@ namespace eval ::xowiki {
       -parameter {user_id {limit 1000}}
 
   Timeline instproc render {} {
+    # The view layer uses these parameters to return the XML without
+    # the page master or the HTML content footer.
+    ::xo::cc set_parameter master 0
+    ::xo::cc set_parameter content-type application/xml
+
     set folder_ids [::${:package_id} folder_id]
     set where_clause ""
     set limit ""
@@ -353,13 +358,11 @@ namespace eval ::xowiki {
       }
       set stamp [clock format [$i set clock] -format "%b %d %Y %X %Z" -gmt true]
       set user [::xo::get_user_name [$i set creation_user]]
-      append result [:tag -atts [list \
-                                     start $stamp \
-                                     title $title \
-                                     link [::${:package_id} pretty_link \
-                                               -parent_id [$i set parent_id] \
-                                               [$i set name]]] \
-                         event $event]  \n
+      set link [::${:package_id} pretty_link -parent_id [$i set parent_id] [$i set name]]
+      set attributes [list start $stamp \
+                           title [string map ${:xmlMap} $title] \
+                           link [string map ${:xmlMap} $link]]
+      append result [:tag -atts $attributes event $event] \n
     }
     append result </data>\n
     return $result
