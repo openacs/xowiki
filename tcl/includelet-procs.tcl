@@ -2216,6 +2216,28 @@ namespace eval ::xowiki::includelet {
   # includelets based on order
   #
   Class create PageReorderSupport
+
+  PageReorderSupport instproc valid_page_order_p {includelet orderby} {
+    set parts [split $orderby ,]
+    lassign $parts attribute direction
+    if {$attribute in {page_order title}
+        && $direction in {asc desc ""}
+        && [llength $parts] <= 2} {
+      return 1
+    }
+
+    # Use the same caller as get_parameters. Request parameters share
+    # orderby with sortable tables and can legitimately contain other keys.
+    set source [expr {[info exists :__caller_parameters]
+                      ? [self] : [:info parent]}]
+    $source instvar __caller_parameters
+    if {[info exists __caller_parameters]
+        && [dict exists $__caller_parameters -orderby]} {
+      ns_log warning "$includelet includelet: ignore invalid page order '$orderby'"
+    }
+    return 0
+  }
+
   PageReorderSupport instproc page_reorder_check_allow {
     {-with_head_entries true}
     allow_reorder
@@ -2373,8 +2395,7 @@ namespace eval ::xowiki::includelet {
       set page_order_att ""
     } elseif {$orderby ne ""} {
       lassign [split $orderby ,] order_attribute order_direction
-      if {$order_attribute ni {page_order title}} {
-        ns_log warning "toc includelet: ignore invalid page order '$orderby'"
+      if {![:valid_page_order_p toc $orderby]} {
         set order_attribute page_order
         set order_direction asc
         set page_order_att "page_order,"
@@ -3185,8 +3206,7 @@ namespace eval ::xowiki::includelet {
     set allow_reorder [:page_reorder_check_allow $allow_reorder]
 
     lassign [split $orderby ,] order_attribute order_direction
-    if {$order_attribute ni {page_order title}} {
-      ns_log warning "book includelet: ignore invalid page order '$orderby'"
+    if {![:valid_page_order_p book $orderby]} {
       set order_attribute page_order
       set order_direction asc
     }
