@@ -3222,7 +3222,7 @@ namespace eval ::xowiki {
     #
     # handle footer
     #
-    if {$with_footer && [::xo::cc get_parameter content-type:graph text/html] eq "text/html"} {
+    if {$with_footer && [::xo::cc get_parameter content-type text/html] eq "text/html"} {
       append content "<DIV class='content-chunk-footer'>"
       if {![info exists :__no_footer] && ![::xo::cc get_parameter __no_footer:boolean 0]} {
         append content [:footer]

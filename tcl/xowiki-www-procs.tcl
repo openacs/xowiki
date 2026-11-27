@@ -2287,7 +2287,7 @@ namespace eval ::xowiki {
         }
       }
     } else {
-      set :mime_type [::xo::cc get_parameter content-type:graph text/html]
+      set :mime_type [::xo::cc get_parameter content-type text/html]
       return $content
     }
   }
