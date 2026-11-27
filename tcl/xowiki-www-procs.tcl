@@ -2287,7 +2287,9 @@ namespace eval ::xowiki {
         }
       }
     } else {
-      set :mime_type [::xo::cc get_parameter content-type text/html]
+      set content_type [::xo::cc get_parameter content-type text/html]
+      set :mime_type [::xo::validate_parameter_constraints content-type graph $content_type]
+      ::$context_package_id set mime_type ${:mime_type}
       return $content
     }
   }
