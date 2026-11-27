@@ -3967,24 +3967,19 @@ namespace eval ::xowiki::includelet {
       return "You must login to see the [namespace tail [self class]]"
     }
 
-    set tmp_table_name XOWIKI_TMP_ACTIVITY
-    #:msg "tmp exists [::xo::db::require exists_table $tmp_table_name]"
-    set tt [::xo::db::temp_table new \
-                -name $tmp_table_name \
-                -query [::xo::dc select \
-                            -vars "i.item_id, revision_id, creation_user" \
-                            -from "cr_revisions cr, cr_items i, acs_objects o" \
-                            -where "cr.item_id = i.item_id \
+    set recent_activities [::xo::dc select \
+                               -vars "i.item_id, revision_id, creation_user" \
+                               -from "cr_revisions cr, cr_items i, acs_objects o" \
+                               -where "cr.item_id = i.item_id \
                             and i.parent_id = [ns_dbquotevalue [::$package_id folder_id]] \
                             and o.object_id = revision_id" \
-                            -orderby "revision_id desc" \
-                            -limit $max_activities] \
-                -vars "item_id, revision_id, creation_user"]
+                               -orderby "revision_id desc" \
+                               -limit $max_activities]
 
     set total 0
     ::xo::dc foreach get_activities "
       select count(revision_id) as count, item_id, creation_user
-      from $tmp_table_name
+      from ($recent_activities) recent_activities
       where creation_user is not null
       group by item_id, creation_user
    " {
@@ -3995,7 +3990,6 @@ namespace eval ::xowiki::includelet {
       incr $count_var $count
       set user($creation_user) "[::xo::get_user_name $creation_user] ([set $count_var])"
     }
-    $tt destroy
 
     if {[array size i] == 0} {
       append result "<p>No activities found</p>"
